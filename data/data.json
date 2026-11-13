@@ -2868,7 +2868,15 @@
       "energy": null
     }
   ],
-  "todos": [],
+  "todos": [
+    {
+      "id": "mwfdbq5k-f88s9",
+      "text": "asdasdads",
+      "done": false,
+      "by": "karip",
+      "at": "2026-11-13T19:26:59.624Z"
+    }
+  ],
   "auth": {
     "v": 1,
     "iterations": 600000,
