@@ -20,6 +20,12 @@ assets/js/merge.js             Kaydetme çakışmasında birleştirme
 data/data.json                 Tüm veri + şifreli hesaplar (auth)
 scripts/fetch-characters.mjs   Gear çeken script (Node 20+, bağımlılık yok)
 .github/workflows/update.yml   Zamanlanmış gear güncellemesi
+.github/workflows/inbox.yml    Ekran izleyici kayıtlarını data.json'a uygular
+scripts/apply-inbox.mjs        data/inbox/ işlemlerini uygulayan script
+tools/izleyici/                Ekran izleyici (Baslat.bat + izleyici.ps1)
+assets/js/ops.js               Anında kaydedilen işlemler (liste, zindan, enerji)
+assets/js/dungeons.js          Zindan garanti sayaçları
+assets/js/todos.js             Yapılacaklar listesi
 ```
 
 ---
@@ -147,6 +153,28 @@ node scripts/fetch-characters.mjs --only Kyrakia            # çek ve data.json 
 node scripts/fetch-characters.mjs --dry-run --only Kyrakia  # sadece göster, dosyaya yazma
 node scripts/fetch-characters.mjs                           # "fetch": false olmayan herkesi güncelle
 ```
+
+## 6b. Ekran izleyici (otomatik enerji ve zindan sayacı)
+
+`tools/izleyici/` klasöründeki küçük program, oyundaki **Odyle Energy Cube** (ödül kutusu) penceresini ekrandan okur:
+
+- **Pencere açılınca:** sağ üstteki enerjiyi (ör. `0(+845)/840`) ve zindanın garanti sayacını (ör. `20/28`) okuyup sitedekiyle **eşitler**.
+- **Pencere kapanınca:** Open'a basıldığını varsayar. Enerjiden maliyeti düşer (önce zamanla dolan, sonra ek kısım) ve garanti sayacını kutu sayısı kadar ilerletir.
+- **Cancel'a basıldıysa:** bir sonraki açılışta ekrandan okunan değerlerle kendiliğinden düzelir. Yanlış bir kayıt olursa programdaki **Geri al** butonu da var.
+- Oyuna, oyun dosyalarına ve ağ trafiğine **dokunmaz**, klavye ve fare dinlemez. Sadece ekran görüntüsü alır ve Windows'un yerleşik yazı tanımasını kullanır.
+- **Performans:** normalde sadece "Open" butonunun olduğu küçük bir alana bakar, bu da neredeyse sıfır yük demek. Yazı tanıma sadece pencere açıkken çalışır.
+
+**Kurulum (ikiniz de, kurulum gerektirmez):**
+
+1. GitHub'da repo sayfası → **Code → Download ZIP**. ZIP'i aç ve `tools/izleyici` klasörünü istediğin bir yere kopyala.
+2. `Baslat.bat` dosyasına çift tıkla. Windows "bilinmeyen yayıncı" uyarısı verirse: dosyaya sağ tık → **Özellikler** → alttaki **Engellemeyi kaldır** → Tamam.
+3. Programda **site kullanıcı adın ve şifrenle** giriş yap. "Beni hatırla" işaretliyse bir dahaki sefere sormaz.
+4. **Aktif karakter** listesinden o an oynadığın karakteri seç. Karakter değiştirince burayı da değiştir.
+5. Oyunu **çerçevesiz pencere** modunda, **ana ekranda** oyna.
+
+**İlk kullanımda kontrol:** ödül penceresi açıkken programdaki **"Ekranı şimdi oku (test)"** butonuna bas. Günlükte zindan, maliyet, kutu, garanti ve enerji değerleri doğru görünmeli. Yanlışsa programın kaydettiği ekran görüntüsünü bana gönder. Konum günlükte yazar: `%APPDATA%\aion2-izleyici`.
+
+**Kayıtlar siteye nasıl gelir?** Program her olayı repodaki `data/inbox/` klasörüne küçük bir dosya olarak gönderir. **Izleyici kayıtlarını uygula** workflow'u (`.github/workflows/inbox.yml`) bunları sitenin kullandığı kurallarla (`assets/js/ops.js`) `data.json`'a uygular. Siteye yansıması yaklaşık yarım dakika sürer, canlı yenileme sayesinde F5 gerekmez.
 
 ## 7. İlk çalıştırma kontrol listesi
 

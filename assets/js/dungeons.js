@@ -14,6 +14,7 @@
 //        → kutu açıldı: enerjiden `cost` düşülür, sayaç `boxes` kadar ilerler.
 //          `seen` = ekranda okunan sayaç (açmadan önce). Verilirse sayaç önce ona eşitlenir.
 //   { type: 'energyRefund',  charId, amount, at, by }   → yanlış sayılan harcamayı geri ekler (ek kısma)
+//   { type: 'energySync',    charId, natural, bonus, max?, at, by } → ekrandan okunan gerçek değer (ör. 0(+845)/840)
 
 import { spendEnergy, energyCfg, bonusOf } from './energy.js';
 
@@ -36,7 +37,7 @@ function upsert(ch, name, patch) {
 
 // data'yı yerinde değiştirir; bir şey değiştiyse true döner. Tanımadığı op'ta null (başka modülün işi).
 export function applyDungeonOp(data, op) {
-  if (!['dungeonSet', 'dungeonDelta', 'dungeonDelete', 'dungeonOpen', 'energyRefund'].includes(op.type)) return null;
+  if (!['dungeonSet', 'dungeonDelta', 'dungeonDelete', 'dungeonOpen', 'energyRefund', 'energySync'].includes(op.type)) return null;
   const ch = (data.characters || []).find((c) => c.id === op.charId);
   if (!ch) return false;
   const stamp = { updatedAt: op.at || new Date().toISOString(), updatedBy: op.by || null };
@@ -76,6 +77,15 @@ export function applyDungeonOp(data, op) {
       }
       return true;
     }
+    case 'energySync': {
+      const natural = Math.max(0, Math.round(Number(op.natural) || 0));
+      const bonus = Math.max(0, Math.round(Number(op.bonus) || 0));
+      const cfgMax = Number(data.config?.energy?.max) || 0;
+      // Ekrandaki sınır genel ayardan farklıysa (ör. aboneliksiz 560) karaktere özel sınır olarak sakla.
+      if (op.max > 0) { if (op.max !== cfgMax) ch.energyMax = op.max; else delete ch.energyMax; }
+      ch.energy = { value: natural, setAt: stamp.updatedAt, bonus, editedAt: stamp.updatedAt, setBy: op.by || null };
+      return true;
+    }
     case 'energyRefund': {
       if (!(op.amount > 0)) return false;
       ch.energy = { ...(ch.energy || {}), bonus: bonusOf(ch.energy) + op.amount, editedAt: stamp.updatedAt, setBy: op.by || null };
@@ -97,6 +107,7 @@ export function dungeonOpMessage(op, data, by) {
     case 'dungeonDelete': return `${name}: ${op.name} sayacı silindi${who}`;
     case 'dungeonOpen': return `${name}: ${op.name} ${op.boxes} kutu, −${op.cost} enerji →${state}${op.auto ? ' (otomatik)' : ''}${who}`;
     case 'energyRefund': return `${name}: +${op.amount} enerji geri eklendi${who}`;
+    case 'energySync': return `${name}: enerji ekrandan okundu ${op.natural}(+${op.bonus})${op.max ? `/${op.max}` : ''}${op.auto ? ' (otomatik)' : ''}${who}`;
     default: return `${name}: güncellendi${who}`;
   }
 }

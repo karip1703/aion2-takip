@@ -1,0 +1,46 @@
+name: Izleyici kayıtlarını uygula
+
+# Ekran okuma programı data/inbox/ içine dosya bıraktığında çalışır:
+# işlemleri data.json'a uygular, inbox dosyalarını siler, tek commit atar.
+on:
+  push:
+    paths:
+      - 'data/inbox/**'
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+# Gear güncellemesiyle aynı grup: ikisi aynı anda push etmeye çalışmasın.
+concurrency:
+  group: update-data
+  cancel-in-progress: false
+
+jobs:
+  apply:
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    steps:
+      - uses: actions/checkout@v7
+
+      - uses: actions/setup-node@v7
+        with:
+          node-version: 22
+
+      - name: Uygula, commit + push
+        run: |
+          set -e
+          git config user.name  "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          for i in 1 2 3; do
+            git fetch origin "${GITHUB_REF_NAME}"
+            git reset --hard "origin/${GITHUB_REF_NAME}"
+            node scripts/apply-inbox.mjs
+            git add -A data/
+            if git diff --cached --quiet; then echo "Uygulanacak bir şey yok."; exit 0; fi
+            git commit -F .cache/inbox-message.txt
+            if git push origin "HEAD:${GITHUB_REF_NAME}"; then echo "Push başarılı."; exit 0; fi
+            echo "Push reddedildi, yeniden deneniyor ($i/3)…"
+            sleep $((i * 3))
+          done
+          exit 1

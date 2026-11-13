@@ -10,7 +10,7 @@ export function applyOp(data, op) {
 }
 
 export function opMessage(op, data, by) {
-  return op.type.startsWith('dungeon') || op.type === 'energyRefund'
+  return op.type.startsWith('dungeon') || op.type.startsWith('energy')
     ? dungeonOpMessage(op, data, by)
     : todoCommitMessage(op, data, by);
 }
