@@ -18,6 +18,10 @@
       "bonusSteps": [
         10,
         40
+      ],
+      "spendSteps": [
+        40,
+        80
       ]
     },
     "nearFullHours": 3

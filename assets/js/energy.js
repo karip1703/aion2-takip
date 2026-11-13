@@ -90,6 +90,27 @@ export function setEnergy(value, now = Date.now()) {
   return { value: Math.max(0, Math.round(Number(value) || 0)), setAt: new Date(now).toISOString() };
 }
 
+// Oyundaki harcama sırası: önce zamanla dolan (doğal) enerji, yetmezse ek (+) enerji.
+// Örn. 45 + 1710 varken 80 harcanırsa → 0 + 1675.
+// Dönüş: yeni { value, setAt, bonus } + bilgi için { fromNatural, fromBonus, short }.
+export function spendEnergy(energy, cfg, amount, now = Date.now()) {
+  const amt = Math.max(0, Math.round(Number(amount) || 0));
+  const st = energyState(energy, cfg, now);
+  const natural = st.known ? st.current : 0;
+  const fromNatural = Math.min(natural, amt);
+  const fromBonus = Math.min(st.bonus, amt - fromNatural);
+  // Doğal kısım tik fazı korunarak düşülür (full idiyse dolum harcama anından başlar).
+  const nat = adjustEnergy(st.known ? energy : { value: 0, setAt: new Date(now).toISOString() }, cfg, -fromNatural, now);
+  return {
+    value: nat.value,
+    setAt: nat.setAt,
+    bonus: st.bonus - fromBonus,
+    fromNatural,
+    fromBonus,
+    short: amt - fromNatural - fromBonus, // yetmeyen miktar (normalde 0)
+  };
+}
+
 // Ek (+) enerji: zaman bilgisi yok, doğal enerjinin tik fazına dokunmaz.
 export const adjustBonus = (energy, delta) => ({ bonus: Math.max(0, bonusOf(energy) + Math.round(delta)) });
 export const setBonus = (value) => ({ bonus: Math.max(0, Math.round(Number(value) || 0)) });

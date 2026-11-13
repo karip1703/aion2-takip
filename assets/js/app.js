@@ -3,8 +3,9 @@ import {
   unlock, encryptAccount, hasAccounts, getSession, setSession, clearSession, normUser, DEFAULT_ITERATIONS, MIN_PASSWORD,
 } from './auth.js';
 import { applyEnergyEdits, editTime } from './merge.js';
-import { renderTodos, applyTodoOp, newTodo, todoCommitMessage } from './todos.js';
-import { adjustEnergy, setEnergy, adjustBonus, setBonus, energyCfg } from './energy.js';
+import { renderTodos, newTodo } from './todos.js';
+import { applyOp, opMessage } from './ops.js';
+import { adjustEnergy, setEnergy, adjustBonus, setBonus, energyCfg, spendEnergy } from './energy.js';
 import {
   renderCards, updateEnergyLive, renderCompare, effEnergy, fmtAgo, fmtDate, esc, itemDetailHtml, charDialogHtml, CHAR_TABS,
 } from './render.js';
@@ -202,6 +203,16 @@ function setEdit(id, patch) {
 }
 
 $('#view-cards').addEventListener('click', (e) => {
+  // "Harca" butonları: önce zamanla dolan, sonra ek (+) kısımdan düşer.
+  const sp = e.target.closest('[data-spend]');
+  if (sp && canEdit()) {
+    const id = sp.closest('.card').dataset.id;
+    const ch = state.data.characters.find((c) => c.id === id);
+    const r = spendEnergy(effEnergy(ch, state.edits), energyCfg(state.data, ch), Number(sp.dataset.spend));
+    setEdit(id, { value: r.value, setAt: r.setAt, bonus: r.bonus });
+    if (r.short) status(`${esc(ch.name)}: enerji yetmedi, ${r.short} eksik kaldı (değer 0'a indi).`, 'error');
+    return;
+  }
   const btn = e.target.closest('[data-delta]');
   if (!btn || !canEdit()) return;
   const id = btn.closest('.card').dataset.id;
@@ -244,21 +255,24 @@ function renderTodosNow() {
   if (again) { again.value = draft; if (focused) again.focus(); }
 }
 
+// Anında kaydedilen işlemler (yapılacaklar + zindan sayaçları) için ortak giriş.
 function todoAction(op) {
   if (!canEdit() || !state.data) return;
-  applyTodoOp(state.data, op); // iyimser: hemen göster
+  applyOp(state.data, op); // iyimser: hemen göster
   pendingTodoOps.push(op);
   renderTodosNow();
+  if (charDlg.open && charCur) showChar(charCur.id, charCur.tab);
   todoChain = todoChain.then(() => commitTodo(op));
 }
+const dataAction = todoAction;
 
 async function commitTodo(op) {
   try {
     for (let attempt = 0; attempt < 4; attempt++) {
       const f = await gh.getFile();
       const remote = JSON.parse(f.text);
-      const msg = todoCommitMessage(op, remote, state.login);
-      if (!applyTodoOp(remote, op)) { adoptRemote(remote, f.sha, op); return; } // zaten uygulanmış / madde yok
+      if (!applyOp(remote, op)) { adoptRemote(remote, f.sha, op); return; } // zaten uygulanmış / madde yok
+      const msg = opMessage(op, remote, state.login); // uygulandıktan sonra: yeni değerler mesajda görünsün
       try {
         const r = await gh.putFile(gh.stringifyData(remote), f.sha, msg);
         adoptRemote(remote, r.sha, op);
@@ -271,7 +285,7 @@ async function commitTodo(op) {
     throw new Error('Dosya art arda değişti, tekrar dene');
   } catch (e) {
     pendingTodoOps.splice(pendingTodoOps.indexOf(op), 1);
-    status(`Liste kaydedilemedi: ${esc(e.message)}`, 'error', true);
+    status(`Kaydedilemedi: ${esc(e.message)}`, 'error', true);
     await load();
   }
 }
@@ -279,12 +293,13 @@ async function commitTodo(op) {
 // Kaydedilen güncel dosyayı benimse; henüz kaydedilmemiş diğer işlemleri üstüne yeniden uygula.
 function adoptRemote(remote, sha, doneOp) {
   pendingTodoOps.splice(pendingTodoOps.indexOf(doneOp), 1);
-  for (const op of pendingTodoOps) applyTodoOp(remote, op);
+  for (const op of pendingTodoOps) applyOp(remote, op);
   state.data = remote;
   state.sha = sha;
   state.source = 'api';
   renderTodosNow();
   tick();
+  if (charDlg.open && charCur) showChar(charCur.id, charCur.tab); // zindan sayaçları vb.
 }
 
 $('#todos').addEventListener('submit', (e) => {
@@ -603,7 +618,7 @@ function showChar(id, tab = charCur?.tab || 'gear') {
   if (!CHAR_TABS.some((t) => t.id === tab)) tab = 'gear';
   charCur = { id, tab };
   lsSet('aion2.charTab', tab);
-  $('#char-body').innerHTML = charDialogHtml(ch, tab);
+  $('#char-body').innerHTML = charDialogHtml(ch, tab, { editable: canEdit() });
   if (!charDlg.open) charDlg.showModal();
 }
 
@@ -618,6 +633,37 @@ charDlg.addEventListener('click', (e) => {
   const t = e.target.closest('.cd-tab');
   if (t && charCur) showChar(charCur.id, t.dataset.tab);
   if (e.target === charDlg) charDlg.close();
+
+  // Zindanlar sekmesi: −1 / +1 / düzenle / sil
+  const b = e.target.closest('[data-dg]');
+  if (b && charCur && canEdit()) {
+    const name = b.closest('[data-dungeon]').dataset.dungeon;
+    const ch = state.data.characters.find((c) => c.id === charCur.id);
+    const d = (ch.dungeons || []).find((x) => x.name === name);
+    const base = { charId: ch.id, name, at: new Date().toISOString(), by: state.login };
+    if (b.dataset.dg === 'inc') dataAction({ ...base, type: 'dungeonDelta', delta: 1 });
+    if (b.dataset.dg === 'dec') dataAction({ ...base, type: 'dungeonDelta', delta: -1 });
+    if (b.dataset.dg === 'del' && confirm(`${name} sayacı silinsin mi?`)) dataAction({ ...base, type: 'dungeonDelete' });
+    if (b.dataset.dg === 'edit') {
+      const v = prompt(`${name} — yeni değer (şu an / sınır):`, `${d?.count ?? 0}/${d?.max ?? ''}`);
+      const m = v && v.match(/^\s*(\d+)\s*(?:\/\s*(\d+))?\s*$/);
+      if (v != null && !m) status('Değer "16/28" biçiminde olmalı.', 'error');
+      if (m) dataAction({ ...base, type: 'dungeonSet', count: Number(m[1]), max: Number(m[2] ?? d?.max ?? 0) });
+    }
+  }
+});
+charDlg.addEventListener('submit', (e) => {
+  const f = e.target.closest('[data-dg-form]');
+  if (!f || !charCur || !canEdit()) return;
+  e.preventDefault();
+  const fd = new FormData(f);
+  const name = String(fd.get('name') || '').trim();
+  if (!name) return;
+  dataAction({
+    type: 'dungeonSet', charId: charCur.id, name,
+    count: Number(fd.get('count') || 0), max: Number(fd.get('max') || 0),
+    at: new Date().toISOString(), by: state.login,
+  });
 });
 $('#char-close').addEventListener('click', () => charDlg.close());
 

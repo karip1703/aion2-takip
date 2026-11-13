@@ -55,6 +55,7 @@ function cardHtml(ch, config, steps, ctx) {
   const eName = esc(config.energy?.name || 'Enerji');
   const dis = ctx.editable ? '' : 'disabled';
   const bonusSteps = config.energy?.bonusSteps?.length ? config.energy.bonusSteps : steps;
+  const spendSteps = config.energy?.spendSteps?.length ? config.energy.spendSteps : [40, 80];
   const ctrl = (pool, st, inputKey, label) => `
       <div class="energy-row">
         <span class="lbl">${label}</span>
@@ -95,6 +96,12 @@ function cardHtml(ch, config, steps, ctx) {
       </div>
       ${ctrl('natural', steps, 'input', 'Zamanla')}
       ${ctrl('bonus', bonusSteps, 'bonus', 'Ek (+)')}
+      <div class="energy-row">
+        <span class="lbl spend-lbl">Harca</span>
+        <div class="energy-ctrl">
+          ${spendSteps.map((s) => `<button type="button" class="btn sm spend" data-spend="${s}" ${dis} title="Önce zamanla dolan, sonra ek (+) kısımdan düşer">−${s}</button>`).join('')}
+        </div>
+      </div>
       <div class="energy-total">
         <span>Toplam: <b data-e="total">—</b></span>
         <span class="dirty-dot" data-e="dirty" hidden>● kaydedilmedi</span>
@@ -105,6 +112,7 @@ function cardHtml(ch, config, steps, ctx) {
       <span>Gear <b>${splitGear(gear).gear.length}</b></span>
       <span>Arcana <b>${splitGear(gear).arcana.length}</b></span>
       <span>Skill <b>${(g.skills || []).length}</b></span>
+      ${(ch.dungeons || []).length ? `<span>Zindan <b>${ch.dungeons.length}</b></span>` : ''}
       <span class="go">Detay ›</span>
     </button>
 
@@ -178,12 +186,13 @@ export const CHAR_TABS = [
   { id: 'gear', label: 'Gear' },
   { id: 'arcana', label: 'Arcana' },
   { id: 'skills', label: 'Skill' },
+  { id: 'dungeons', label: 'Zindanlar' },
 ];
 
-export function charDialogHtml(ch, tab) {
+export function charDialogHtml(ch, tab, { editable = false } = {}) {
   const g = ch.game || {};
   const { gear, arcana } = splitGear(g.gear || []);
-  const counts = { gear: gear.length, arcana: arcana.length, skills: (g.skills || []).length };
+  const counts = { gear: gear.length, arcana: arcana.length, skills: (g.skills || []).length, dungeons: (ch.dungeons || []).length };
 
   const head = `
     <div class="cd-head">
@@ -204,7 +213,8 @@ export function charDialogHtml(ch, tab) {
 
   const body = tab === 'arcana' ? arcanaTab(ch, arcana)
     : tab === 'skills' ? skillsTab(g.skills || [])
-      : gearTab(ch, gear, g);
+      : tab === 'dungeons' ? dungeonsTab(ch, editable)
+        : gearTab(ch, gear, g);
   return `${head}<div class="cd-body">${body}</div>
     <div class="updated">Veri güncellendi: ${esc(fmtAgo(g.updatedAt))}</div>`;
 }
@@ -254,6 +264,48 @@ function arcanaTab(ch, arcana) {
     ].join('') : '';
     return tile(ch, it, stats ? `<ul class="mini-stats">${stats}</ul>` : '');
   }).join('')}</div>`;
+}
+
+// Zindan garanti sayaçları: ilerleme çubuğu, ±1, elle düzenleme, silme, yeni zindan ekleme.
+function dungeonsTab(ch, editable) {
+  const list = ch.dungeons || [];
+  const rows = list.map((d) => {
+    const pct = d.max ? Math.min(100, (d.count / d.max) * 100) : 0;
+    const left = d.max ? d.max - d.count : null;
+    const near = d.max && left <= 2;
+    return `
+    <div class="dg ${near ? 'near' : ''}" data-dungeon="${esc(d.name)}">
+      <div class="dg-top">
+        <b class="dg-name">${esc(d.name)}</b>
+        <span class="dg-count"><b>${num(d.count)}</b> / ${d.max ? num(d.max) : '?'}</span>
+      </div>
+      <div class="bar"><i style="width:${pct.toFixed(1)}%"></i></div>
+      <div class="dg-bottom">
+        <span class="muted">${left != null ? (left === 0 ? 'Garanti hazır' : `Garantiye ${num(left)} kutu`) : 'Sınır bilinmiyor'}
+          · ${esc(fmtAgo(d.updatedAt))}${d.updatedBy ? ` · ${esc(d.updatedBy)}` : ''}</span>
+        ${editable ? `<span class="dg-actions">
+          <button type="button" class="btn sm" data-dg="dec" title="−1">−1</button>
+          <button type="button" class="btn sm" data-dg="inc" title="+1">+1</button>
+          <button type="button" class="btn sm" data-dg="edit" title="Değeri düzenle">✎</button>
+          <button type="button" class="btn sm danger" data-dg="del" title="Sil">✕</button>
+        </span>` : ''}
+      </div>
+    </div>`;
+  }).join('');
+
+  const form = editable ? `
+    <form class="dg-form" data-dg-form>
+      <input type="text" name="name" placeholder="Zindan adı (ör. Fire Temple)" required maxlength="60" autocomplete="off">
+      <input type="number" name="count" placeholder="Şu an" min="0" inputmode="numeric" class="short">
+      <input type="number" name="max" placeholder="Sınır" min="1" inputmode="numeric" class="short" required>
+      <button type="submit" class="btn primary">Ekle</button>
+    </form>` : '';
+
+  return `
+    <p class="hint">Garanti sayaçları karaktere ve zindana özeldir. Sınıra ulaşınca garanti ödülü verilir ve sayaç sıfırlanır.
+      Ekran okuma programı kutu açtığınızda bunları otomatik günceller.</p>
+    ${rows ? `<div class="dgs">${rows}</div>` : '<p class="hint">Henüz zindan sayacı yok.</p>'}
+    ${form}`;
 }
 
 const SKILL_GROUPS = [
