@@ -2539,10 +2539,10 @@
         "updatedAt": "2026-11-13T18:30:57.202Z"
       },
       "energy": {
-        "value": 0,
-        "setAt": "2026-11-13T21:15:19.675Z",
-        "bonus": 0,
-        "editedAt": "2026-11-13T21:15:25.8254682Z",
+        "value": 1,
+        "setAt": "2026-11-13T21:24:05.1066730Z",
+        "bonus": 41,
+        "editedAt": "2026-11-13T21:24:05.1066730Z",
         "setBy": "karip"
       },
       "ref": {
@@ -2555,6 +2555,13 @@
           "count": 2,
           "max": 28,
           "updatedAt": "2026-11-13T21:15:25.8254682Z",
+          "updatedBy": "karip"
+        },
+        {
+          "name": "Fire Tempte",
+          "count": 2,
+          "max": 28,
+          "updatedAt": "2026-11-13T21:24:05.1066730Z",
           "updatedBy": "karip"
         }
       ]
