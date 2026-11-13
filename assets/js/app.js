@@ -3,6 +3,7 @@ import {
   unlock, encryptAccount, hasAccounts, getSession, setSession, clearSession, normUser, DEFAULT_ITERATIONS, MIN_PASSWORD,
 } from './auth.js';
 import { applyEnergyEdits, editTime } from './merge.js';
+import { renderTodos, applyTodoOp, newTodo, todoCommitMessage } from './todos.js';
 import { adjustEnergy, setEnergy, adjustBonus, setBonus, energyCfg } from './energy.js';
 import {
   renderCards, updateEnergyLive, renderCompare, effEnergy, fmtAgo, fmtDate, esc, itemDetailHtml, charDialogHtml, CHAR_TABS,
@@ -141,6 +142,7 @@ function renderAll() {
   $('#subtitle').title = `Son gear değişikliği: ${fmtDate(d.lastFetch)}`;
   $('#sample-banner').hidden = !(d.sample || (d.characters || []).some((c) => c.sample));
 
+  renderTodosNow();
   renderCards($('#view-cards'), d, ctx());
   if (charDlg.open && charCur) showChar(charCur.id, charCur.tab); // veri yenilendiyse pencereyi de yenile
   if (state.view === 'compare') renderCompare($('#rank-table'), $('#gear-matrix'), d, state.sortKey, ctx());
@@ -221,6 +223,91 @@ $('#view-cards').addEventListener('change', (e) => {
 
 $('#view-cards').addEventListener('keydown', (e) => {
   if (e.key === 'Enter' && e.target.matches(ENERGY_INPUTS)) e.target.dispatchEvent(new Event('change', { bubbles: true }));
+});
+
+// ---------------- Yapılacaklar ----------------
+// Her işlem anında ekrana yansır ve arka planda sırayla commit'lenir.
+const pendingTodoOps = [];
+let todoChain = Promise.resolve();
+
+function renderTodosNow() {
+  if (!state.data) return;
+  const root = $('#todos');
+  // Yazılmakta olan metni ve odağı koru (arka planda yenileme olabilir).
+  const input = $('#todo-input');
+  const draft = input?.value || '';
+  const focused = document.activeElement === input;
+  renderTodos(root, state.data, { editable: canEdit(), pending: pendingTodoOps.length > 0 });
+  const again = $('#todo-input');
+  if (again) { again.value = draft; if (focused) again.focus(); }
+}
+
+function todoAction(op) {
+  if (!canEdit() || !state.data) return;
+  applyTodoOp(state.data, op); // iyimser: hemen göster
+  pendingTodoOps.push(op);
+  renderTodosNow();
+  todoChain = todoChain.then(() => commitTodo(op));
+}
+
+async function commitTodo(op) {
+  try {
+    for (let attempt = 0; attempt < 4; attempt++) {
+      const f = await gh.getFile();
+      const remote = JSON.parse(f.text);
+      const msg = todoCommitMessage(op, remote, state.login);
+      if (!applyTodoOp(remote, op)) { adoptRemote(remote, f.sha, op); return; } // zaten uygulanmış / madde yok
+      try {
+        const r = await gh.putFile(gh.stringifyData(remote), f.sha, msg);
+        adoptRemote(remote, r.sha, op);
+        return;
+      } catch (e) {
+        if (e.status === 409 || (e.status === 422 && /sha/i.test(e.message))) continue;
+        throw e;
+      }
+    }
+    throw new Error('Dosya art arda değişti, tekrar dene');
+  } catch (e) {
+    pendingTodoOps.splice(pendingTodoOps.indexOf(op), 1);
+    status(`Liste kaydedilemedi: ${esc(e.message)}`, 'error', true);
+    await load();
+  }
+}
+
+// Kaydedilen güncel dosyayı benimse; henüz kaydedilmemiş diğer işlemleri üstüne yeniden uygula.
+function adoptRemote(remote, sha, doneOp) {
+  pendingTodoOps.splice(pendingTodoOps.indexOf(doneOp), 1);
+  for (const op of pendingTodoOps) applyTodoOp(remote, op);
+  state.data = remote;
+  state.sha = sha;
+  state.source = 'api';
+  renderTodosNow();
+  tick();
+}
+
+$('#todos').addEventListener('submit', (e) => {
+  if (e.target.id !== 'todo-form') return;
+  e.preventDefault();
+  const input = $('#todo-input');
+  const text = input.value.trim();
+  if (!text) return;
+  input.value = '';
+  todoAction({ type: 'add', item: newTodo(text, state.login) });
+  $('#todo-input')?.focus();
+});
+$('#todos').addEventListener('change', (e) => {
+  const cb = e.target.closest('.todo-check');
+  if (!cb) return;
+  todoAction({ type: 'toggle', id: cb.closest('.todo').dataset.id, done: cb.checked, by: state.login, at: new Date().toISOString() });
+});
+$('#todos').addEventListener('click', (e) => {
+  const del = e.target.closest('.todo-del');
+  if (del) {
+    const li = del.closest('.todo');
+    const text = li.querySelector('.todo-text')?.textContent || '';
+    if (confirm(`Silinsin mi?\n\n${text}`)) todoAction({ type: 'delete', id: li.dataset.id });
+  }
+  if (e.target.closest('#todo-clear') && confirm('Tamamlanan tüm maddeler silinsin mi?')) todoAction({ type: 'clearDone' });
 });
 
 // ---------------- Kaydet (commit) ----------------
