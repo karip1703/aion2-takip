@@ -2542,7 +2542,7 @@
         "value": 0,
         "setAt": "2026-11-13T21:24:05.106Z",
         "bonus": 0,
-        "editedAt": "2026-11-13T21:24:15.1133473Z",
+        "editedAt": "2026-11-13T21:42:22.9606898Z",
         "setBy": "karip"
       },
       "ref": {
@@ -2552,9 +2552,9 @@
       "dungeons": [
         {
           "name": "Fire Temple",
-          "count": 2,
+          "count": 6,
           "max": 28,
-          "updatedAt": "2026-11-13T21:15:25.8254682Z",
+          "updatedAt": "2026-11-13T21:42:22.9606898Z",
           "updatedBy": "karip"
         },
         {
