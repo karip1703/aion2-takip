@@ -308,6 +308,7 @@ tr.clickable:hover td, td.clickable:hover { background: color-mix(in srgb, var(-
 .todo-head { display: flex; align-items: baseline; gap: 10px; }
 .todo-head h2 { margin: 0; font-size: 1rem; }
 .todo-sync { color: var(--warn); font-size: .75rem; margin-left: auto; }
+.todo-live { color: var(--ok); font-size: .72rem; margin-left: auto; opacity: .8; }
 .todo-form { display: flex; gap: 6px; }
 .todo-form input {
   flex: 1; min-width: 0; background: var(--bg); border: 1px solid var(--border);

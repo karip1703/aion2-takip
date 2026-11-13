@@ -17,6 +17,7 @@ const LS_SORT = 'aion2.sort';
 const state = {
   data: null,       // uzaktaki (kaydedilmiş) veri — bekleyen düzenlemeler HARİÇ
   sha: null,        // data.json'un son bilinen SHA'sı (sadece API'den okununca)
+  etag: null,       // canlı yenileme için son ETag
   source: null,     // 'api' | 'pages'
   edits: loadEdits(), // { [charId]: { value, setAt, setBy } } — kaydedilmemiş enerji girişleri
   login: getSession()?.user || null, // giriş yapan site kullanıcısı (commit mesajlarında görünür)
@@ -53,9 +54,10 @@ async function load() {
   let usedApi = false;
   if (hasAccess()) {
     try {
-      const f = await gh.getFile();
+      const f = await gh.getFileIfChanged(null);
       state.data = JSON.parse(f.text);
       state.sha = f.sha;
+      state.etag = f.etag;
       state.source = 'api';
       usedApi = true;
     } catch (e) {
@@ -308,6 +310,48 @@ $('#todos').addEventListener('click', (e) => {
     if (confirm(`Silinsin mi?\n\n${text}`)) todoAction({ type: 'delete', id: li.dataset.id });
   }
   if (e.target.closest('#todo-clear') && confirm('Tamamlanan tüm maddeler silinsin mi?')) todoAction({ type: 'clearDone' });
+});
+
+// ---------------- Canlı yenileme ----------------
+// Giriş yapılmışken 15 sn'de bir data.json değişti mi diye bakılır (ETag → değişmediyse 304, limitten düşmez).
+// Değiştiyse: sadece liste değiştiyse listeyi, başka şey de değiştiyse tüm ekranı yeniler.
+// Kullanıcı bir enerji kutusuna yazıyorsa kartlar o kutudan çıkana kadar yenilenmez.
+const POLL_MS = 15_000;
+let polling = false;
+let deferredRender = false;
+
+const withoutTodos = (d) => JSON.stringify({ ...d, todos: undefined });
+const typingEnergy = () => !!document.activeElement?.closest?.('#view-cards input');
+
+async function poll() {
+  if (!hasAccess() || !state.data || document.hidden || polling || state.busy || pendingTodoOps.length) return;
+  polling = true;
+  try {
+    const f = await gh.getFileIfChanged(state.etag);
+    if (!f) return;                       // 304: değişiklik yok
+    state.etag = f.etag;
+    if (f.sha === state.sha) return;      // kendi kaydımız
+    if (pendingTodoOps.length || state.busy) return; // bu arada bir kayıt başladı → sonraki turda
+    const remote = JSON.parse(f.text);
+    const todosOnly = withoutTodos(remote) === withoutTodos(state.data);
+    state.data = remote;
+    state.sha = f.sha;
+    state.source = 'api';
+    pruneEdits();
+    if (todosOnly) { renderTodosNow(); return; }
+    if (typingEnergy()) { renderTodosNow(); tick(); deferredRender = true; return; }
+    renderAll();
+  } catch (e) {
+    if (e.status === 401 || e.status === 403 || e.status === 404) load(); // oturum geçersiz → load girişe döndürür
+  } finally {
+    polling = false;
+  }
+}
+
+setInterval(poll, POLL_MS);
+document.addEventListener('visibilitychange', () => { if (!document.hidden) poll(); });
+$('#view-cards').addEventListener('focusout', () => {
+  setTimeout(() => { if (deferredRender && !typingEnergy()) { deferredRender = false; renderAll(); } }, 0);
 });
 
 // ---------------- Kaydet (commit) ----------------

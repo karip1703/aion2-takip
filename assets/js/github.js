@@ -76,6 +76,26 @@ export async function getFile(path = DATA_PATH, ctx) {
   return { text: b64decode(j.content), sha: j.sha };
 }
 
+// Değişiklik kontrolü: önceki ETag verilirse dosya değişmediğinde GitHub 304 döner → null.
+// 304 cevapları GitHub'ın saatlik istek limitinden düşülmez.
+export async function getFileIfChanged(etag, path = DATA_PATH) {
+  const r = getRepo();
+  const token = getToken();
+  const res = await fetch(`${API}${repoPath(r)}/contents/${path}?ref=${encodeURIComponent(r.branch)}`, {
+    cache: 'no-store',
+    headers: {
+      Accept: 'application/vnd.github+json',
+      'X-GitHub-Api-Version': '2022-11-28',
+      ...(token ? { Authorization: `Bearer ${token}` } : {}),
+      ...(etag ? { 'If-None-Match': etag } : {}),
+    },
+  });
+  if (res.status === 304) return null;
+  const j = await res.json().catch(() => null);
+  if (!res.ok) throw new GitHubError(res.status, `GitHub ${res.status}: ${j?.message || res.statusText}`);
+  return { text: b64decode(j.content), sha: j.sha, etag: res.headers.get('ETag') };
+}
+
 export async function putFile(text, sha, message, path = DATA_PATH, ctx) {
   const { token, r } = ctxOf(ctx);
   const j = await api(`${repoPath(r)}/contents/${path}`, {

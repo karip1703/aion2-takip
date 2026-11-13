@@ -78,7 +78,8 @@ export function renderTodos(root, data, { editable, pending }) {
   root.innerHTML = `
     <div class="todo-head">
       <h2>Yapılacaklar <span class="muted">${open.length} açık${done.length ? ` · ${done.length} tamamlandı` : ''}</span></h2>
-      ${pending ? '<span class="todo-sync">kaydediliyor…</span>' : ''}
+      ${pending ? '<span class="todo-sync">kaydediliyor…</span>'
+    : editable ? '<span class="todo-live" title="Değişiklikler 15 saniyede bir otomatik yenilenir">● canlı</span>' : ''}
     </div>
     ${editable ? `
     <form class="todo-form" id="todo-form">
