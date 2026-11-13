@@ -1,0 +1,69 @@
+name: Karakter verisini güncelle
+
+on:
+  schedule:
+    # UTC 04:00, 12:00, 20:00 → Türkiye saatiyle 07:00, 15:00, 23:00
+    # (GitHub zamanlanmış işleri birkaç dakika–1 saat gecikmeli başlatabilir.)
+    - cron: '0 4,12,20 * * *'
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+concurrency:
+  group: update-data
+  cancel-in-progress: false
+
+jobs:
+  update:
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+
+      - name: Karakter verisini çek
+        id: fetch
+        run: node scripts/fetch-characters.mjs
+
+      # Script bazı karakterlerde hata verse bile (exit 1), çekilenler commit'lensin.
+      - name: Değişiklik varsa commit + push
+        if: ${{ !cancelled() }}
+        run: |
+          set -e
+          git config user.name  "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+
+          if git diff --quiet -- data/data.json; then
+            echo "Değişiklik yok, commit atılmıyor."
+            exit 0
+          fi
+
+          MSG="Gear verisi güncellendi [otomatik]"
+          git add data/data.json
+          git commit -m "$MSG"
+
+          # Bu arada siteden enerji kaydedildiyse push reddedilir:
+          # güncel dosyayı al, sadece çekilen sonuçları tekrar uygula (enerji kaybolmaz).
+          for i in 1 2 3; do
+            if git push origin "HEAD:${GITHUB_REF_NAME}"; then
+              echo "Push başarılı."
+              exit 0
+            fi
+            echo "Push reddedildi, güncel dosya üzerine yeniden uygulanıyor ($i/3)…"
+            sleep $((i * 3))
+            git fetch origin "${GITHUB_REF_NAME}"
+            git reset --hard "origin/${GITHUB_REF_NAME}"
+            node scripts/fetch-characters.mjs --apply-only
+            if git diff --quiet -- data/data.json; then
+              echo "Birleştirmeden sonra değişiklik kalmadı."
+              exit 0
+            fi
+            git add data/data.json
+            git commit -m "$MSG"
+          done
+          echo "::error::Push 3 denemede başarısız oldu."
+          exit 1

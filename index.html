@@ -1,0 +1,154 @@
+<!doctype html>
+<html lang="tr">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="color-scheme" content="dark">
+  <meta name="robots" content="noindex">
+  <title>AION 2 Takip</title>
+  <link rel="stylesheet" href="assets/css/style.css">
+</head>
+<body>
+  <!-- Giriş ekranı: hesaplar kuruluysa uygulama girişten sonra görünür -->
+  <section id="login" class="login" hidden>
+    <form class="login-card" id="login-form" autocomplete="on">
+      <h1>AION 2 Takip</h1>
+      <p class="hint">Devam etmek için giriş yap.</p>
+      <label>Kullanıcı adı
+        <input type="text" id="login-user" autocomplete="username" autocapitalize="none" spellcheck="false" required>
+      </label>
+      <label>Şifre
+        <input type="password" id="login-pass" autocomplete="current-password" required>
+      </label>
+      <label class="check"><input type="checkbox" id="login-remember"> Beni bu cihazda hatırla</label>
+      <button type="submit" class="btn primary" id="login-btn">Giriş yap</button>
+      <p class="login-err" id="login-err" role="alert"></p>
+      <button type="button" class="linkbtn" data-open-setup>Hesap kurulumu (site sahibi)</button>
+    </form>
+  </section>
+
+  <div id="app" hidden>
+  <header class="topbar">
+    <div class="brand">
+      <h1>AION 2 Takip</h1>
+      <p class="sub" id="subtitle">Yükleniyor…</p>
+    </div>
+    <div class="actions">
+      <span class="pill" id="mode-pill" title="Düzenleme durumu">Salt okunur</span>
+      <button type="button" class="btn" id="btn-refresh" title="Veriyi yeniden yükle">↻</button>
+      <button type="button" class="btn" id="btn-fetch" hidden>Şimdi güncelle</button>
+      <button type="button" class="btn primary" id="btn-save" hidden disabled>Kaydet</button>
+      <button type="button" class="btn" id="btn-settings" title="Ayarlar">⚙</button>
+    </div>
+  </header>
+
+  <div class="status" id="status" role="status" aria-live="polite" hidden></div>
+  <div class="banner" id="sample-banner" hidden>
+    <strong>"örnek veri"</strong> etiketli karakterler henüz gerçek veriyle doldurulmadı.
+  </div>
+
+  <nav class="tabs" role="tablist">
+    <button type="button" role="tab" class="tab" data-view="cards" aria-selected="true">Kartlar</button>
+    <button type="button" role="tab" class="tab" data-view="compare" aria-selected="false">Karşılaştırma</button>
+  </nav>
+
+  <main>
+    <section id="view-cards" class="grid"></section>
+
+    <section id="view-compare" hidden>
+      <div class="toolbar">
+        <label>Sırala:
+          <select id="sort-key">
+            <option value="itemLevel">Item level</option>
+            <option value="combatPower">Combat power</option>
+            <option value="level">Seviye</option>
+            <option value="energy">Enerji (toplam)</option>
+          </select>
+        </label>
+      </div>
+      <div class="table-wrap"><table class="rank" id="rank-table"></table></div>
+
+      <h2 class="section-title">Gear karşılaştırma</h2>
+      <div class="table-wrap"><table class="gear-matrix" id="gear-matrix"></table></div>
+    </section>
+  </main>
+
+  <footer class="foot" id="foot"></footer>
+  </div>
+
+  <dialog id="settings">
+    <form method="dialog" class="dlg">
+      <h2>Ayarlar</h2>
+      <fieldset>
+        <legend>Oturum</legend>
+        <p class="hint" id="session-info">Giriş yapılmadı.</p>
+        <div class="row">
+          <button type="button" class="btn danger" id="btn-logout">Çıkış yap</button>
+        </div>
+      </fieldset>
+      <fieldset>
+        <legend>Hesaplar (site sahibi)</legend>
+        <p class="hint">Hesap eklemek, şifre değiştirmek ya da süresi dolan GitHub token'ını yenilemek için.</p>
+        <div class="row"><button type="button" class="btn" data-open-setup>Hesap kurulumu</button></div>
+      </fieldset>
+      <div class="row end">
+        <button type="submit" class="btn primary">Kapat</button>
+      </div>
+    </form>
+  </dialog>
+
+  <dialog id="setup" aria-label="Hesap kurulumu">
+    <form class="dlg" id="setup-form" autocomplete="off">
+      <h2>Hesap kurulumu</h2>
+      <p class="hint">
+        GitHub token'ın her hesabın şifresiyle <strong>ayrı ayrı şifrelenip</strong> <code>data.json</code>'a yazılır.
+        Token ve şifreler düz halde hiçbir yere kaydedilmez. Kaydedince <strong>tüm hesaplar</strong> bu listeyle değiştirilir.
+      </p>
+
+      <fieldset>
+        <legend>GitHub</legend>
+        <input type="password" id="setup-token" placeholder="github_pat_… (Contents + Actions: Read and write)" spellcheck="false" autocomplete="off" required>
+        <div class="row">
+          <input type="text" id="setup-owner" placeholder="kullanıcı adı" spellcheck="false" required>
+          <span>/</span>
+          <input type="text" id="setup-repo" placeholder="repo" spellcheck="false" required>
+          <input type="text" id="setup-branch" placeholder="main" spellcheck="false" class="short">
+        </div>
+      </fieldset>
+
+      <fieldset>
+        <legend>Hesaplar</legend>
+        <p class="hint">Şifre en az 10 karakter; 12+ ve rastgele olması önerilir (şifreli kayıt herkese açık durur).</p>
+        <div id="setup-accounts"></div>
+        <div class="row"><button type="button" class="btn sm" id="setup-add">+ Hesap ekle</button></div>
+      </fieldset>
+
+      <p class="hint" id="setup-result" role="status"></p>
+      <div class="row end">
+        <button type="button" class="btn" id="setup-cancel">Vazgeç</button>
+        <button type="submit" class="btn primary" id="setup-save">Şifrele ve kaydet</button>
+      </div>
+    </form>
+  </dialog>
+
+  <dialog id="char-dlg" aria-label="Karakter detayı">
+    <div class="dlg cdlg">
+      <button type="button" class="btn close-x" id="char-close" aria-label="Kapat">✕</button>
+      <div id="char-body"></div>
+    </div>
+  </dialog>
+
+  <dialog id="item-dlg" aria-label="Eşya detayı">
+    <div class="dlg idlg">
+      <div id="item-body"></div>
+      <div class="row end">
+        <button type="button" class="btn" id="item-prev" title="Önceki parça (←)">‹</button>
+        <button type="button" class="btn" id="item-next" title="Sonraki parça (→)">›</button>
+        <button type="button" class="btn primary" id="item-close">Kapat</button>
+      </div>
+    </div>
+  </dialog>
+
+  <script type="module" src="assets/js/app.js"></script>
+</body>
+</html>
