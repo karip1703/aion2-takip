@@ -176,6 +176,19 @@ function Read-Field([System.Drawing.Bitmap]$crop, [string]$mode, [string]$label,
   return $null
 }
 
+# Bilinen zindan adları: sitedeki tüm karakterlerin sayaçlarından (girişte doldurulur) + sık görülenler.
+$script:KnownDungeons = New-Object System.Collections.Generic.List[string]
+foreach ($d in @('Fire Temple')) { $script:KnownDungeons.Add($d) }
+function Match-Dungeon([string]$ocr) {
+  $o = $ocr.Trim().ToLowerInvariant()
+  foreach ($k in $script:KnownDungeons) { if ($k.ToLowerInvariant() -eq $o) { return $k } }
+  # Kısmi okuma: okunan, bilinen bir adın başı ya da bilinen ad okunanın içinde (en az 4 harf)
+  if ($o.Length -ge 4) {
+    foreach ($k in $script:KnownDungeons) { $kl = $k.ToLowerInvariant(); if ($kl.StartsWith($o) -or $o.Contains($kl)) { return $k } }
+  }
+  return $ocr.Trim()
+}
+
 # Odyle Energy Cube penceresini oku. $full = ekranın tamamı ya da test görüntüsü.
 function Read-Cube([System.Drawing.Bitmap]$full) {
   $W = $full.Width; $H = $full.Height
@@ -425,6 +438,7 @@ $script:Settings = Load-Settings
 function After-Login {
   $data = Get-Data $script:Session.token
   $script:Chars = @($data.characters | ForEach-Object { [pscustomobject]@{ id = $_.id; name = $_.name } })
+  foreach ($ch in $data.characters) { foreach ($d in @($ch.dungeons)) { if ($d.name -and $d.name.Length -ge 6 -and -not $script:KnownDungeons.Contains($d.name)) { $script:KnownDungeons.Add($d.name) } } }
   $cmbChar.Items.Clear(); foreach ($c in $script:Chars) { [void]$cmbChar.Items.Add($c.name) }
   $idx = [Array]::IndexOf(@($script:Chars.id), $script:Settings.charId); $cmbChar.SelectedIndex = [Math]::Max(0, $idx)
   foreach ($c in $txtUser, $txtPass, $btnLogin) { $c.Enabled = $false }
@@ -451,11 +465,17 @@ $cmbChar.Add_SelectedIndexChanged({
 $btnPause.Add_Click({ $script:Paused = -not $script:Paused; $btnPause.Text = $(if ($script:Paused) { 'Devam' } else { 'Duraklat' }); Log $(if ($script:Paused) { 'Duraklatıldı.' } else { 'İzleme devam ediyor.' }) })
 
 # ---------------------------------------------------------------- İzleme döngüsü
-# idle  : sadece altın "Open" butonu bölgesine bakılır (çok ucuz). Görünürse başlık OCR ile doğrulanır.
-# open  : değerler ~1 sn'de bir okunur; ilk geçerli okumada enerji + garanti sayacı eşitlenir.
-# kapanış: buton ~2 sn görünmezse "Open" sayılır; 4 sn beklenir (pencere aynı değerlerle geri açılırsa iptal).
+# Her 150 ms'de sadece altın "Open" butonu bölgesine bakılır (çok ucuz: küçük bir alanın rengi).
+# Buton görününce TÜM EKRAN o an yakalanır ve okuma bu görüntü üzerinden yapılır → pencere okuma
+# sırasında kapansa bile değerler kaybolmaz. Pencerenin ~0,15 sn görünmesi yeterli.
+# idle  : buton görününce ekran yakalanır → başlık "Odyle Energy Cube" mı? → değerler okunur, siteyle eşitlenir.
+# open  : buton görünür kaldıkça son ekran görüntüsü güncellenir (kutu sayısı değişirse doğru sayı kaydedilsin).
+# kapanış: buton ~0,9 sn görünmezse "Open" sayılır; son görüntü okunur; 4 sn beklenir
+#          (pencere aynı zindan + aynı sayaçla geri açılırsa kapanış sayılmaz).
 $script:State = 'idle'; $script:Paused = $true
 $script:Last = $null; $script:Synced = $null; $script:Miss = 0; $script:Tick = 0
+$script:Snap = $null; $script:SnapFresh = $false   # son ekran görüntüsü; okunmamış yeni görüntü mü?
+$script:RetryAt = [datetime]::MinValue              # başka bir altın buton (başka menü) görülürse kısa bekleme
 $script:Pending = $null      # @{ due; read }
 $script:LastSent = $null     # geri alma için: @{ before = read; charId }
 
@@ -475,6 +495,7 @@ function Commit-Pending {
   $r = $p.read; $cid = $p.charId
   $op = @{ type = 'dungeonOpen'; charId = $cid; name = $r.dungeon; boxes = $r.boxes; cost = $r.cost; max = $r.max; seen = $r.seen }
   $script:LastSent = @{ before = $r; charId = $cid }
+  $script:Synced = $null   # harcama sonrası değerler değişti → bir sonraki açılışta mutlaka yeniden eşitle (Cancel düzeltmesi)
   $btnUndo.Enabled = $true
   Send-Ops @($op) ("{0}: {1} {2} kutu, -{3} enerji" -f $p.charName, $r.dungeon, $r.boxes, $r.cost)
 }
@@ -498,44 +519,63 @@ function On-Read($r) {
   $script:Last = $r
 }
 
-$timer = New-Object Windows.Forms.Timer
-$timer.Interval = 600
-$timer.Add_Tick({
+$DebugDir = Join-Path $AppDir 'yakalanan'
+New-Item -ItemType Directory -Force $DebugDir | Out-Null
+function Save-Debug([System.Drawing.Bitmap]$bmp, [string]$tag, $r) {
   try {
-    if ($script:Queue.Count -gt 0 -and ($script:Tick % 20) -eq 0) { Flush-Queue }
+    $name = '{0:yyyyMMdd-HHmmss-fff}-{1}.png' -f (Get-Date), $tag
+    $bmp.Save((Join-Path $DebugDir $name), [System.Drawing.Imaging.ImageFormat]::Png)
+    Add-Content (Join-Path $DebugDir 'okunanlar.txt') ('{0}  zindan={1} maliyet={2} kutu={3}/{4} garanti={5}/{6} enerji={7}(+{8})/{9}' -f $name, $r.dungeon, $r.cost, $r.boxes, $r.boxesMax, $r.seen, $r.max, $r.natural, $r.bonus, $r.energyMax) -Encoding UTF8
+    Get-ChildItem $DebugDir -Filter *.png | Sort-Object Name -Descending | Select-Object -Skip 40 | Remove-Item -Force
+  } catch {}
+}
+function Drop-Snap { if ($script:Snap) { $script:Snap.Dispose(); $script:Snap = $null }; $script:SnapFresh = $false }
+
+function Invoke-Tick {
+  try {
+    if ($script:Queue.Count -gt 0 -and ($script:Tick % 20) -eq 0) { Flush-Queue }   # ~3 sn'de bir tekrar dene
     $script:Tick++
     if ($script:Paused -or -not $script:Session -or -not (Char-Id)) { return }
     if ($script:Pending -and (Get-Date) -ge $script:Pending.due) { Commit-Pending }
 
     $visible = Open-Button-Visible
-    if ($script:State -eq 'idle') {
-      if (-not $visible) { return }
-      $full = Capture-Screen
-      try {
-        if (-not (Title-Visible $full)) { return }
-        $script:State = 'open'; $script:Miss = 0; $script:Last = $null
-        $r = Read-Cube $full
-        if ($r.valid) { On-Read $r }
-      } finally { $full.Dispose() }
+
+    if ($visible) {
+      if ($script:State -eq 'idle' -and (Get-Date) -lt $script:RetryAt) { return }
+      $full = Capture-Screen                                   # önce yakala (pencere birazdan kapanabilir)
+      Drop-Snap; $script:Snap = $full; $script:SnapFresh = $true; $script:Miss = 0
+      if ($script:State -eq 'open') { return }                 # açıkken sadece son görüntüyü tut
+
+      # Yeni açılış: başlığı ve değerleri yakalanan görüntüden oku
+      if (-not (Title-Visible $full)) { Drop-Snap; $script:RetryAt = (Get-Date).AddMilliseconds(500); return }
+      $r = Read-Cube $full
+      if (-not $r.valid) { Drop-Snap; return }                 # açılış animasyonu vb. → sonraki turda tekrar
+      $script:State = 'open'; $script:SnapFresh = $false
+      Save-Debug $full 'acilis' $r
+      On-Read $r
       return
     }
 
-    # open
-    if ($visible) {
-      $script:Miss = 0
-      if (($script:Tick % 2) -eq 0) { $full = Capture-Screen; try { $r = Read-Cube $full; if ($r.valid) { On-Read $r } } finally { $full.Dispose() } }
-      return
-    }
+    if ($script:State -ne 'open') { return }
     $script:Miss++
-    if ($script:Miss -ge 3) {
-      $script:State = 'idle'; $script:Synced = $null
-      if ($script:Last) {
-        $script:Pending = @{ due = (Get-Date).AddSeconds(4); read = $script:Last; charId = (Char-Id); charName = (Char-Name) }
-        $lblStatus.Text = "Pencere kapandı: $($script:Last.dungeon) $($script:Last.boxes) kutu, -$($script:Last.cost) enerji kaydediliyor…"
-      } else { $lblStatus.Text = 'İzleniyor…' }
+    if ($script:Miss -lt 6) { return }                         # ~0,9 sn boyunca görünmedi → kapandı
+
+    $script:State = 'idle'
+    $r = $script:Last
+    if ($script:Snap -and $script:SnapFresh) {                  # açıkken değer değiştiyse (ör. kutu 2/2 → 1/2) son hali
+      $r2 = Read-Cube $script:Snap
+      if ($r2.valid -and $r2.dungeon -eq $script:Last.dungeon) { $r = $r2; Save-Debug $script:Snap 'kapanis' $r2 }
     }
+    Drop-Snap
+    if ($r) {
+      $script:Pending = @{ due = (Get-Date).AddSeconds(4); read = $r; charId = (Char-Id); charName = (Char-Name) }
+      $lblStatus.Text = "Pencere kapandı: $($r.dungeon) $($r.boxes) kutu, -$($r.cost) enerji kaydediliyor…"
+    } else { $lblStatus.Text = 'İzleniyor…' }
   } catch { Log "✖ Hata: $($_.Exception.Message)" }
-})
+}
+$timer = New-Object Windows.Forms.Timer
+$timer.Interval = 150
+$timer.Add_Tick({ Invoke-Tick })
 
 $btnUndo.Add_Click({
   $u = $script:LastSent; if (-not $u) { return }
@@ -555,6 +595,31 @@ $btnTest.Add_Click({
     Log "Ekran görüntüsü kaydedildi: $path"
   } finally { $full.Dispose() }
 })
+
+if ($env:A2_LOOP_TEST) {   # geliştirici testi: kare dizisiyle döngüyü sına (gerçek ekran/gönderim yok)
+  $cube = [System.Drawing.Bitmap]::FromFile($env:A2_CUBE); $none = [System.Drawing.Bitmap]::FromFile($env:A2_NONE)
+  $other = [System.Drawing.Bitmap]::FromFile($env:A2_OTHER)
+  $script:Frame = $none
+  function Open-Button-Visible { $o = Rect-Of $Regions.open $script:Frame.Width $script:Frame.Height; $b = [A2Img]::Crop($script:Frame, $o.x, $o.y, $o.w, $o.h); $r = [A2Img]::GoldRatio($b); $b.Dispose(); $r -gt 0.30 }
+  function Capture-Screen { $script:Frame.Clone() }
+  function Send-Ops([object[]]$ops, [string]$summary) { Write-Host ("  → GÖNDER: {0}   [{1}]" -f $summary, (($ops | ForEach-Object { $_.type }) -join ', ')) }
+  function Log([string]$m) { Write-Host "  · $m" }
+  $script:Session = @{ user = 'karip' }; $script:Chars = @([pscustomobject]@{ id = 'kyrakia'; name = 'Kyrakia' }); [void]$cmbChar.Items.Add('Kyrakia'); $cmbChar.SelectedIndex = 0
+  $script:Paused = $false
+  function Run([string]$title, [object[]]$frames) {
+    Write-Host "=== $title"
+    foreach ($fr in $frames) { if ($fr -is [string]) { Write-Host '  (4 sn geçti)'; Commit-Pending; continue }; $script:Frame = $fr; Invoke-Tick }
+    if ($script:Pending) { Write-Host '  (4 sn bekleme bitti)'; Commit-Pending }
+    $script:State = 'idle'; $script:Synced = $null; $script:Last = $null; $script:RetryAt = [datetime]::MinValue
+  }
+  $n = { param($c, $k) @(1..$k | ForEach-Object { $c }) }
+  Run '1) Hızlı açış: pencere sadece 2 tur (0,3 sn) göründü' ((& $n $none 2) + (& $n $cube 2) + (& $n $none 8))
+  Run '2) Kapanıp aynı değerlerle hemen geri açıldı, sonra gerçekten kapandı' ((& $n $cube 3) + (& $n $none 7) + (& $n $cube 3) + (& $n $none 8))
+  Run '3) Başka bir altın buton (başlık farklı)' ((& $n $other 6) + (& $n $none 4))
+  Run '4) Cancel: harcama kaydedildi, sonra pencere AYNI değerlerle açıldı → yeniden eşitlemeli' ((& $n $cube 2) + (& $n $none 7) + @('COMMIT') + (& $n $cube 2) + (& $n $none 7))
+  $cube.Dispose(); $none.Dispose(); $other.Dispose()
+  return
+}
 
 $form.Add_Shown({
   Log "Ekran: $([A2Img]::ScreenW())x$([A2Img]::ScreenH())"
