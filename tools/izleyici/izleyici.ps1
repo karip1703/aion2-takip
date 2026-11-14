@@ -43,6 +43,13 @@ public static class A2Img {
   // Ekran ölçeği (%125, %150…) varken gerçek piksel koordinatlarıyla çalışmak için.
   public static void MakeDpiAware() { try { if (SetProcessDpiAwarenessContext(new IntPtr(-4))) return; } catch { } SetProcessDPIAware(); }
   [DllImport("user32.dll")] static extern int GetSystemMetrics(int i);
+  [DllImport("user32.dll")] static extern IntPtr GetForegroundWindow();
+  [DllImport("user32.dll")] static extern uint GetWindowThreadProcessId(IntPtr h, out uint pid);
+  // Ön plandaki pencerenin işlem adı (ör. "Aion2"). Discord yayınını vb. ayırt etmek için.
+  public static string ForegroundProcess() {
+    try { uint pid; GetWindowThreadProcessId(GetForegroundWindow(), out pid); return System.Diagnostics.Process.GetProcessById((int)pid).ProcessName; }
+    catch { return ""; }
+  }
   public static int ScreenW() { return GetSystemMetrics(0); }
   public static int ScreenH() { return GetSystemMetrics(1); }
 
@@ -71,7 +78,7 @@ public static class A2Img {
   }
 
   // OCR için hazırla: büyüt, renge göre ayıkla (siyah yazı / beyaz zemin), kenar boşluğu, isteğe bağlı sol etiket.
-  // mode: all = en parlak kanal > eşik; white = gri/beyaz yazı; cyan = turkuaz yazı
+  // mode: all = en parlak kanal > eşik; white = gri/beyaz yazı; light = tüm kanallar parlak (açık mavi dahil); cyan = turkuaz yazı
   public static Bitmap Prep(Bitmap crop, int scale, int thr, string mode, string label) {
     int w = crop.Width * scale, h = crop.Height * scale, pad = 24;
     var up = new Bitmap(w, h, PixelFormat.Format32bppArgb);
@@ -89,6 +96,7 @@ public static class A2Img {
       int mx = Math.Max(b0, Math.Max(g0, r0)), mn = Math.Min(b0, Math.Min(g0, r0));
       bool hit;
       if (mode == "white") hit = mn > thr && (mx - mn) < 60;
+      else if (mode == "light") hit = mn > thr;                 // açık renkli yazı (beyaz, açık mavi); doygun çubukları dışarıda bırakır
       else if (mode == "cyan") hit = b0 > thr && g0 > thr - 30 && r0 < b0 - 50;
       else hit = mx > thr;
       if (hit) { int o = (y + pad) * od.Stride + (x + pad) * 4; ob[o] = 0; ob[o + 1] = 0; ob[o + 2] = 0; }
@@ -143,7 +151,8 @@ function Read-Text([System.Drawing.Bitmap]$bmp) {
 $Regions = @{
   panel     = @{ r1 = 0.560; r2 = 0.020; y1 = 0.010; y2 = 0.975 }  # tek seferde yakalanan büyük alan
   open      = @{ r1 = 0.170; r2 = 0.060; y1 = 0.935; y2 = 0.965 }  # altın "Open" butonu (ucuz kontrol)
-  energy    = @{ r1 = 0.522; r2 = 0.441; y1 = 0.018; y2 = 0.052 }
+  # Enerji yazısı sağa yaslı (bitişi ~0.448H); ek enerji büyüdükçe sola uzar ("0(+1,565)/840") → solda pay bırakıldı.
+  energy    = @{ r1 = 0.575; r2 = 0.441; y1 = 0.018; y2 = 0.052 }
   dungeon   = @{ r1 = 0.360; r2 = 0.040; y1 = 0.080; y2 = 0.130 }
   cost      = @{ r1 = 0.204; r2 = 0.150; y1 = 0.728; y2 = 0.768 }
   boxes     = @{ r1 = 0.240; r2 = 0.150; y1 = 0.778; y2 = 0.815 }
@@ -162,7 +171,8 @@ function Sub-Crop([System.Drawing.Bitmap]$panel, $panelRect, $g, [int]$W, [int]$
   [A2Img]::Crop($panel, ($r.x - $panelRect.x), ($r.y - $panelRect.y), $r.w, $r.h)
 }
 
-function Norm-Digits([string]$s) { ($s -replace '[Oo]', '0' -replace '[Il|]', '1' -replace '\s', '') }
+# Rakam düzeltmeleri: O→0, l/I/|→1, boşluklar ve binlik ayracı ("1,565" / "1.565" → "1565")
+function Norm-Digits([string]$s) { ($s -replace '[Oo]', '0' -replace '[Il|]', '1' -replace '\s', '' -replace '(?<=\d)[.,](?=\d{3}(\D|$))', '') }
 
 # Bir bölgeyi birkaç ayarla okuyup ilk eşleşeni döndür
 function Read-Field([System.Drawing.Bitmap]$crop, [string]$mode, [string]$label, [int[]]$scales, [string]$pattern) {
@@ -170,21 +180,57 @@ function Read-Field([System.Drawing.Bitmap]$crop, [string]$mode, [string]$label,
     $p = [A2Img]::Prep($crop, $sc, 140, $mode, $label)
     $t = Read-Text $p; $p.Dispose()
     if ($label) { $t = ($t -replace "^.*?$label", '').Trim() }
+    if ($env:A2_DEBUG) { Write-Host ("    [{0} x{1}] ham='{2}' → '{3}'" -f $mode, $sc, $t, (Norm-Digits $t)) }
     $m = [regex]::Match((Norm-Digits $t), $pattern)
     if ($m.Success) { return $m }
   }
   return $null
 }
 
+# Tüm ölçeklerde oku, her gruptaki değer için çoğunluk oyu (eşitlikte daha uzun sayı) → [string[]] ya da $null.
+# Enerji gibi kritik alanlarda tek bir hatalı okumanın kaydedilmesini önler.
+function Read-Vote([System.Drawing.Bitmap]$crop, [string]$mode, [string]$label, [int[]]$scales, [string]$pattern, [int]$groups) {
+  $votes = @{}
+  foreach ($sc in $scales) {
+    $p = [A2Img]::Prep($crop, $sc, 140, $mode, $label)
+    $t = Read-Text $p; $p.Dispose()
+    if ($label) { $t = ($t -replace "^.*?$label", '').Trim() }
+    if ($env:A2_DEBUG) { Write-Host ("    [{0} x{1} oy] ham='{2}' → '{3}'" -f $mode, $sc, $t, (Norm-Digits $t)) }
+    $m = [regex]::Match((Norm-Digits $t), $pattern)
+    if ($m.Success) { $k = (1..$groups | ForEach-Object { $m.Groups[$_].Value }) -join '|'; $votes[$k] = 1 + [int]$votes[$k] }
+  }
+  if ($votes.Count -eq 0) { return $null }
+  $win = $votes.GetEnumerator() | Sort-Object @{ e = { $_.Value }; Descending = $true }, @{ e = { $_.Key.Length }; Descending = $true } | Select-Object -First 1
+  return ,($win.Key -split '\|')
+}
+
 # Bilinen zindan adları: sitedeki tüm karakterlerin sayaçlarından (girişte doldurulur) + sık görülenler.
 $script:KnownDungeons = New-Object System.Collections.Generic.List[string]
 foreach ($d in @('Fire Temple')) { $script:KnownDungeons.Add($d) }
+function Edit-Distance([string]$a, [string]$b) {
+  $d = New-Object 'int[,]' ($a.Length + 1), ($b.Length + 1)
+  for ($i = 0; $i -le $a.Length; $i++) { $d[$i, 0] = $i }
+  for ($j = 0; $j -le $b.Length; $j++) { $d[0, $j] = $j }
+  for ($i = 1; $i -le $a.Length; $i++) {
+    for ($j = 1; $j -le $b.Length; $j++) {
+      $cost = if ($a[$i - 1] -eq $b[$j - 1]) { 0 } else { 1 }
+      $del = $d[($i - 1), $j] + 1; $ins = $d[$i, ($j - 1)] + 1; $sub = $d[($i - 1), ($j - 1)] + $cost
+      $m = $del; if ($ins -lt $m) { $m = $ins }; if ($sub -lt $m) { $m = $sub }
+      $d[$i, $j] = $m
+    }
+  }
+  return $d[$a.Length, $b.Length]
+}
 function Match-Dungeon([string]$ocr) {
   $o = $ocr.Trim().ToLowerInvariant()
   foreach ($k in $script:KnownDungeons) { if ($k.ToLowerInvariant() -eq $o) { return $k } }
-  # Kısmi okuma: okunan, bilinen bir adın başı ya da bilinen ad okunanın içinde (en az 4 harf)
   if ($o.Length -ge 4) {
+    # Kısmi okuma: okunan, bilinen bir adın başı ya da bilinen ad okunanın içinde ("Fire" → "Fire Temple")
     foreach ($k in $script:KnownDungeons) { $kl = $k.ToLowerInvariant(); if ($kl.StartsWith($o) -or $o.Contains($kl)) { return $k } }
+    # Harf hatası ("Fire Tempte" → "Fire Temple"): uzunluğun ~%20'si kadar farka izin ver
+    $bestK = $null; $bestD = 99
+    foreach ($k in $script:KnownDungeons) { $dd = Edit-Distance $o $k.ToLowerInvariant(); if ($dd -lt $bestD) { $bestD = $dd; $bestK = $k } }
+    if ($bestK -and $bestD -le [Math]::Max(1, [Math]::Floor($bestK.Length * 0.2))) { return $bestK }
   }
   return $ocr.Trim()
 }
@@ -195,7 +241,15 @@ function Read-Cube([System.Drawing.Bitmap]$full) {
   $res = [ordered]@{}
 
   $c = Sub-Crop $full @{ x = 0; y = 0 } $Regions.dungeon $W $H
-  foreach ($sc in 3, 4, 2) { $p = [A2Img]::Prep($c, $sc, 140, 'all', $null); $t = Read-Text $p; $p.Dispose(); if ($t -match '\w{3,}') { $res.dungeon = ($t -replace '\s+', ' ').Trim(); break } }
+  # Küçük ekranlarda bazı ölçekler kelime kaçırabiliyor ("Fire Temple" → "Fire") ya da harf karıştırabiliyor
+  # ("Fire Tempte"). Tüm ölçekler denenir, en çok harf içeren sonuç alınır, sonra bilinen zindan adlarına eşlenir.
+  $best = ''
+  foreach ($sc in 3, 4, 2, 5) {
+    $p = [A2Img]::Prep($c, $sc, 140, 'all', $null); $t = ((Read-Text $p) -replace '\s+', ' ').Trim(); $p.Dispose()
+    if ($env:A2_DEBUG) { Write-Host ("    [zindan x{0}] ham='{1}'" -f $sc, $t) }
+    if (($t -replace '[^\p{L}]', '').Length -gt ($best -replace '[^\p{L}]', '').Length) { $best = $t }
+  }
+  if (($best -replace '[^\p{L}]', '').Length -ge 3) { $res.dungeon = Match-Dungeon $best }
   $c.Dispose()
 
   $c = Sub-Crop $full @{ x = 0; y = 0 } $Regions.cost $W $H
@@ -210,12 +264,29 @@ function Read-Cube([System.Drawing.Bitmap]$full) {
   $m = Read-Field $c 'all' $null @(3, 2, 4) '(\d{1,3})/(\d{1,3})'; $c.Dispose()
   if ($m) { $res.seen = [int]$m.Groups[1].Value; $res.max = [int]$m.Groups[2].Value }
 
-  # Enerji: beyaz kısım "0 … /840", turkuaz kısım "(+845)"
-  $c = Sub-Crop $full @{ x = 0; y = 0 } $Regions.energy $W $H
-  $mw = Read-Field $c 'white' 'ENERGY' @(3, 2, 4) '^(\d{1,4}).*?/(\d{2,4})'
-  $mc = Read-Field $c 'cyan' 'ENERGY' @(3, 2, 4) '\+?(\d{1,5})'
-  $c.Dispose()
-  if ($mw) { $res.natural = [int]$mw.Groups[1].Value; $res.energyMax = [int]$mw.Groups[2].Value; $res.bonus = if ($mc) { [int]$mc.Groups[1].Value } else { 0 } }
+  # Enerji: beyaz kısım "0 … /840", turkuaz kısım "(+845)". Yazı sağa yaslı ve ek enerji büyüdükçe sola uzar;
+  # dar bölge kısa sayılarda, geniş bölge uzun sayılarda iyi okur → üç genişlik denenir, tutarlı sonuç seçilir.
+  $evotes = @{}
+  foreach ($r1 in 0.522, 0.545, 0.575) {
+    $g = @{ r1 = $r1; r2 = $Regions.energy.r2; y1 = $Regions.energy.y1; y2 = $Regions.energy.y2 }
+    $c = Sub-Crop $full @{ x = 0; y = 0 } $g $W $H
+    # Soldaki ikon kırıntısı başa çöp karakter ekleyebilir → başa sabitlenmeden, "/" öncesindeki son sayı
+    $mw = Read-Vote $c 'white' 'ENERGY' @(2, 3, 4) '(\d{1,4})\D{0,4}/(\d{3,4})(?!.*/)' 2
+    $mc = Read-Vote $c 'cyan' 'ENERGY' @(2, 3, 4) '\+?(\d{1,5})' 1
+    $c.Dispose()
+    if (-not $mw) { continue }
+    $nat = [int]$mw[0]; $emax = [int]$mw[1]; $bon = if ($mc) { [int]$mc[0] } else { 0 }
+    # Mantık kontrolü: doğal enerji sınırı aşamaz, sınır makul aralıkta, ek enerji makul
+    if ($nat -gt $emax -or $emax -lt 100 -or $emax -gt 2000 -or $bon -gt 5000) { continue }
+    $k = "$nat|$emax|$bon"; $evotes[$k] = 1 + [int]$evotes[$k]
+    if ($env:A2_DEBUG) { Write-Host ("    [enerji r1={0}] {1}" -f $r1, $k) }
+  }
+  if ($evotes.Count -gt 0) {
+    # En çok tekrar eden; eşitlikte ek enerjisi daha uzun olan (kesilmemiş okuma)
+    $win = $evotes.GetEnumerator() | Sort-Object @{ e = { $_.Value }; Descending = $true }, @{ e = { ($_.Key -split '\|')[2].Length }; Descending = $true } | Select-Object -First 1
+    $p3 = $win.Key -split '\|'
+    $res.natural = [int]$p3[0]; $res.energyMax = [int]$p3[1]; $res.bonus = [int]$p3[2]
+  }
 
   # Doğrulama
   $res.valid = [bool]($res.dungeon -and $res.cost -gt 0 -and $res.cost -le 2000 -and $res.boxes -ge 1 -and $res.boxes -le $res.boxesMax -and
@@ -531,6 +602,13 @@ function Save-Debug([System.Drawing.Bitmap]$bmp, [string]$tag, $r) {
 }
 function Drop-Snap { if ($script:Snap) { $script:Snap.Dispose(); $script:Snap = $null }; $script:SnapFresh = $false }
 
+# Sadece oyun ön plandayken okunur: Discord'da arkadaşın yayınını tam ekran izlerken kayıt gönderilmesin,
+# Alt+Tab ile oyundan çıkınca da "pencere kapandı" sanılmasın.
+$script:GameProcPattern = 'aion'   # oyunun işlem adında geçen kelime (ör. Aion2.exe)
+$script:FgName = ''
+# Not: Türkçe Windows'ta -match büyük/küçük harf eşlemesinde "I" → "ı" yapar ("AION2" ≠ "aion") → kültürden bağımsız karşılaştır.
+function Game-Foreground { $script:FgName = [A2Img]::ForegroundProcess(); return $script:FgName.ToLowerInvariant().Contains($script:GameProcPattern) }
+
 function Invoke-Tick {
   try {
     if ($script:Queue.Count -gt 0 -and ($script:Tick % 20) -eq 0) { Flush-Queue }   # ~3 sn'de bir tekrar dene
@@ -538,6 +616,10 @@ function Invoke-Tick {
     if ($script:Paused -or -not $script:Session -or -not (Char-Id)) { return }
     if ($script:Pending -and (Get-Date) -ge $script:Pending.due) { Commit-Pending }
 
+    if (-not (Game-Foreground)) {   # oyun ön planda değil → okuma yok, sayaçlar da ilerlemez
+      if (($script:Tick % 7) -eq 0) { $lblStatus.Text = "Oyun ön planda değil ($($script:FgName)) — bekleniyor." }
+      return
+    }
     $visible = Open-Button-Visible
 
     if ($visible) {
@@ -602,6 +684,7 @@ if ($env:A2_LOOP_TEST) {   # geliştirici testi: kare dizisiyle döngüyü sına
   $script:Frame = $none
   function Open-Button-Visible { $o = Rect-Of $Regions.open $script:Frame.Width $script:Frame.Height; $b = [A2Img]::Crop($script:Frame, $o.x, $o.y, $o.w, $o.h); $r = [A2Img]::GoldRatio($b); $b.Dispose(); $r -gt 0.30 }
   function Capture-Screen { $script:Frame.Clone() }
+  function Game-Foreground { $true }
   function Send-Ops([object[]]$ops, [string]$summary) { Write-Host ("  → GÖNDER: {0}   [{1}]" -f $summary, (($ops | ForEach-Object { $_.type }) -join ', ')) }
   function Log([string]$m) { Write-Host "  · $m" }
   $script:Session = @{ user = 'karip' }; $script:Chars = @([pscustomobject]@{ id = 'kyrakia'; name = 'Kyrakia' }); [void]$cmbChar.Items.Add('Kyrakia'); $cmbChar.SelectedIndex = 0
