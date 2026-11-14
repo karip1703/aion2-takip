@@ -26,7 +26,7 @@
     },
     "nearFullHours": 3
   },
-  "lastFetch": "2026-11-14T09:31:13.379Z",
+  "lastFetch": "2026-11-14T11:02:42.196Z",
   "characters": [
     {
       "id": "kyrakia",
@@ -36,7 +36,7 @@
         "class": "Sorcerer",
         "level": 45,
         "itemLevel": 3236,
-        "combatPower": 217337,
+        "combatPower": 217112,
         "race": "Elyos",
         "title": "Divine Skill",
         "profileImage": "https://profileimg.plaync.com/game_profile_images/aion2global/images?gameServerKey=1301&charKey=366198944700801654",
@@ -797,7 +797,7 @@
               "equipLevel": 45,
               "maxEnchant": 15,
               "maxExceed": 5,
-              "soulBind": "32.7",
+              "soulBind": "31.1",
               "main": [
                 {
                   "name": "Attack",
@@ -824,8 +824,8 @@
                   "added": false
                 },
                 {
-                  "name": "Accuracy",
-                  "value": "53",
+                  "name": "Critical Hit Resist",
+                  "value": "55",
                   "added": false
                 }
               ],
@@ -2520,9 +2520,9 @@
           }
         ],
         "pet": {
-          "name": "Manduri Trebuchet Worker",
+          "name": "Addicted Shulak Cart Worker",
           "level": 3,
-          "icon": "https://assets.playnccdn.com/static-aion2-gamedata/resources/UT_Vehicle_Portrait_ManduriRng_01.png"
+          "icon": "https://assets.playnccdn.com/static-aion2-gamedata/resources/UT_Vehicle_Portrait_AddShulack_03.png"
         },
         "wing": {
           "name": "Talisra Wings",
@@ -2536,7 +2536,7 @@
           "enchant": 0,
           "icon": "https://assets.playnccdn.com/static-aion2-gamedata/resources/Icon_WingD_005.png"
         },
-        "updatedAt": "2026-11-14T00:31:51.676Z"
+        "updatedAt": "2026-11-14T11:01:57.321Z"
       },
       "energy": {
         "value": 0,
@@ -4976,8 +4976,8 @@
       "game": {
         "class": "Chanter",
         "level": 45,
-        "itemLevel": 1761,
-        "combatPower": 91540,
+        "itemLevel": 1769,
+        "combatPower": 92452,
         "race": "Elyos",
         "title": "Unbound by Genus",
         "profileImage": "https://profileimg.plaync.com/game_profile_images/aion2global/images?gameServerKey=1301&charKey=366198944700864403",
@@ -5266,19 +5266,19 @@
           {
             "slot": "Shoulder",
             "slotPos": 4,
-            "id": 210440043,
-            "name": "Divine Canyon Pauldrons",
+            "id": 210440047,
+            "name": "Unyielding Pauldrons",
             "grade": "Legend",
             "enchant": 0,
             "exceed": 0,
             "itemLevel": 42,
-            "icon": "https://assets.playnccdn.com/static-aion2-gamedata/resources/Icon_GM_0072_T05_Shoulder.png",
+            "icon": "https://assets.playnccdn.com/static-aion2-gamedata/resources/Icon_GM_0049_T05_Shoulder.png",
             "detail": {
               "category": "Pauldrons",
               "equipLevel": 45,
               "maxEnchant": 10,
               "maxExceed": null,
-              "soulBind": "68.6",
+              "soulBind": "56.7",
               "main": [
                 {
                   "name": "Defense",
@@ -5295,22 +5295,21 @@
               ],
               "sub": [
                 {
-                  "name": "Status Effect Resist",
-                  "value": "2.9%",
+                  "name": "Attack",
+                  "value": "10",
+                  "added": false
+                },
+                {
+                  "name": "Back Defense",
+                  "value": "126",
                   "added": false
                 }
               ],
               "subSkills": [
                 {
-                  "name": "Survival Willpower",
+                  "name": "Inspiring Spell",
                   "level": 1,
-                  "icon": "https://assets.playnccdn.com/static-aion2-gamedata/resources/ICON_CH_SKILL_Passive_009.png",
-                  "added": false
-                },
-                {
-                  "name": "Protection Circle",
-                  "level": 1,
-                  "icon": "https://assets.playnccdn.com/static-aion2-gamedata/resources/ICON_CH_SKILL_Passive_003.png",
+                  "icon": "https://assets.playnccdn.com/static-aion2-gamedata/resources/ICON_CH_SKILL_Passive_011.png",
                   "added": false
                 }
               ],
@@ -6952,7 +6951,7 @@
             "id": 18090000,
             "name": "Rushing Smash",
             "category": "Active",
-            "level": 14,
+            "level": 15,
             "icon": "https://assets.playnccdn.com/static-aion2-gamedata/resources/ICON_CH_SKILL_009.png",
             "equip": true,
             "acquired": true
@@ -7015,7 +7014,7 @@
             "id": 18080000,
             "name": "Wave Blow",
             "category": "Active",
-            "level": 13,
+            "level": 14,
             "icon": "https://assets.playnccdn.com/static-aion2-gamedata/resources/ICON_CH_SKILL_008.png",
             "equip": true,
             "acquired": true
@@ -7060,7 +7059,7 @@
             "id": 18730000,
             "name": "Protection Circle",
             "category": "Passive",
-            "level": 8,
+            "level": 7,
             "icon": "https://assets.playnccdn.com/static-aion2-gamedata/resources/ICON_CH_SKILL_Passive_001.png",
             "equip": false,
             "acquired": true
@@ -7069,7 +7068,7 @@
             "id": 18740000,
             "name": "Inspiring Spell",
             "category": "Passive",
-            "level": 14,
+            "level": 15,
             "icon": "https://assets.playnccdn.com/static-aion2-gamedata/resources/ICON_CH_SKILL_Passive_011.png",
             "equip": false,
             "acquired": true
@@ -7114,7 +7113,7 @@
             "id": 18790000,
             "name": "Survival Willpower",
             "category": "Passive",
-            "level": 14,
+            "level": 13,
             "icon": "https://assets.playnccdn.com/static-aion2-gamedata/resources/ICON_GL_SKILL_Passive_009.png",
             "equip": false,
             "acquired": true
@@ -7263,7 +7262,7 @@
           "enchant": 0,
           "icon": null
         },
-        "updatedAt": "2026-11-14T09:31:05.352Z"
+        "updatedAt": "2026-11-14T11:02:27.171Z"
       },
       "energy": {
         "value": 280,
