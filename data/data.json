@@ -7269,7 +7269,16 @@
       "ref": {
         "characterId": "nOesda0HA_kaMIdoYp76sygA9gK6uTY16SCtSJ31wwE=",
         "serverId": 1301
-      }
+      },
+      "dungeons": [
+        {
+          "name": "Vakron Sky Island",
+          "count": 14,
+          "max": 21,
+          "updatedAt": "2026-11-14T09:54:26.4061371Z",
+          "updatedBy": "karip"
+        }
+      ]
     },
     {
       "id": "buffatam",
