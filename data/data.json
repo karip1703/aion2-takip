@@ -7265,7 +7265,13 @@
         },
         "updatedAt": "2026-11-14T09:31:05.352Z"
       },
-      "energy": null,
+      "energy": {
+        "value": 0,
+        "setAt": "2026-11-14T09:54:38.818Z",
+        "bonus": 0,
+        "editedAt": "2026-11-14T09:54:38.8187903Z",
+        "setBy": "karip"
+      },
       "ref": {
         "characterId": "nOesda0HA_kaMIdoYp76sygA9gK6uTY16SCtSJ31wwE=",
         "serverId": 1301
@@ -7273,9 +7279,9 @@
       "dungeons": [
         {
           "name": "Vakron Sky Island",
-          "count": 14,
+          "count": 16,
           "max": 21,
-          "updatedAt": "2026-11-14T09:54:26.4061371Z",
+          "updatedAt": "2026-11-14T09:54:38.8187903Z",
           "updatedBy": "karip"
         }
       ]
