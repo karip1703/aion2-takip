@@ -9,7 +9,8 @@
 //   kills: { [bossId]: { at, by } },   // son ölüm zamanı
 //   watch: { [kullanıcı]: [bossId…] }  // kimin hangi bossları takip ettiği (bildirim bunlar için)
 // }
-// Süreler topluluk kaynaklarından (Kasım 2026, 4 Kasım yaması sonrası Abyss programı).
+// Süreler topluluk kaynaklarından (Kasım 2026). 4 Kasım yaması: Gartua (iki taraf) ve Lagta 12 → 11 saat,
+// Argo the Spirit King sabit 10:30/22:30, Artifact Siege + Executors sadece Perşembe/Cumartesi.
 
 import { esc, fmtAgo } from './render.js';
 
@@ -46,8 +47,8 @@ export const BOSSES = [
     ['Researcher Setram', 'Nahid Legion Fortress', 6 * H],
     ['Silent Dartan', 'Artamia Plateau South', 6 * H],
     ['Soul Ruler Kashapa', 'Artamia Plateau East', 6 * H],
-    ['Eternal Gartua', 'Isle of Eternity', 12 * H],
-    ['High Commander Lagta', 'Red Forest', 12 * H],
+    ['Eternal Gartua', 'Isle of Eternity', 11 * H],
+    ['High Commander Lagta', 'Red Forest', 11 * H],
   ]),
   ...field('Altgard', [
     ['Black Warrior Aed', 'Nameless Graveyard', 30],
@@ -72,8 +73,8 @@ export const BOSSES = [
     ['Sharp Shylak', 'Impetusium Plaza', 6 * H],
     ['Silent Dartan', 'Forest of Purification', 6 * H],
     ['Soul Ruler Kashapa', 'Pafnite Burial Ground', 6 * H],
-    ['High Commander Lagta', 'Ragta Fortress', 12 * H],
-    ['Immortal Gartua', 'Isle of Immortality', 12 * H],
+    ['High Commander Lagta', 'Ragta Fortress', 11 * H],
+    ['Immortal Gartua', 'Isle of Immortality', 11 * H],
   ]),
   // Abyss — sabit program (sunucu saati). days: 0=Pazar … 6=Cumartesi; null = her gün.
   { id: 'abyss-watcher-kaira', name: 'Watcher Kaira', area: 'Lower Reshanta (Chaotic)', map: 'Abyss', kind: 'schedule',
@@ -148,6 +149,28 @@ export function bossStatus(b, data, now = Date.now()) {
 //   { type: 'bossKill', id, at, by }      → ölüm zamanını yaz
 //   { type: 'bossReset', id }             → sayacı sil
 //   { type: 'bossWatch', user, id, on }   → takip listesine ekle / çıkar
+
+// "Saat…" girişi → ölüm zamanı (ms) ya da null.
+//   14:35  → o saatte öldü (ileri bir saatse dün)
+//   25     → 25 dakika önce öldü
+//   +2:15 / +40 → oyundaki "kalan süre": 2 sa 15 dk / 40 dk sonra doğacak
+export function parseKillInput(v, respawnMin, now = Date.now()) {
+  const s = String(v ?? '').trim();
+  let m = s.match(/^\+\s*(?:(\d{1,2})[:.])?(\d{1,3})$/);
+  if (m) {
+    const left = (Number(m[1] || 0) * 60 + Number(m[2])) * 60_000;
+    return left > respawnMin * 60_000 ? null : now + left - respawnMin * 60_000;
+  }
+  m = s.match(/^(\d{1,2})[:.](\d{2})$/);
+  if (m && Number(m[1]) < 24 && Number(m[2]) < 60) {
+    const d = new Date(now); d.setHours(Number(m[1]), Number(m[2]), 0, 0);
+    if (d.getTime() > now + 60_000) d.setDate(d.getDate() - 1); // ileri bir saat → dün
+    return d.getTime();
+  }
+  if (/^\d{1,4}$/.test(s)) return now - Number(s) * 60_000;
+  return null;
+}
+
 export function applyBossOp(data, op) {
   if (!op.type.startsWith('boss')) return null;
   data.bosses ||= {};

@@ -9,7 +9,7 @@ import { adjustEnergy, setEnergy, adjustBonus, setBonus, energyCfg, spendEnergy 
 import {
   renderCards, updateEnergyLive, renderCompare, effEnergy, fmtAgo, fmtDate, esc, itemDetailHtml, charDialogHtml, CHAR_TABS,
 } from './render.js';
-import { renderBosses, fireNotifications, bossById, fmtClock } from './bosses.js';
+import { renderBosses, fireNotifications, bossById, parseKillInput } from './bosses.js';
 
 const $ = (s) => document.querySelector(s);
 const LS_EDITS = 'aion2.edits';
@@ -757,16 +757,10 @@ $('#view-bosses').addEventListener('click', async (e) => {
   } else if (act === 'kill') {
     dataAction({ type: 'bossKill', id, at: new Date().toISOString(), by: state.login });
   } else if (act === 'time') {
-    const v = prompt(`${b.name} kaçta öldü? (SS:DD — bu bilgisayarın saatiyle)\nYa da kaç dakika önce öldüğünü yaz: ör. 25`, fmtClock(Date.now()));
+    const v = prompt(`${b.name}\n\n• Ölüm saati: 14:35\n• Kaç dakika önce öldü: 25\n• Oyundaki kalan süre: +2:15 ya da +40`, '');
     if (v == null) return;
-    let at;
-    const hm = v.trim().match(/^(\d{1,2})[:.](\d{2})$/);
-    if (hm) {
-      const d = new Date(); d.setHours(Number(hm[1]), Number(hm[2]), 0, 0);
-      if (d.getTime() > Date.now() + 60_000) d.setDate(d.getDate() - 1); // ileri bir saat → dün
-      at = d.getTime();
-    } else if (/^\d{1,4}$/.test(v.trim())) at = Date.now() - Number(v.trim()) * 60_000;
-    else { alert('Anlaşılmadı. Örnek: 14:35 ya da 25'); return; }
+    const at = parseKillInput(v, b.respawn);
+    if (at == null) { alert('Anlaşılmadı. Örnekler: 14:35 · 25 · +2:15'); return; }
     dataAction({ type: 'bossKill', id, at: new Date(at).toISOString(), by: state.login });
   } else if (act === 'reset' && confirm(`${b.name} sayacı silinsin mi?`)) {
     dataAction({ type: 'bossReset', id });

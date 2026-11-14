@@ -180,7 +180,7 @@ node scripts/fetch-characters.mjs                           # "fetch": false olm
 
 **Bosslar** sekmesinde EU sunucusunun saha ve Abyss bossları listelenir:
 
-- **Saha bossları** (Verteron = Elyos, Altgard = Asmodian, 48 boss): öldükten sonra sabit sürede (30 dk – 12 sa) yeniden doğar. Boss ölünce **Öldü**'ye bas; geç kaldıysan **Saat…** ile ölüm saatini (ör. `14:35`) ya da kaç dakika önce öldüğünü (ör. `25`) gir. İşaret herkese yansır.
+- **Saha bossları** (Verteron = Elyos, Altgard = Asmodian, 48 boss): öldükten sonra sabit sürede (30 dk – 11 sa) yeniden doğar. Boss ölünce **Öldü**'ye bas; geç kaldıysan **Saat…** ile ölüm saatini (ör. `14:35`) ya da kaç dakika önce öldüğünü (ör. `25`) gir. Oyundaki saha bossu listesinde kalan süre yazıyorsa onu `+` ile gir (ör. `+2:15`). İşaret herkese yansır.
 - **Abyss** (Watcher Kaira, Argo the Spirit King, Artifact Siege, Executors): sunucu saatine (CET/CEST) göre sabit programla çıkar, işaretlemeye gerek yok.
 - **★** ile takip ettiğin bosslar için bildirim gelir: seçtiğin süre kadar önce (varsayılan 5 dk) ve doğduğu an. Takip listesi kişiye özeldir.
 - Bildirim için **🔔 Bildirimleri aç**'a basıp izin ver. Site bir sekmede açık kalmalı (arka planda olabilir).
