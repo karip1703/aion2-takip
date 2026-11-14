@@ -154,7 +154,7 @@ function renderAll() {
   const cfg = d.config || {};
   $('#subtitle').textContent = [cfg.region, cfg.server, `veri: ${fmtAgo(d.lastFetch)}`].filter(Boolean).join(' · ');
   $('#subtitle').title = `Son gear değişikliği: ${fmtDate(d.lastFetch)}`;
-  $('#side-sub').textContent = [cfg.server, (cfg.regionCode || '').toUpperCase()].filter(Boolean).join(' · ');
+  $('#side-sub').textContent = ['AION 2', cfg.server, (cfg.regionCode || '').toUpperCase()].filter(Boolean).join(' · ');
   $('#sample-banner').hidden = !(d.sample || (d.characters || []).some((c) => c.sample));
 
   renderTodosNow();
@@ -184,7 +184,7 @@ function renderChrome() {
   for (const t of document.querySelectorAll('.tab')) t.setAttribute('aria-selected', String(t.dataset.view === state.view));
   for (const v of VIEWS) $(`#view-${v}`).hidden = state.view !== v;
   $('#page-title').textContent = VIEW_TITLES[state.view] || '';
-  document.title = `${VIEW_TITLES[state.view] || ''} · AION 2 Takip`;
+  document.title = `${VIEW_TITLES[state.view] || ''} · Karip Traker`;
   $('#sort-key').value = state.sortKey;
 
   const r = gh.getRepo();
@@ -815,7 +815,7 @@ $('#view-bosses').addEventListener('click', async (e) => {
     try { await Notification.requestPermission(); } catch { /* yoksay */ }
     renderBossesNow();
     if (notifState() === 'granted') {
-      try { new Notification('AION 2 Takip', { body: 'Bildirimler açık. Takip ettiğin bosslar için haber vereceğim.' }); } catch { /* yoksay */ }
+      try { new Notification('Karip Traker', { body: 'Bildirimler açık. Takip ettiğin bosslar için haber vereceğim.' }); } catch { /* yoksay */ }
     }
     return;
   }

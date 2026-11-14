@@ -1,4 +1,4 @@
-﻿# AION 2 Takip — Ekran izleyici
+﻿# Karip Traker — Ekran izleyici
 # Odyle Energy Cube (ödül kutusu) penceresini ekrandan okur:
 #   * Pencere açılınca: enerjiyi (ör. 0(+845)/840) ve zindanın garanti sayacını siteyle EŞİTLER.
 #   * Pencere kapanınca: Open sayılır → enerjiden maliyet düşülür, garanti sayacı kutu sayısı kadar ilerler.
@@ -26,7 +26,7 @@ if (-not $TestImage) {
   trap {
     $msg = "Ekran izleyici bir hatayla karşılaştı:`n`n$($_.Exception.Message)`n`nAyrıntı: $AppDirhata.log"
     try { Add-Content (Join-Path $AppDir 'hata.log') ("{0:yyyy-MM-dd HH:mm:ss}  {1}`n{2}" -f (Get-Date), $_.Exception, $_.ScriptStackTrace) -Encoding UTF8 } catch {}
-    [System.Windows.Forms.MessageBox]::Show($msg, 'AION 2 Takip — Ekran izleyici', 'OK', 'Error') | Out-Null
+    [System.Windows.Forms.MessageBox]::Show($msg, 'Karip Traker — Ekran izleyici', 'OK', 'Error') | Out-Null
     exit 1
   }
 }
@@ -895,15 +895,23 @@ function Pump-Http {
 
 # ---------------------------------------------------------------- Saat yanındaki simge
 function New-TrayIcon {
+  # Karip Traker logosu (assets/img/logo.svg) — 64 birimlik çizim 32 piksele ölçeklenir
   $bmp = New-Object Drawing.Bitmap 32, 32
-  $g = [Drawing.Graphics]::FromImage($bmp); $g.SmoothingMode = 'AntiAlias'; $g.TextRenderingHint = 'AntiAliasGridFit'
-  $rect = New-Object Drawing.Rectangle 0, 0, 32, 32
-  $br = New-Object Drawing.Drawing2D.LinearGradientBrush($rect, [Drawing.Color]::FromArgb(59, 111, 209), [Drawing.Color]::FromArgb(123, 79, 214), 45)
-  $g.FillEllipse($br, 1, 1, 30, 30)
-  $font = New-Object Drawing.Font('Segoe UI', 12, [Drawing.FontStyle]::Bold, [Drawing.GraphicsUnit]::Pixel)
-  $sf = New-Object Drawing.StringFormat; $sf.Alignment = 'Center'; $sf.LineAlignment = 'Center'
-  $g.DrawString('A2', $font, [Drawing.Brushes]::White, (New-Object Drawing.RectangleF 0, 1, 32, 32), $sf)
-  $g.Dispose(); $br.Dispose(); $font.Dispose()
+  $g = [Drawing.Graphics]::FromImage($bmp); $g.SmoothingMode = 'AntiAlias'
+  $bg = New-Object Drawing.Drawing2D.GraphicsPath
+  $bg.AddArc(0, 0, 10, 10, 180, 90); $bg.AddArc(21, 0, 10, 10, 270, 90); $bg.AddArc(21, 21, 10, 10, 0, 90); $bg.AddArc(0, 21, 10, 10, 90, 90); $bg.CloseFigure()
+  $nb = New-Object Drawing.SolidBrush ([Drawing.Color]::FromArgb(8, 19, 34)); $g.FillPath($nb, $bg)
+  $g.ScaleTransform(0.5, 0.5)
+  $blue = [Drawing.Color]::FromArgb(42, 149, 255)
+  $pen = New-Object Drawing.Pen($blue, 5); $pen.StartCap = 'Round'; $pen.EndCap = 'Round'; $pen.LineJoin = 'Round'
+  function P { $pts = for ($i = 0; $i -lt $args.Count; $i += 2) { New-Object Drawing.PointF ([float]$args[$i]), ([float]$args[$i + 1]) }; ,([Drawing.PointF[]]$pts) }
+  $g.DrawLines($pen, (P 12 43 12 20.5 32 9 52 20.5 52 31))
+  $g.DrawLines($pen, (P 24.5 24 32 19.5 39.5 24))
+  $g.DrawPolygon($pen, (P 20 35 32 28.5 44 35 44 46 32 52.5 20 46))
+  $g.DrawLines($pen, (P 20 35 32 41.5 44 35)); $g.DrawLine($pen, 32, 41.5, 32, 52.5)
+  $g.DrawLine($pen, 50, 37, 50, 42); $g.DrawLine($pen, 44, 45, 44, 48)
+  $gb = New-Object Drawing.SolidBrush $blue; $g.FillEllipse($gb, 13, 46, 11, 11)
+  $g.Dispose(); $pen.Dispose(); $nb.Dispose(); $gb.Dispose(); $bg.Dispose()
   [Drawing.Icon]::FromHandle($bmp.GetHicon())
 }
 $tray = New-Object Windows.Forms.NotifyIcon
@@ -919,7 +927,7 @@ $tray.Visible = $true
 
 function Update-Tray {
   $txt = if (-not $script:Session) { 'giriş bekleniyor' } elseif ($script:Paused) { "duraklatıldı · $(Char-Name)" } else { "izliyor · $(Char-Name)" }
-  $t = "AION 2 Takip — $txt"; if ($t.Length -gt 63) { $t = $t.Substring(0, 63) }
+  $t = "Karip Traker — $txt"; if ($t.Length -gt 63) { $t = $t.Substring(0, 63) }
   $tray.Text = $t
   $miPause.Text = $(if ($script:Paused) { 'Devam et' } else { 'Duraklat' })
   $miPause.Enabled = [bool]$script:Session

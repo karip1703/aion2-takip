@@ -1,4 +1,8 @@
-# AION 2 Takip
+# Karip Traker
+
+<img src="assets/img/logo.svg" width="96" alt="Karip Traker logosu">
+
+AION 2 karakter takip sitesi ve masaüstü uygulaması.
 
 AION 2 (Global EU, Siel) karakterleri için iki kişilik takip sitesi. GitHub Pages üzerinde çalışır, sunucu tarafı yoktur.
 
@@ -169,7 +173,7 @@ node scripts/fetch-characters.mjs                           # "fetch": false olm
 
 1. GitHub'da repo sayfası → **Code → Download ZIP**. ZIP'i aç ve `tools/izleyici` klasörünü istediğin bir yere kopyala (`Baslat.bat` ve `izleyici.ps1` yeterli).
 2. `Baslat.bat` dosyasına çift tıkla. Windows "bilinmeyen yayıncı" uyarısı verirse: dosyaya sağ tık → **Özellikler** → alttaki **Engellemeyi kaldır** → Tamam.
-3. **Uygulama penceresi** açılır: sitenin kendisi, sekmesiz kendi penceresinde. Saat yanında da **A2** simgesi belirir.
+3. **Uygulama penceresi** açılır: sitenin kendisi, sekmesiz kendi penceresinde. Saat yanında da **Karip Traker** simgesi belirir.
 4. Pencerede **site kullanıcı adın ve şifrenle** bir kez giriş yap. Ekran izleyici de aynı hesapla bağlanır; sonraki açılışlarda giriş sormaz.
 5. **Uygulama** bölümünden o an oynadığın **aktif karakteri** seç. Karakter değiştirince burayı da değiştir.
 6. Oyunu **çerçevesiz pencere** modunda, **ana ekranda** oyna. Pencereyi kapatsan da izleyici arka planda çalışmaya devam eder; tekrar açmak için simgeye çift tıkla. Tamamen kapatmak için simge → sağ tık → **Çıkış**.
