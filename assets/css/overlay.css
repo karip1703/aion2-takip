@@ -213,3 +213,28 @@ body[data-w="dps"] .wbody { padding: 4px 6px 6px; }
 .pm-st { font-size: .8rem; }
 .pm-st.lead { font-size: .7rem; }
 .dh-top .seg { flex-wrap: nowrap; flex: none; }
+
+/* Hatırlatıcı */
+.rm-hint { margin: 2px 0 6px; font-size: .8rem; color: var(--muted); }
+.rm-sec { margin-bottom: 4px; }
+.rm-sh { width: 100%; text-align: left; background: var(--surface-2); border: 1px solid var(--border); border-radius: 6px; padding: 3px 8px; cursor: pointer; font-weight: 700; font-size: .85rem; }
+.rm-list { margin: 3px 0 0; }
+.rm-row { align-items: center !important; padding: 2px 4px; border-radius: 5px; }
+.rm-row.on { background: color-mix(in srgb, var(--accent) 12%, transparent); }
+.rm-n { display: grid; min-width: 0; }
+.rm-n small { color: var(--text); font-size: .74rem; font-weight: 400; }
+.rm-leads { display: inline-flex; gap: 3px; flex: none; }
+.rm-leads button { min-width: 1.9em; padding: 1px 4px; border-radius: 5px; border: 1px solid var(--border); background: var(--bg); cursor: pointer; font-size: .78rem; font-weight: 700; }
+.rm-leads button[aria-pressed="true"] { background: var(--accent-2); border-color: var(--accent-2); color: #fff; }
+.rm-foot { margin-top: 6px; }
+.rm-foot .sp { flex: 1; }
+.rm-card { display: grid; grid-template-columns: auto minmax(0, 1fr) auto auto; align-items: center; gap: 8px; margin-bottom: 4px; padding: 7px 8px;
+  border-radius: 8px; background: #06101e; border: 1px solid var(--accent); box-shadow: 0 0 0 1px color-mix(in srgb, var(--accent) 30%, transparent); }
+.rm-card.hot { border-color: var(--warn); animation: rm-pulse 1.2s ease-in-out infinite; }
+@keyframes rm-pulse { 50% { box-shadow: 0 0 12px color-mix(in srgb, var(--warn) 60%, transparent); } }
+.rm-ic { font-size: 1.2rem; }
+.rm-txt { display: grid; min-width: 0; }
+.rm-txt b { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.rm-txt small { color: var(--muted); font-size: .76rem; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.rm-t { font-size: 1.25rem; font-weight: 800; color: #4fd8ea; font-variant-numeric: tabular-nums; }
+.rm-card.hot .rm-t { color: var(--warn); }

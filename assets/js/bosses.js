@@ -98,18 +98,23 @@ const DAY_TR = ['Paz', 'Pzt', 'Sal', 'Çar', 'Per', 'Cum', 'Cmt'];
 export const bossById = (id) => BOSSES.find((b) => b.id === id);
 
 // ---------------- Saat dilimi yardımcıları ----------------
-const partsFmt = new Intl.DateTimeFormat('en-US', {
-  timeZone: SERVER_TZ, hourCycle: 'h23', year: 'numeric', month: 'numeric', day: 'numeric', hour: 'numeric', minute: 'numeric', weekday: 'short',
-});
-function zoned(ts) {
-  const p = Object.fromEntries(partsFmt.formatToParts(new Date(ts)).map((x) => [x.type, x.value]));
+// Saat dilimine göre biçimleyiciler (varsayılan sunucu saati; ör. sıfırlamalar UTC'ye sabit)
+const fmts = new Map();
+const partsFmt = (tz) => {
+  if (!fmts.has(tz)) fmts.set(tz, new Intl.DateTimeFormat('en-US', {
+    timeZone: tz, hourCycle: 'h23', year: 'numeric', month: 'numeric', day: 'numeric', hour: 'numeric', minute: 'numeric', weekday: 'short',
+  }));
+  return fmts.get(tz);
+};
+function zoned(ts, tz = SERVER_TZ) {
+  const p = Object.fromEntries(partsFmt(tz).formatToParts(new Date(ts)).map((x) => [x.type, x.value]));
   return { y: +p.year, m: +p.month, d: +p.day, h: +p.hour, mi: +p.minute, wd: ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'].indexOf(p.weekday) };
 }
 // Sunucu saatindeki y-m-d h:mi → UTC zaman damgası (yaz/kış saati dahil).
-function serverToUtc(y, m, d, h, mi) {
+function serverToUtc(y, m, d, h, mi, tz = SERVER_TZ) {
   let guess = Date.UTC(y, m - 1, d, h, mi);
   for (let i = 0; i < 2; i++) {
-    const z = zoned(guess);
+    const z = zoned(guess, tz);
     const diff = Date.UTC(z.y, z.m - 1, z.d, z.h, z.mi) - Date.UTC(y, m - 1, d, h, mi);
     guess -= diff;
   }
@@ -118,14 +123,15 @@ function serverToUtc(y, m, d, h, mi) {
 
 // Sabit programlı boss: şu an aktifse o pencerenin başı, değilse bir sonraki başlangıç.
 export function nextScheduled(b, now = Date.now()) {
-  const base = zoned(now);
+  const tz = b.tz || SERVER_TZ;
+  const base = zoned(now, tz);
   for (let k = -1; k <= 8; k++) {
     const day = new Date(Date.UTC(base.y, base.m - 1, base.d + k));
     const wd = day.getUTCDay();
     if (b.days && !b.days.includes(wd)) continue;
     for (const t of b.times) {
       const [h, mi] = t.split(':').map(Number);
-      const start = serverToUtc(day.getUTCFullYear(), day.getUTCMonth() + 1, day.getUTCDate(), h, mi);
+      const start = serverToUtc(day.getUTCFullYear(), day.getUTCMonth() + 1, day.getUTCDate(), h, mi, tz);
       if (start + b.duration * 60_000 > now) return { start, end: start + b.duration * 60_000 };
     }
   }

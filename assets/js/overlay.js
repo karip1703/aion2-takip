@@ -15,7 +15,8 @@ import { getSession, setSession } from './auth.js';
 import * as gh from './github.js';
 import { esc, effEnergy, splitGear } from './render.js';
 import { energyState, energyCfg, fmtDuration } from './energy.js';
-import { BOSSES, bossStatus, fmtLeft, fmtClock, SERVER_TZ } from './bosses.js';
+import { BOSSES, bossStatus, fmtLeft, fmtClock, SERVER_TZ, nextScheduled } from './bosses.js';
+import { EVENTS } from './events.js';
 import { LOCAL, appApi } from './izleyici.js';
 
 const W = new URLSearchParams(location.search).get('w') || 'hub';
@@ -26,6 +27,7 @@ const dpr = () => window.devicePixelRatio || 1;
 // ---------------------------------------------------------------- İkonlar
 const svg = (d) => `<svg class="ic" viewBox="0 0 24 24" aria-hidden="true">${d}</svg>`;
 const ICON = {
+  remind: svg('<path d="M6 8a6 6 0 0 1 12 0c0 7 3 9 3 9H3s3-2 3-9"/><path d="M10.3 21a1.94 1.94 0 0 0 3.4 0"/>'),
   dps: svg('<path d="M4 20V10M10 20V4M16 20v-8M22 20H2"/>'),
   energy: svg('<path d="M13 2 4 14h7l-1 8 9-12h-7z"/>'),
   bosses: svg('<path d="M12 3c-4.4 0-8 3.2-8 7.3 0 2.4 1.2 4.4 3 5.7V20h3v-2h4v2h3v-4c1.8-1.3 3-3.3 3-5.7C20 6.2 16.4 3 12 3z"/><circle cx="9" cy="11" r="1.6"/><circle cx="15" cy="11" r="1.6"/>'),
@@ -51,6 +53,8 @@ const DEFAULTS = {
   bossLead: 5,        // bu kadar dakika kala turuncu
   todoCount: 6,
   gearChar: null,     // null = aktif karakter
+  remind: {},         // { boss/etkinlik id: [1,3,5] } → kaç dk kala haber verilsin
+  remindSound: true,
   dpsRows: 8,
   dpsNamedOnly: false,
   dpsMode: 'party',   // me | party | all
@@ -92,6 +96,95 @@ const sel = (name, vals, cur) => `<select data-num="${name}">${vals.map((v) => `
 // render(c): c = { now } → HTML (başlık satırının sağı için `right` döndürmek istersen { html, right }).
 const kfmt = (n) => (n >= 1e9 ? `${(n / 1e9).toFixed(2)}B` : n >= 1e6 ? `${(n / 1e6).toFixed(2)}M` : n >= 1e4 ? `${(n / 1e3).toFixed(1)}k` : nf.format(Math.round(n)));
 const mmss = (ms) => { const s = Math.max(0, Math.round(ms / 1000)); return `${Math.floor(s / 60)}:${String(s % 60).padStart(2, '0')}`; };
+
+// ---- Hatırlatıcı ----
+const remView = { open: new Set(['events', 'abyss', 'watched']), seen: new Set(), lastSig: '' };
+const LEADS = [1, 3, 5];
+const remDef = (key) => BOSSES.find((b) => b.id === key) || EVENTS.find((e) => e.id === key);
+// Sıradaki zaman: sabit programlılar için başlangıç, saha bossları için doğuş (ölüm zamanı biliniyorsa)
+function remNext(def, now) {
+  if (def.kind === 'schedule') { const n = nextScheduled(def, now); return n ? n.start : null; }
+  const s = bossStatus(def, st.data, now);
+  return s.state === 'waiting' ? s.at : null;
+}
+function remItems(now = Date.now()) {
+  const out = [];
+  for (const [key, leads] of Object.entries(prefs.remind || {})) {
+    if (!leads?.length) continue;
+    const def = remDef(key); if (!def) continue;
+    const at = remNext(def, now); if (!at) continue;
+    out.push({ key, title: def.name, sub: def.map ? `${def.map} · ${def.area || ''}` : def.area || '', at, leads });
+  }
+  return out;
+}
+// Zamanları uygulamaya yolla (pencere gizliyken de; uygulama bildirimi zamanında gösterir)
+async function remSync(force) {
+  if (!online) return;
+  const items = remItems();
+  const sig = JSON.stringify(items);
+  if (!force && sig === remView.lastSig) return;
+  remView.lastSig = sig;
+  try { await appApi.overlay({ action: 'remind', items }); } catch { remView.lastSig = ''; }
+}
+function remBeep() {
+  if (!prefs.remindSound) return;
+  try {
+    const ac = new (window.AudioContext || window.webkitAudioContext)();
+    [0, 0.18].forEach((t, i) => {
+      const o = ac.createOscillator(), g = ac.createGain();
+      o.frequency.value = i ? 1175 : 880; o.type = 'sine';
+      g.gain.setValueAtTime(0.0001, ac.currentTime + t); g.gain.exponentialRampToValueAtTime(0.25, ac.currentTime + t + 0.02);
+      g.gain.exponentialRampToValueAtTime(0.0001, ac.currentTime + t + 0.16);
+      o.connect(g); g.connect(ac.destination); o.start(ac.currentTime + t); o.stop(ac.currentTime + t + 0.18);
+    });
+    setTimeout(() => ac.close(), 800);
+  } catch { /* ses yok */ }
+}
+function remRow(def, now) {
+  const leads = prefs.remind?.[def.id] || [];
+  const at = remNext(def, now);
+  const when = at ? `${fmtClock(at)} <span class="muted">· ${fmtLeft(at - now)}</span>` : '<span class="muted">zamanı bilinmiyor</span>';
+  return `<li class="rm-row ${leads.length ? 'on' : ''}"><span class="rm-n">${esc(def.name)}<small>${when}</small></span>
+    <span class="rm-leads">${LEADS.map((l) => `<button type="button" data-rlead="${def.id}|${l}" aria-pressed="${leads.includes(l)}" title="${l} dk kala">${l}</button>`).join('')}</span></li>`;
+}
+function remSection(id, title, defs, now) {
+  if (!defs.length) return '';
+  const open = remView.open.has(id);
+  const on = defs.filter((d) => prefs.remind?.[d.id]?.length).length;
+  return `<div class="rm-sec"><button type="button" class="rm-sh" data-rsec="${id}">${open ? '▾' : '▸'} ${esc(title)} <span class="muted">${on ? `${on} seçili` : ''}</span></button>
+    ${open ? `<ul class="l rm-list">${defs.map((d) => remRow(d, now)).join('')}</ul>` : ''}</div>`;
+}
+function remSetupView() {
+  const now = Date.now();
+  const watched = st.data?.bosses?.watch?.[st.user] || [];
+  const field = BOSSES.filter((b) => b.kind !== 'schedule');
+  const byMap = (m) => field.filter((b) => b.map === m && !watched.includes(b.id));
+  return `<p class="rm-hint">Bildirim, bu pencerenin durduğu yerde çıkar: başlığından tutup istediğin yere taşı. Her satırda kaç dakika önce haber verileceğini seç (birden fazla seçilebilir).</p>
+    ${remSection('events', 'Etkinlikler', EVENTS, now)}
+    ${remSection('abyss', 'Abyss', BOSSES.filter((b) => b.kind === 'schedule'), now)}
+    ${remSection('watched', 'Takip ettiğin saha bossları', field.filter((b) => watched.includes(b.id)), now)}
+    ${remSection('verteron', 'Verteron saha bossları', byMap('Verteron'), now)}
+    ${remSection('altgard', 'Altgard saha bossları', byMap('Altgard'), now)}
+    <p class="rm-hint">Saha bossları, ölüm zamanı biliniyorsa hatırlatılır (sitede "Öldü" ile ya da oyundan kendiliğinden işaretlenir).</p>
+    <div class="row rm-foot">
+      <label class="chk"><input type="checkbox" data-bool="remindSound" ${prefs.remindSound ? 'checked' : ''}> Ses</label>
+      <button type="button" class="btn" data-rtest>Dene</button>
+      <span class="sp"></span>
+      <button type="button" class="btn primary" data-rdone>Bitti</button>
+    </div>`;
+}
+function remAlertView(due) {
+  const now = Date.now();
+  return due.map((d) => {
+    const left = d.at - now;
+    return `<div class="rm-card ${left <= 60000 ? 'hot' : ''}">
+      <span class="rm-ic">🔔</span>
+      <span class="rm-txt"><b>${esc(d.title)}</b><small>${esc(d.sub || '')}</small></span>
+      <span class="rm-t">${left > 0 ? mmss(left) : 'Şimdi!'}</span>
+      <button type="button" class="icon-btn" data-rdis="${esc(d.key)}|${d.at}" title="Kapat">✕</button>
+    </div>`;
+  }).join('');
+}
 
 // ---- Hasar bileşeni yardımcıları ----
 const dpsView = { fight: 0, detail: null, tab: 'auto', lastNo: 0 };
@@ -193,7 +286,20 @@ function dpsDetail(r, f) {
 }
 
 const WIDGETS = {
+  remind: {
+    title: 'Hatırlatıcı', hint: 'Boss ve etkinlik bildirimleri',
+    render() {
+      const r = ov?.overlay?.remind || {};
+      const due = r.due || [];
+      // Yeni bildirim (ya da yeni aşama) → kısa ses
+      const fresh = due.filter((d) => !remView.seen.has(`${d.key}|${d.at}|${d.stage}`));
+      if (fresh.length && !r.setup) { fresh.forEach((d) => remView.seen.add(`${d.key}|${d.at}|${d.stage}`)); remBeep(); }
+      if (r.setup) return { right: '', html: (due.length ? remAlertView(due) : '') + remSetupView() };
+      return { right: '', html: due.length ? remAlertView(due) : empty('Yaklaşan hatırlatma yok.') };
+    },
+  },
   dps: {
+
     title: 'Hasar', hint: 'DPS, parti, yetenekler (oyun trafiğinden)',
     render() {
       if (!net) return empty('Uygulama yanıt vermiyor.');
@@ -403,7 +509,7 @@ const WIDGETS = {
     },
   },
 };
-const ORDER = ['dps', 'energy', 'bosses', 'gear', 'todos', 'dungeons', 'lastbox', 'clock', 'status'];
+const ORDER = ['dps', 'remind', 'energy', 'bosses', 'gear', 'todos', 'dungeons', 'lastbox', 'clock', 'status'];
 
 // ---------------------------------------------------------------- Pencereyi içeriğe oturt
 let fitSent = 0, fitTimer = 0;
@@ -485,7 +591,7 @@ function hubEvents() {
     const h = e.target.closest('[data-hub]');
     try {
       if (t) {
-        const id = t.dataset.tile, on = t.getAttribute('aria-pressed') !== 'true';
+        const id = t.dataset.tile, on = id === 'remind' ? true : t.getAttribute('aria-pressed') !== 'true';
         t.setAttribute('aria-pressed', String(on));
         await appApi.overlay({ action: 'widget', id, title: WIDGETS[id].title, on });
       } else if (h) {
@@ -536,11 +642,13 @@ function renderSettings() {
   $('#wset').innerHTML = (def.settings ? def.settings() : '') + `
     <label class="chk"><input type="checkbox" data-auto ${prefs.fixed[W] ? '' : 'checked'}> Yükseklik içeriğe otursun</label>`;
 }
+let lastBody = '';
 function renderWidget() {
   let out;
   try { out = def.render({ now: Date.now() }); } catch (e) { out = empty(`Hata: ${e.message}`); }
   if (typeof out === 'string') out = { html: out };
-  $('#wbody').innerHTML = (st.err ? `<div class="ov-err">${esc(st.err)}</div>` : '') + out.html;
+  const html = (st.err ? `<div class="ov-err">${esc(st.err)}</div>` : '') + out.html;
+  if (html !== lastBody) { $('#wbody').innerHTML = html; lastBody = html; }
   $('#w-right').innerHTML = out.right || '';
   const o = ov?.overlay || {};
   const active = !!o.wins?.[W]?.active;
@@ -552,11 +660,21 @@ function renderWidget() {
 function widgetEvents() {
   const root = $('#root');
   root.addEventListener('click', async (e) => {
-    const b = e.target.closest('[data-w], [data-char], [data-act], [data-gearchar], [data-net], [data-dpsmode], [data-dpsf], [data-dpsd], [data-dpstab]');
+    const b = e.target.closest('[data-w], [data-char], [data-act], [data-gearchar], [data-net], [data-dpsmode], [data-dpsf], [data-dpsd], [data-dpstab], [data-rlead], [data-rsec], [data-rtest], [data-rdone], [data-rdis]');
     if (!b) return;
     try {
       if (b.dataset.w === 'set') { setOpen = !setOpen; if (setOpen) renderSettings(); $('#wset').hidden = !setOpen; fitWindow(); return; }
       if (b.dataset.w === 'close') { await appApi.overlay({ action: 'widget', id: W, title: def.title, on: false }); return; }
+      if (b.dataset.rlead) {
+        const [key, l] = b.dataset.rlead.split('|'); const n = Number(l);
+        const cur = new Set(prefs.remind[key] || []); if (cur.has(n)) cur.delete(n); else cur.add(n);
+        if (cur.size) prefs.remind[key] = [...cur].sort((x, y) => x - y); else delete prefs.remind[key];
+        savePrefs(); renderWidget(); remSync(true); return;
+      }
+      if (b.dataset.rsec) { if (remView.open.has(b.dataset.rsec)) remView.open.delete(b.dataset.rsec); else remView.open.add(b.dataset.rsec); renderWidget(); return; }
+      if (b.dataset.rtest !== undefined) { await appApi.overlay({ action: 'remindTest' }); await poll(); renderWidget(); return; }
+      if (b.dataset.rdone !== undefined) { await appApi.overlay({ action: 'widget', id: 'remind', title: def.title, on: false }); return; }
+      if (b.dataset.rdis) { const [key, at] = b.dataset.rdis.split('|'); await appApi.overlay({ action: 'remindDismiss', key, at: Number(at) }); await poll(); renderWidget(); return; }
       if (b.dataset.dpstab) { dpsView.tab = b.dataset.dpstab; dpsView.detail = null; if (b.dataset.dpstab === 'dmg') dpsView.fight = 0; renderWidget(); return; }
       if (b.dataset.dpsmode) { prefs.dpsMode = b.dataset.dpsmode; savePrefs(); renderWidget(); return; }
       if (b.dataset.dpsf) { dpsView.fight = Math.max(0, dpsView.fight + Number(b.dataset.dpsf)); dpsView.detail = null; renderWidget(); return; }
@@ -586,6 +704,7 @@ function widgetEvents() {
       fitSent = 0;
     } else return;
     savePrefs(); renderWidget();
+    if (W === 'remind') remSync(true);
   });
 }
 
@@ -647,6 +766,7 @@ function renderAll(force) {
   loadPrefs();
   if (W === 'hub') hubEvents(); else { widgetShell(); widgetEvents(); }
   if (W === 'dps') await loadSkillNames();
+  if (W === 'remind') { setInterval(() => remSync(false), 30_000); setTimeout(() => remSync(true), 1500); }
   await poll();
   renderAll(true);
   await loadData();

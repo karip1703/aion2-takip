@@ -1081,7 +1081,9 @@ function Ov-Apply($w, [bool]$force) {
   if (-not (Ov-Alive $w) -or $w.hidden) { return }
   $mode = $(if (Ov-Interactive $w) { 'i' } else { 'g' })
   if (-not $force -and $mode -eq $w.mode) { return }
-  if ($mode -eq 'i') { [A2Win]::Apply($w.h, [byte]255, $false) } else { [A2Win]::Apply($w.h, (Ov-Alpha), $true) }
+  if ($mode -eq 'i') { [A2Win]::Apply($w.h, [byte]255, $false) }
+  elseif ($w.id -eq 'remind') { [A2Win]::Apply($w.h, [byte]245, $true) }
+  else { [A2Win]::Apply($w.h, (Ov-Alpha), $true) }
   $w.mode = $mode; $w.lastApply = Get-Date
 }
 function Ov-Clip($w, [bool]$force) {
@@ -1107,7 +1109,7 @@ function Ov-Launch([string]$id, [string]$title) {
   $r = Ov-RectFor $id
   $script:OvW[$id] = @{ id = $id; title = $title; h = [IntPtr]::Zero; seekUntil = (Get-Date).AddSeconds(20); placeUntil = $Min; target = $r
     hidden = $false; inset = $null; hover = $false; outAt = $Min; lastApply = $Min; mode = ''; rect = '' }
-  Start-Process $edge -ArgumentList "--app=${AppUrl}overlay.html?w=$id", "--window-size=$($r[2]),$($r[3])", "--window-position=$($r[0]),$($r[1])"
+  Start-Process $edge -ArgumentList "--app=${AppUrl}overlay.html?w=$id", "--window-size=$($r[2]),$($r[3])", "--window-position=$($r[0]),$($r[1])", '--autoplay-policy=no-user-gesture-required'
 }
 function Ov-ShowWin($w) {
   if (-not (Ov-Alive $w)) { return }
@@ -1137,7 +1139,40 @@ function Overlay-Object {
   foreach ($x in @($script:OvW.Values)) { $wins[$x.id] = [ordered]@{ open = [bool](Ov-Alive $x); hidden = [bool]$x.hidden; active = [bool](Ov-Interactive $x) } }
   [ordered]@{ edit = [bool]$script:OvEdit; allHidden = [bool]$script:OvAllHidden; alpha = [double]((Ov-Alpha) / 255)
     hover = [bool](Ov-HoverOn); hoverAny = [bool]$script:Settings.overlayHoverAny; hotkeys = $script:OvHotkeys
+    remind = [ordered]@{ setup = [bool]$script:RemSetup; due = @(Remind-Due); count = @($script:RemItems).Count }
     wins = $wins; openIds = @(Ov-OpenList | ForEach-Object { [string]$_.id }) }
+}
+
+# ---------------------------------------------------------------- Hatırlatıcı
+# "remind" penceresi (overlay.html?w=remind) seçilen boss/etkinliklerin sıradaki zamanlarını buraya yollar.
+# Seçilen süre (1/3/5 dk) kala pencere kullanıcının koyduğu yerde görünür; zamanı geçince (ya da ✕) gizlenir.
+# Pencere kapanmaz, gizli bekler (zamanları hesaplamaya devam etsin diye).
+$script:RemItems = @()          # @{ key; title; sub; at (unix ms); leads = @(1,3,5) }
+$script:RemDismiss = @{}        # "key|at" → kapatıldığı aşama (dk)
+$script:RemSetup = $false       # ayar ekranı açık mı
+$script:RemTick = 0
+function Remind-Due {
+  $now = [DateTimeOffset]::UtcNow.ToUnixTimeMilliseconds()
+  $out = @()
+  foreach ($it in $script:RemItems) {
+    $at = [int64]$it.at
+    if ($now -ge $at + 60000) { continue }                       # başladıktan 1 dk sonra kalkar
+    $stage = $null
+    foreach ($l in (@($it.leads) | Sort-Object)) { if ($now -ge $at - [int64]$l * 60000) { $stage = [int]$l; break } }
+    if ($null -eq $stage) { continue }
+    $k = "$($it.key)|$at"
+    if ($script:RemDismiss.ContainsKey($k) -and $script:RemDismiss[$k] -le $stage) { continue }
+    $out += [ordered]@{ key = [string]$it.key; title = [string]$it.title; sub = [string]$it.sub; at = $at; stage = $stage }
+  }
+  $out
+}
+function Remind-Window {
+  $w = $script:OvW['remind']
+  if (-not (Ov-Alive $w)) { return }
+  $want = $script:RemSetup -or (@(Remind-Due).Count -gt 0)
+  if ($w.placeUntil -ne $Min) { if (-not $want) { [A2Win]::Apply($w.h, [byte]0, $true) }; return }   # yerleşirken görünmesin
+  if ($want -and $w.hidden) { $w.hidden = $false; [A2Win]::Show($w.h); $w.mode = ''; Ov-Apply $w $true }
+  elseif (-not $want -and -not $w.hidden) { Ov-HideWin $w }
 }
 
 # Her 100 ms: kısayollar, yeni açılan pencereleri bulma, imleç takibi, konum kaydı.
@@ -1146,6 +1181,7 @@ function Overlay-Tick {
     try { switch ($k) { 1 { Toggle-Hub } 2 { Toggle-Edit } 3 { Toggle-AllHidden } } } catch { Log "✖ Oyun içi arayüz: $($_.Exception.Message)" }
   }
   if ($script:OvW.Count -eq 0) { return }
+  if ((++$script:RemTick % 3) -eq 0) { Remind-Window }
   $now = Get-Date
   $cur = [A2Win]::Cursor(); $lb = [A2Win]::LButton()
   $curOk = $cur -and ((($cur[2] -band 1) -ne 0) -or [bool]$script:Settings.overlayHoverAny)   # imleç görünür mü
@@ -1389,8 +1425,14 @@ function Handle-Request($ctx) {
         'widget' {
           $title = [string]$b.title
           if (-not $id -or $id -eq 'hub' -or $title -notmatch '^[\p{L}\p{N} ]{1,30}$') { return Send-Json $ctx 400 @{ error = 'Geçersiz bileşen' } }
-          if ($b.on) { $script:OvAllHidden = $false; Ov-Launch $id $title } else { Ov-CloseWin $id }
-          Ov-Remember $id $title ([bool]$b.on)
+          if ($id -eq 'remind') {
+            $script:RemSetup = [bool]$b.on
+            if ($b.on) { Ov-Launch $id $title; Ov-Remember $id $title $true }
+            Remind-Window
+          } else {
+            if ($b.on) { $script:OvAllHidden = $false; Ov-Launch $id $title } else { Ov-CloseWin $id }
+            Ov-Remember $id $title ([bool]$b.on)
+          }
         }
         'drag' {
           $w = $script:OvW[$id]
@@ -1411,6 +1453,28 @@ function Handle-Request($ctx) {
           $a = [double]$b.alpha
           if (-not ($a -ge 0.2 -and $a -le 1)) { return Send-Json $ctx 400 @{ error = 'Geçersiz saydamlık' } }
           if ([double]$script:Settings.overlayAlpha -ne $a) { Ov-Set 'overlayAlpha' $a; foreach ($x in @($script:OvW.Values)) { Ov-Apply $x $true } }
+        }
+        'remind' {
+          $items = @()
+          foreach ($x in @($b.items | Select-Object -First 200)) {
+            $leads = @(@($x.leads) | Where-Object { @(1, 3, 5) -contains [int]$_ } | ForEach-Object { [int]$_ })
+            if ([string]$x.key -notmatch '^[a-z0-9-]{1,60}$' -or -not $leads.Count -or -not ([int64]$x.at -gt 0)) { continue }
+            $items += @{ key = [string]$x.key; title = ([string]$x.title).Substring(0, [Math]::Min(60, ([string]$x.title).Length))
+              sub = ([string]$x.sub).Substring(0, [Math]::Min(60, ([string]$x.sub).Length)); at = [int64]$x.at; leads = $leads }
+          }
+          $test = @($script:RemItems | Where-Object { $_.key -eq 'test' })
+          $script:RemItems = @($items) + $test
+          Remind-Window
+        }
+        'remindDismiss' {
+          $due = @(Remind-Due) | Where-Object { $_.key -eq [string]$b.key -and $_.at -eq [int64]$b.at } | Select-Object -First 1
+          if ($due) { $script:RemDismiss["$($due.key)|$($due.at)"] = $due.stage }
+          Remind-Window
+        }
+        'remindTest' {
+          $at = [DateTimeOffset]::UtcNow.ToUnixTimeMilliseconds() + 180000
+          $script:RemItems = @($script:RemItems | Where-Object { $_.key -ne 'test' }) + @(@{ key = 'test'; title = 'Deneme hatırlatması'; sub = 'Bildirim burada görünecek'; at = $at; leads = @(3) })
+          Remind-Window
         }
         'hover' { Ov-Set 'overlayHover' ([bool]$b.on) }
         'hoverAny' { Ov-Set 'overlayHoverAny' ([bool]$b.on) }
@@ -1534,5 +1598,6 @@ $timer.Start(); $httpTimer.Start(); $ovTimer.Start(); $netTimer.Start()
 # Önceki çalışmadan açık kalan oyun içi pencereler varsa onları sahiplen (yeniden başlatmada kopya açılmasın).
 if ([A2Win]::FindExact($OvPrefix + 'Menü') -ne [IntPtr]::Zero) { Ov-Launch 'hub' 'Menü' }
 foreach ($o in Ov-OpenList) { if ([A2Win]::FindExact($OvPrefix + $o.title) -ne [IntPtr]::Zero) { $script:OvRestored = $true; Ov-Launch ([string]$o.id) ([string]$o.title) } }
+if (@(Ov-OpenList | Where-Object { $_.id -eq 'remind' }).Count -and -not (Ov-Alive $script:OvW['remind'])) { Ov-Launch 'remind' 'Hatırlatıcı' }
 if (-not $env:A2_NO_PANEL) { Open-Panel }
 [Windows.Forms.Application]::Run()

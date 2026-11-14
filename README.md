@@ -218,6 +218,8 @@ kendi küçük penceresinde ekrana gelir; tekrar basınca kalkar.
 - Oyun **çerçevesiz pencere** modunda olmalı (özel tam ekranda hiçbir pencere oyunun üstünde görünemez).
 - Bileşenler ayrı pencerelerdir: oyuna hiçbir şey eklenmez, oyunun belleği okunmaz.
 
+**Hatırlatıcı:** menüdeki **Hatırlatıcı** düğmesi ayar ekranını açar. Etkinlikler (Shugo Festivali, Boyutsal İstila, Spacetime Rift, günlük/haftalık sıfırlama), Abyss bossları ve saha bossları listelenir; her biri için **1 / 3 / 5 dk** kala seçilir (birden fazlası olabilir, kişiye özel). Pencereyi bildirimin çıkmasını istediğin yere taşı ve **Bitti**'ye bas: pencere gizlenir, seçilen süre kalınca aynı yerde geri sayımlı bildirim olarak çıkar (isteğe bağlı kısa ses), zamanı geçince ya da ✕ ile kapanır; o zamanlar dışında ekranda görünmez. Saha bossları ölüm zamanı biliniyorsa hatırlatılır. Etkinlik saatleri [assets/js/events.js](assets/js/events.js) içinde (topluluk zamanlayıcılarından, oyunda farklıysa oradan düzeltilir).
+
 Yeni bileşen eklemek için [assets/js/overlay.js](assets/js/overlay.js) içindeki `WIDGETS` listesine bir giriş, [overlay.html](overlay.html) içindeki başlık listesine adını eklemek yeterli; menüde kendiliğinden çıkar.
 
 ## 6c. Boss zamanlayıcıları ve bildirimler

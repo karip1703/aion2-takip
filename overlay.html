@@ -12,7 +12,7 @@
   <script>
     // Başlığı hemen koy (modül yüklenmeden): uygulama pencereyi bu başlıkla arar.
     (function () {
-      var T = { hub: 'Menü', dps: 'Hasar', energy: 'Enerji', bosses: 'Bosslar', gear: 'Gear', todos: 'Yapılacaklar', dungeons: 'Zindanlar', lastbox: 'Son kutu', clock: 'Saat', status: 'Uygulama durumu' };
+      var T = { hub: 'Menü', dps: 'Hasar', remind: 'Hatırlatıcı', energy: 'Enerji', bosses: 'Bosslar', gear: 'Gear', todos: 'Yapılacaklar', dungeons: 'Zindanlar', lastbox: 'Son kutu', clock: 'Saat', status: 'Uygulama durumu' };
       var w = new URLSearchParams(location.search).get('w') || 'hub';
       document.title = 'Karip Traker · ' + (T[w] || 'Menü');
     })();
