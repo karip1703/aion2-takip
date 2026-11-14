@@ -251,3 +251,13 @@ html.keyed body[data-w="remind"] .rm-sec .rm-list { background: var(--bg); borde
 html.keyed body[data-w="remind"] .empty { background: var(--bg); border: 1px solid var(--border); border-radius: 8px; padding: 6px 9px; }
 html.keyed .wset { background: var(--surface); }
 html.keyed .ov-err { background: var(--bg); }
+
+/* Tamamen çerçevesiz: bileşenlerde kenar çizgisi ve gölge yok; kartlar yalnızca dolgu rengiyle */
+html.keyed .dh, html.keyed .dp-foot, html.keyed .wbar, html.keyed .wbody, html.keyed .wset, html.keyed .empty,
+html.keyed .rm-card, html.keyed .rm-hint, html.keyed .rm-foot, html.keyed .rm-sh, html.keyed .ov-err { border: 0 !important; box-shadow: none !important; }
+html.keyed .dq.me { box-shadow: none; }
+html.keyed .dq.me .dq-ic { background: #fff; color: #111; border-color: #fff; text-shadow: none; }
+html.keyed .rm-card { background: #06101e; }
+html.keyed .rm-card.hot { animation: rm-pulse-fill 1.2s ease-in-out infinite; }
+@keyframes rm-pulse-fill { 0%, 100% { background: #06101e; } 50% { background: #3a2408; } }
+html.keyed .seg button, html.keyed .rm-leads button, html.keyed .btn { border-color: transparent; }
