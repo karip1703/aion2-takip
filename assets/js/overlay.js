@@ -185,7 +185,7 @@ const WIDGETS = {
       if (!l) return empty('Henüz kutu okunmadı.');
       const t = l.at ? new Date(l.at).toLocaleTimeString('tr-TR', { hour: '2-digit', minute: '2-digit' }) : '';
       return { right: esc(t), html: `<ul class="l">
-        <li><span>${esc(l.dungeon)}</span><span><b>${esc(l.seen)}</b>/${esc(l.max)}</span></li>
+        <li><span>${esc(l.dungeon)}</span><span>${l.kind === 'trans' ? '<span class="muted">Transcendence</span>' : `<b>${esc(l.seen)}</b>/${esc(l.max)}`}</span></li>
         <li><span class="muted">Kutu · maliyet</span><span>${esc(l.boxes)} · ${esc(l.cost)}</span></li>
         <li><span class="muted">Enerji</span><span>${l.natural != null ? `${esc(l.natural)} <span class="bonus">+${esc(l.bonus)}</span> / ${esc(l.energyMax)}` : '<span class="muted">okunamadı</span>'}</span></li>
       </ul>` };

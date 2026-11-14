@@ -116,7 +116,7 @@ export function renderAppView(root, b, { repo }) {
         ${last ? `
         <dl class="kv">
           <dt>Zindan</dt><dd>${esc(last.dungeon)}</dd>
-          <dt>Garanti</dt><dd>${esc(last.seen)}/${esc(last.max)}</dd>
+          <dt>Garanti</dt><dd>${last.kind === 'trans' ? '<span class="muted">yok (Transcendence)</span>' : `${esc(last.seen)}/${esc(last.max)}`}</dd>
           <dt>Kutu · maliyet</dt><dd>${esc(last.boxes)} kutu · ${esc(last.cost)} enerji</dd>
           <dt>Enerji</dt><dd>${last.natural != null ? `${esc(last.natural)} <span class="bonus-tag">+${esc(last.bonus)}</span> / ${esc(last.energyMax)}` : '<span class="muted">okunamadı</span>'}</dd>
         </dl>` : '<p class="hint">Henüz kutu okunmadı. Oyunda ödül kutusunu açtığında burada görünür.</p>'}

@@ -1,7 +1,8 @@
 ﻿# Karip Traker — Ekran izleyici
-# Odyle Energy Cube (ödül kutusu) penceresini ekrandan okur:
-#   * Pencere açılınca: enerjiyi (ör. 0(+845)/840) ve zindanın garanti sayacını siteyle EŞİTLER.
-#   * Pencere kapanınca: Open sayılır → enerjiden maliyet düşülür, garanti sayacı kutu sayısı kadar ilerler.
+# Enerji harcayan ödül kutusu pencerelerini ekrandan okur:
+#   * Odyle Energy Cube (zindan): açılınca enerjiyi (ör. 0(+845)/840) ve garanti sayacını siteyle EŞİTLER;
+#     kapanınca Open sayılır → enerjiden maliyet düşülür, garanti sayacı kutu sayısı kadar ilerler.
+#   * Transcendence (ör. Shattered Arkanis): aynı pencere, garanti sayacı yok → sadece enerji eşitlenir / düşülür.
 #     (Cancel'a basıldıysa bir sonraki açılışta ekrandan okunan değerlerle kendiliğinden düzelir.)
 # Oyuna, oyun dosyalarına ya da ağ trafiğine dokunmaz; klavye/fare dinlemez. Sadece ekran görüntüsü alır.
 #
@@ -186,7 +187,11 @@ $Regions = @{
   cost      = @{ r1 = 0.204; r2 = 0.150; y1 = 0.728; y2 = 0.768 }
   boxes     = @{ r1 = 0.240; r2 = 0.150; y1 = 0.778; y2 = 0.815 }
   guarantee = @{ r1 = 0.150; r2 = 0.075; y1 = 0.850; y2 = 0.882 }
+  rewards   = @{ r1 = 0.366; r2 = 0.250; y1 = 0.295; y2 = 0.330 }  # "Rewards Info" (iki pencerede de aynı yerde)
 }
+# Transcendence penceresinde "Guaranteed Reward" bölümü yok → maliyet ve kutu satırları bu kadar aşağıda.
+$TransShift = 0.060
+function Shifted($g, [double]$dy) { @{ r1 = $g.r1; r2 = $g.r2; y1 = $g.y1 + $dy; y2 = $g.y2 + $dy } }
 $TitleRegion = @{ x1 = 0.000; x2 = 0.300; y1 = 0.008; y2 = 0.065 }      # sol üst "Odyle Energy Cube"
 
 function Rect-Of($g, [int]$W, [int]$H) {
@@ -264,10 +269,12 @@ function Match-Dungeon([string]$ocr) {
   return $ocr.Trim()
 }
 
-# Odyle Energy Cube penceresini oku. $full = ekranın tamamı ya da test görüntüsü.
-function Read-Cube([System.Drawing.Bitmap]$full) {
+# Ödül kutusu penceresini oku. $full = ekranın tamamı ya da test görüntüsü.
+# $kind: 'odyle' (zindan, garanti sayaçlı) ya da 'trans' (Transcendence, garanti sayacı yok, satırlar aşağıda)
+function Read-Cube([System.Drawing.Bitmap]$full, [string]$kind = 'odyle') {
   $W = $full.Width; $H = $full.Height
-  $res = [ordered]@{}
+  $res = [ordered]@{ kind = $kind }
+  $dy = $(if ($kind -eq 'trans') { $TransShift } else { 0 })
 
   $c = Sub-Crop $full @{ x = 0; y = 0 } $Regions.dungeon $W $H
   # Küçük ekranlarda bazı ölçekler kelime kaçırabiliyor ("Fire Temple" → "Fire") ya da harf karıştırabiliyor
@@ -281,17 +288,19 @@ function Read-Cube([System.Drawing.Bitmap]$full) {
   if (($best -replace '[^\p{L}]', '').Length -ge 3) { $res.dungeon = Match-Dungeon $best }
   $c.Dispose()
 
-  $c = Sub-Crop $full @{ x = 0; y = 0 } $Regions.cost $W $H
+  $c = Sub-Crop $full @{ x = 0; y = 0 } (Shifted $Regions.cost $dy) $W $H
   $m = Read-Field $c 'all' 'ENERGY' @(3, 4, 2) '^(\d{1,4})'; $c.Dispose()
   if ($m) { $res.cost = [int]$m.Groups[1].Value }
 
-  $c = Sub-Crop $full @{ x = 0; y = 0 } $Regions.boxes $W $H
+  $c = Sub-Crop $full @{ x = 0; y = 0 } (Shifted $Regions.boxes $dy) $W $H
   $m = Read-Field $c 'all' 'ENERGY' @(3, 4, 2) '(\d{1,3})/(\d{1,3})'; $c.Dispose()
   if ($m) { $res.boxes = [int]$m.Groups[1].Value; $res.boxesMax = [int]$m.Groups[2].Value }
 
-  $c = Sub-Crop $full @{ x = 0; y = 0 } $Regions.guarantee $W $H
-  $m = Read-Field $c 'all' $null @(3, 2, 4) '(\d{1,3})/(\d{1,3})'; $c.Dispose()
-  if ($m) { $res.seen = [int]$m.Groups[1].Value; $res.max = [int]$m.Groups[2].Value }
+  if ($kind -eq 'odyle') {
+    $c = Sub-Crop $full @{ x = 0; y = 0 } $Regions.guarantee $W $H
+    $m = Read-Field $c 'all' $null @(3, 2, 4) '(\d{1,3})/(\d{1,3})'; $c.Dispose()
+    if ($m) { $res.seen = [int]$m.Groups[1].Value; $res.max = [int]$m.Groups[2].Value }
+  }
 
   # Enerji: beyaz kısım "0 … /840", turkuaz kısım "(+845)". Yazı sağa yaslı ve ek enerji büyüdükçe sola uzar;
   # dar bölge kısa sayılarda, geniş bölge uzun sayılarda iyi okur → üç genişlik denenir, tutarlı sonuç seçilir.
@@ -351,8 +360,8 @@ function Read-Cube([System.Drawing.Bitmap]$full) {
   }
 
   # Doğrulama
-  $res.valid = [bool]($res.dungeon -and $res.cost -gt 0 -and $res.cost -le 2000 -and $res.boxes -ge 1 -and $res.boxes -le $res.boxesMax -and
-    $res.max -ge 1 -and $res.max -le 500 -and $res.seen -ge 0 -and $res.seen -le $res.max)
+  $base = [bool]($res.dungeon -and $res.cost -gt 0 -and $res.cost -le 2000 -and $res.boxes -ge 1 -and $res.boxes -le $res.boxesMax)
+  $res.valid = $(if ($kind -eq 'trans') { $base } else { $base -and $res.max -ge 1 -and $res.max -le 500 -and $res.seen -ge 0 -and $res.seen -le $res.max })
   return $res
 }
 
@@ -362,18 +371,32 @@ function Title-Visible([System.Drawing.Bitmap]$full) {
   $p = [A2Img]::Prep($c, 2, 140, 'all', $null); $t = Read-Text $p; $p.Dispose(); $c.Dispose()
   return ($t -match 'Energy\s*Cube|Odyle')
 }
+# Ödül kutusu penceresi mi? ("Rewards Info" — Odyle ve Transcendence pencerelerinde aynı yerde)
+function Rewards-Visible([System.Drawing.Bitmap]$full) {
+  $W = $full.Width; $H = $full.Height
+  $c = Sub-Crop $full @{ x = 0; y = 0 } $Regions.rewards $W $H
+  $p = [A2Img]::Prep($c, 3, 140, 'all', $null); $t = Read-Text $p; $p.Dispose(); $c.Dispose()
+  if ($env:A2_DEBUG) { Write-Host "    [rewards] ham='$t'" }
+  return ($t -match 'Rewa?rds|Info')
+}
+# Pencere türü: 'odyle', 'trans' ya da $null (başka bir altın butonlu pencere)
+function Window-Kind([System.Drawing.Bitmap]$full) {
+  if (Title-Visible $full) { return 'odyle' }
+  if (Rewards-Visible $full) { return 'trans' }
+  return $null
+}
 
 # ---------------------------------------------------------------- Test modu (ekran görüntüsünden oku)
 if ($TestImage) {
   $img = [System.Drawing.Bitmap]::FromFile((Resolve-Path $TestImage))
   $sw = [Diagnostics.Stopwatch]::StartNew()
-  $title = Title-Visible $img
+  $kind = Window-Kind $img
   $W = $img.Width; $H = $img.Height
   $o = Rect-Of $Regions.open $W $H
   $oc = [A2Img]::Crop($img, $o.x, $o.y, $o.w, $o.h); $gold = [A2Img]::GoldRatio($oc); $oc.Dispose()
-  $r = Read-Cube $img
+  $r = Read-Cube $img $(if ($kind) { $kind } else { 'odyle' })
   $img.Dispose()
-  "Başlık görünüyor: $title | Open butonu altın oranı: {0:N2} | süre: {1} ms" -f $gold, $sw.ElapsedMilliseconds
+  "Pencere türü: $kind | Open butonu altın oranı: {0:N2} | süre: {1} ms" -f $gold, $sw.ElapsedMilliseconds
   $r | ConvertTo-Json
   return
 }
@@ -624,7 +647,8 @@ function Commit-Pending {
   $p = $script:Pending; $script:Pending = $null
   if (-not $p) { return }
   $r = $p.read; $cid = $p.charId
-  $op = @{ type = 'dungeonOpen'; charId = $cid; name = $r.dungeon; boxes = $r.boxes; cost = $r.cost; max = $r.max; seen = $r.seen }
+  $op = $(if ($r.kind -eq 'trans') { @{ type = 'energySpend'; charId = $cid; name = $r.dungeon; boxes = $r.boxes; cost = $r.cost } }
+    else { @{ type = 'dungeonOpen'; charId = $cid; name = $r.dungeon; boxes = $r.boxes; cost = $r.cost; max = $r.max; seen = $r.seen } })
   $script:LastSent = @{ before = $r; charId = $cid; charName = $p.charName }
   $script:Synced = $null   # harcama sonrası değerler değişti → bir sonraki açılışta mutlaka yeniden eşitle (Cancel düzeltmesi)
   Set-Status ("Kaydedildi: {0} {1} kutu, -{2} enerji" -f $r.dungeon, $r.boxes, $r.cost)
@@ -632,9 +656,10 @@ function Commit-Pending {
 }
 
 function On-Read($r) {
-  Set-Status ("Pencere açık: $($r.dungeon) · maliyet $($r.cost) · kutu $($r.boxes)/$($r.boxesMax) · garanti $($r.seen)/$($r.max)" +
+  $trans = $r.kind -eq 'trans'
+  Set-Status ("Pencere açık: $($r.dungeon)$(if ($trans) { ' (Transcendence)' }) · maliyet $($r.cost) · kutu $($r.boxes)/$($r.boxesMax)$(if (-not $trans) { " · garanti $($r.seen)/$($r.max)" })" +
     $(if ($null -ne $r.natural) { " · enerji $($r.natural)(+$($r.bonus))/$($r.energyMax)" } else { '' }))
-  $script:LastRead = [ordered]@{ at = (Get-Date).ToString('o'); dungeon = $r.dungeon; seen = $r.seen; max = $r.max; boxes = $r.boxes; cost = $r.cost
+  $script:LastRead = [ordered]@{ at = (Get-Date).ToString('o'); kind = $r.kind; dungeon = $r.dungeon; seen = $r.seen; max = $r.max; boxes = $r.boxes; cost = $r.cost
     natural = $r.natural; bonus = $r.bonus; energyMax = $r.energyMax; char = (Char-Name) }
   # Bekleyen kapanış varsa ve pencere AYNI zindan + AYNI sayaçla geri açıldıysa → kapanış değildi (ör. kısa süre gizlendi)
   if ($script:Pending -and $script:Pending.read.dungeon -eq $r.dungeon -and $script:Pending.read.seen -eq $r.seen) {
@@ -644,9 +669,12 @@ function On-Read($r) {
   # İlk geçerli okumada ya da değerler değiştiyse eşitle
   $key = "$(Char-Id)|$($r.dungeon)|$($r.seen)/$($r.max)|$($r.natural)|$($r.bonus)"
   if ($script:Synced -ne $key) {
-    $ops = @(@{ type = 'dungeonSet'; charId = (Char-Id); name = $r.dungeon; count = $r.seen; max = $r.max })
+    $ops = @()
+    if (-not $trans) { $ops += @{ type = 'dungeonSet'; charId = (Char-Id); name = $r.dungeon; count = $r.seen; max = $r.max } }
     if ($null -ne $r.natural) { $ops += @{ type = 'energySync'; charId = (Char-Id); natural = $r.natural; bonus = $r.bonus; max = $r.energyMax } }
-    Send-Ops $ops ("{0}: {1} {2}/{3}{4}" -f (Char-Name), $r.dungeon, $r.seen, $r.max, $(if ($null -ne $r.natural) { ", enerji $($r.natural)(+$($r.bonus))" } else { '' }))
+    if ($ops.Count) {
+      Send-Ops $ops ("{0}: {1}{2}{3}" -f (Char-Name), $r.dungeon, $(if ($trans) { '' } else { " $($r.seen)/$($r.max)" }), $(if ($null -ne $r.natural) { ", enerji $($r.natural)(+$($r.bonus))" } else { '' }))
+    }
     $script:Synced = $key
   }
   $script:Last = $r
@@ -682,8 +710,9 @@ function Invoke-Tick {
       if ($script:State -eq 'open') { return }                 # açıkken sadece son görüntüyü tut
 
       # Yeni açılış: başlığı ve değerleri yakalanan görüntüden oku
-      if (-not (Title-Visible $full)) { Drop-Snap; $script:RetryAt = (Get-Date).AddMilliseconds(500); return }
-      $r = Read-Cube $full
+      $kind = Window-Kind $full
+      if (-not $kind) { Drop-Snap; $script:RetryAt = (Get-Date).AddMilliseconds(700); return }
+      $r = Read-Cube $full $kind
       if (-not $r.valid) { Drop-Snap; return }                 # açılış animasyonu vb. → sonraki turda tekrar
       $script:State = 'open'; $script:SnapFresh = $false
       Save-Debug $full 'acilis' $r
@@ -698,7 +727,7 @@ function Invoke-Tick {
     $script:State = 'idle'
     $r = $script:Last
     if ($script:Snap -and $script:SnapFresh) {                  # açıkken değer değiştiyse (ör. kutu 2/2 → 1/2) son hali
-      $r2 = Read-Cube $script:Snap
+      $r2 = Read-Cube $script:Snap $script:Last.kind
       if ($r2.valid -and $r2.dungeon -eq $script:Last.dungeon) { $r = $r2; Save-Debug $script:Snap 'kapanis' $r2 }
     }
     Drop-Snap
@@ -713,8 +742,10 @@ function Do-Undo {
   $u = $script:LastSent
   if (-not $u) { throw 'Geri alınacak kayıt yok' }
   $r = $u.before
-  $ops = @(@{ type = 'dungeonSet'; charId = $u.charId; name = $r.dungeon; count = $r.seen; max = $r.max })
+  $ops = @()
+  if ($r.kind -ne 'trans') { $ops += @{ type = 'dungeonSet'; charId = $u.charId; name = $r.dungeon; count = $r.seen; max = $r.max } }
   if ($null -ne $r.natural) { $ops += @{ type = 'energySync'; charId = $u.charId; natural = $r.natural; bonus = $r.bonus; max = $r.energyMax } }
+  elseif ($r.kind -eq 'trans') { $ops += @{ type = 'energyRefund'; charId = $u.charId; amount = $r.cost } }
   Send-Ops $ops ("GERİ AL: {0}: {1} {2}/{3}" -f $u.charName, $r.dungeon, $r.seen, $r.max)
   $script:LastSent = $null
   $script:Synced = $null
@@ -752,6 +783,11 @@ if ($env:A2_LOOP_TEST) {   # geliştirici testi: kare dizisiyle döngüyü sına
   Run '2) Kapanıp aynı değerlerle hemen geri açıldı, sonra gerçekten kapandı' ((& $n $cube 3) + (& $n $none 7) + (& $n $cube 3) + (& $n $none 8))
   Run '3) Başka bir altın buton (başlık farklı)' ((& $n $other 6) + (& $n $none 4))
   Run '4) Cancel: harcama kaydedildi, sonra pencere AYNI değerlerle açıldı → yeniden eşitlemeli' ((& $n $cube 2) + (& $n $none 7) + @('COMMIT') + (& $n $cube 2) + (& $n $none 7))
+  if ($env:A2_TRANS) {
+    $tr = [System.Drawing.Bitmap]::FromFile($env:A2_TRANS)
+    Run '5) Transcendence: açılınca sadece enerji eşitlenir, kapanınca sadece enerji düşülür' ((& $n $tr 3) + (& $n $none 8))
+    $tr.Dispose()
+  }
   $cube.Dispose(); $none.Dispose(); $other.Dispose()
   return
 }

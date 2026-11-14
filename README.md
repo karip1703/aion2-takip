@@ -161,10 +161,11 @@ node scripts/fetch-characters.mjs                           # "fetch": false olm
 
 ## 6b. Ekran izleyici (otomatik enerji ve zindan sayacı)
 
-`tools/izleyici/` klasöründeki küçük program, oyundaki **Odyle Energy Cube** (ödül kutusu) penceresini ekrandan okur:
+`tools/izleyici/` klasöründeki küçük program, oyundaki enerji harcayan ödül kutusu pencerelerini (**Odyle Energy Cube** ve **Transcendence**) ekrandan okur:
 
 - **Pencere açılınca:** sağ üstteki enerjiyi (ör. `0(+845)/840`) ve zindanın garanti sayacını (ör. `20/28`) okuyup sitedekiyle **eşitler**.
 - **Pencere kapanınca:** Open'a basıldığını varsayar. Enerjiden maliyeti düşer (önce zamanla dolan, sonra ek kısım) ve garanti sayacını kutu sayısı kadar ilerletir.
+- **Transcendence kutuları** (ör. Shattered Arkanis): aynı pencere ama garanti sayacı yok. Açılınca sadece enerji eşitlenir, kapanınca sadece maliyet enerjiden düşülür; zindan sayaçlarına dokunulmaz.
 - **Cancel'a basıldıysa:** bir sonraki açılışta ekrandan okunan değerlerle kendiliğinden düzelir. Yanlış bir kayıt olursa uygulama panelindeki **Son kaydı geri al** butonu da var.
 - Oyuna, oyun dosyalarına ve ağ trafiğine **dokunmaz**, klavye ve fare dinlemez. Sadece ekran görüntüsü alır ve Windows'un yerleşik yazı tanımasını kullanır.
 - **Performans:** normalde sadece "Open" butonunun olduğu küçük bir alana bakar, bu da neredeyse sıfır yük demek. Yazı tanıma sadece pencere açıkken çalışır.

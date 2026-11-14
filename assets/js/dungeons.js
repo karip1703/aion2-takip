@@ -13,6 +13,8 @@
 //   { type: 'dungeonOpen',   charId, name, boxes, cost, max?, seen?, at, by, auto? }
 //        → kutu açıldı: enerjiden `cost` düşülür, sayaç `boxes` kadar ilerler.
 //          `seen` = ekranda okunan sayaç (açmadan önce). Verilirse sayaç önce ona eşitlenir.
+//   { type: 'energySpend',   charId, name, boxes, cost, at, by }
+//        → garanti sayacı olmayan enerji harcaması (ör. Transcendence kutusu): sadece enerjiden `cost` düşülür.
 //   { type: 'energyRefund',  charId, amount, at, by }   → yanlış sayılan harcamayı geri ekler (ek kısma)
 //   { type: 'energySync',    charId, natural, bonus, max?, at, by } → ekrandan okunan gerçek değer (ör. 0(+845)/840)
 
@@ -37,7 +39,7 @@ function upsert(ch, name, patch) {
 
 // data'yı yerinde değiştirir; bir şey değiştiyse true döner. Tanımadığı op'ta null (başka modülün işi).
 export function applyDungeonOp(data, op) {
-  if (!['dungeonSet', 'dungeonDelta', 'dungeonDelete', 'dungeonOpen', 'energyRefund', 'energySync'].includes(op.type)) return null;
+  if (!['dungeonSet', 'dungeonDelta', 'dungeonDelete', 'dungeonOpen', 'energySpend', 'energyRefund', 'energySync'].includes(op.type)) return null;
   const ch = (data.characters || []).find((c) => c.id === op.charId);
   if (!ch) return false;
   const stamp = { updatedAt: op.at || new Date().toISOString(), updatedBy: op.by || null };
@@ -77,6 +79,12 @@ export function applyDungeonOp(data, op) {
       }
       return true;
     }
+    case 'energySpend': {
+      if (!(op.cost > 0)) return false;
+      const r = spendEnergy(ch.energy, energyCfg(data, ch), op.cost, Date.parse(op.at) || Date.now());
+      ch.energy = { value: r.value, setAt: r.setAt, bonus: r.bonus, editedAt: stamp.updatedAt, setBy: op.by || null };
+      return true;
+    }
     case 'energySync': {
       const natural = Math.max(0, Math.round(Number(op.natural) || 0));
       const bonus = Math.max(0, Math.round(Number(op.bonus) || 0));
@@ -106,6 +114,7 @@ export function dungeonOpMessage(op, data, by) {
     case 'dungeonSet': case 'dungeonDelta': return `${name}: ${op.name}${state}${who}`;
     case 'dungeonDelete': return `${name}: ${op.name} sayacı silindi${who}`;
     case 'dungeonOpen': return `${name}: ${op.name} ${op.boxes} kutu, −${op.cost} enerji →${state}${op.auto ? ' (otomatik)' : ''}${who}`;
+    case 'energySpend': return `${name}: ${op.name} ${op.boxes} kutu, −${op.cost} enerji (Transcendence)${op.auto ? ' (otomatik)' : ''}${who}`;
     case 'energyRefund': return `${name}: +${op.amount} enerji geri eklendi${who}`;
     case 'energySync': return `${name}: enerji ekrandan okundu ${op.natural}(+${op.bonus})${op.max ? `/${op.max}` : ''}${op.auto ? ' (otomatik)' : ''}${who}`;
     default: return `${name}: güncellendi${who}`;
