@@ -1111,12 +1111,14 @@ function Ov-Launch([string]$id, [string]$title) {
     hidden = $false; inset = $null; hover = $false; outAt = $Min; lastApply = $Min; mode = ''; rect = '' }
   Start-Process $edge -ArgumentList "--app=${AppUrl}overlay.html?w=$id", "--window-size=$($r[2]),$($r[3])", "--window-position=$($r[0]),$($r[1])", '--autoplay-policy=no-user-gesture-required'
 }
+# Gizleme "yumuşak": pencere tamamen saydam ve tıklama geçirgen yapılır, gerçekten gizlenmez (SW_HIDE).
+# Edge, gizlenip yeniden gösterilen pencereyi yeniden çizmiyor (boş pencere kalıyordu); saydam pencere çizmeye devam eder.
 function Ov-ShowWin($w) {
   if (-not (Ov-Alive $w)) { return }
   if ($w.hidden) { $w.hidden = $false; [A2Win]::Show($w.h) }
   $w.mode = ''; Ov-Apply $w $true
 }
-function Ov-HideWin($w) { if ((Ov-Alive $w) -and -not $w.hidden) { $w.hidden = $true; $w.hover = $false; [A2Win]::Hide($w.h) } }
+function Ov-HideWin($w) { if ((Ov-Alive $w) -and -not $w.hidden) { $w.hidden = $true; $w.hover = $false; $w.mode = 'x'; [A2Win]::Apply($w.h, [byte]0, $true) } }
 function Ov-CloseWin([string]$id) { $w = $script:OvW[$id]; if (Ov-Alive $w) { [A2Win]::Close($w.h) }; $script:OvW.Remove($id) }
 
 function Toggle-Hub {
@@ -1171,7 +1173,7 @@ function Remind-Window {
   if (-not (Ov-Alive $w)) { return }
   $want = $script:RemSetup -or (@(Remind-Due).Count -gt 0)
   if ($w.placeUntil -ne $Min) { if (-not $want) { [A2Win]::Apply($w.h, [byte]0, $true) }; return }   # yerleşirken görünmesin
-  if ($want -and $w.hidden) { $w.hidden = $false; [A2Win]::Show($w.h); $w.mode = ''; Ov-Apply $w $true }
+  if ($want -and $w.hidden) { Ov-ShowWin $w }
   elseif (-not $want -and -not $w.hidden) { Ov-HideWin $w }
 }
 

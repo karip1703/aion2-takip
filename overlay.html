@@ -16,6 +16,22 @@
       var w = new URLSearchParams(location.search).get('w') || 'hub';
       document.title = 'Karip Traker · ' + (T[w] || 'Menü');
     })();
+    // Sayfa hata verirse boş pencere yerine hatayı göster; hiç çizilemediyse birkaç kez kendini yenile
+    // (ör. güncelleme sırasında yarım kalmış bir dosya yüklendiyse).
+    (function () {
+      function show(msg) {
+        var r = document.getElementById('root');
+        if (r && !r.children.length) r.innerHTML = '<p class="ov-err">Sayfa yüklenemedi: ' + String(msg).replace(/[<>&]/g, '') + '</p>';
+      }
+      window.addEventListener('error', function (e) { show(e.message || e); });
+      window.addEventListener('unhandledrejection', function (e) { show(e.reason && e.reason.message || e.reason); });
+      setTimeout(function () {
+        var r = document.getElementById('root');
+        var n = Number(sessionStorage.getItem('kt.reload') || 0);
+        if (r && (!r.children.length || r.querySelector('.ov-err')) && n < 3) { sessionStorage.setItem('kt.reload', n + 1); location.reload(); }
+        else if (r && r.children.length && !r.querySelector('.ov-err')) sessionStorage.removeItem('kt.reload');
+      }, 6000);
+    })();
   </script>
 </head>
 <body>
