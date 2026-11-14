@@ -381,3 +381,37 @@ legend { padding: 0 6px; color: var(--muted); font-size: .85rem; }
   .stats { grid-template-columns: repeat(3, minmax(0, 1fr)); }
   .stat .v { font-size: .9rem; }
 }
+
+/* ---------- Bosslar ---------- */
+.bosses { display: grid; gap: 10px; grid-template-columns: minmax(0, 1fr); }
+.bosses > * { min-width: 0; }
+.boss-bar { flex-wrap: wrap; margin-bottom: 0; }
+.boss-bar label { display: inline-flex; gap: 6px; align-items: center; flex-wrap: wrap; }
+.boss-bar select { max-width: 100%; }
+.boss-bar .chk { display: inline-flex; gap: 6px; align-items: center; cursor: pointer; }
+.boss-list { list-style: none; margin: 0; padding: 0; display: grid; gap: 6px; }
+.boss {
+  display: grid; grid-template-columns: auto minmax(0, 1fr) auto auto; gap: 4px 12px; align-items: center;
+  background: var(--surface); border: 1px solid var(--border); border-radius: 8px; padding: 8px 12px;
+}
+.boss.watched { border-color: color-mix(in srgb, var(--gold) 45%, var(--border)); }
+.boss.soon { border-color: var(--warn); }
+.boss.up { border-color: var(--ok); }
+.boss-star {
+  background: none; border: 0; font-size: 1.3rem; line-height: 1; color: var(--muted); cursor: pointer;
+  min-width: 34px; min-height: 34px; border-radius: 6px;
+}
+.boss-star[aria-pressed="true"] { color: var(--gold); }
+.boss-star:disabled { cursor: default; opacity: .6; }
+.boss-star:hover:not(:disabled) { background: var(--surface-2); }
+.boss-name { overflow-wrap: anywhere; }
+.boss-meta { margin-top: 1px; }
+.boss-when { text-align: right; font-variant-numeric: tabular-nums; white-space: nowrap; }
+.boss.soon .boss-when b { color: var(--warn); }
+.boss.up .boss-when b { color: var(--ok); }
+.boss-acts { display: flex; gap: 4px; }
+@media (max-width: 640px) {
+  .boss { grid-template-columns: auto minmax(0, 1fr); }
+  .boss-when { grid-column: 2; text-align: left; white-space: normal; }
+  .boss-acts { grid-column: 2; }
+}

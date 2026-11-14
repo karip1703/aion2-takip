@@ -9,11 +9,13 @@ import { adjustEnergy, setEnergy, adjustBonus, setBonus, energyCfg, spendEnergy 
 import {
   renderCards, updateEnergyLive, renderCompare, effEnergy, fmtAgo, fmtDate, esc, itemDetailHtml, charDialogHtml, CHAR_TABS,
 } from './render.js';
+import { renderBosses, fireNotifications, bossById, fmtClock } from './bosses.js';
 
 const $ = (s) => document.querySelector(s);
 const LS_EDITS = 'aion2.edits';
 const LS_VIEW = 'aion2.view';
 const LS_SORT = 'aion2.sort';
+const LS_BOSS = 'aion2.bossPrefs';
 
 const state = {
   data: null,       // uzaktaki (kaydedilmiş) veri — bekleyen düzenlemeler HARİÇ
@@ -22,9 +24,10 @@ const state = {
   source: null,     // 'api' | 'pages'
   edits: loadEdits(), // { [charId]: { value, setAt, setBy } } — kaydedilmemiş enerji girişleri
   login: getSession()?.user || null, // giriş yapan site kullanıcısı (commit mesajlarında görünür)
-  view: ['cards', 'compare'].includes(location.hash.slice(1)) ? location.hash.slice(1) : (lsGet(LS_VIEW) || 'cards'),
+  view: ['cards', 'compare', 'bosses'].includes(location.hash.slice(1)) ? location.hash.slice(1) : (lsGet(LS_VIEW) || 'cards'),
   sortKey: lsGet(LS_SORT) || 'itemLevel',
   busy: false,
+  boss: { filter: 'all', onlyWatched: false, lead: 5, ...(() => { try { return JSON.parse(localStorage.getItem(LS_BOSS) || '{}'); } catch { return {}; } })() },
 };
 
 function lsGet(k) { try { return localStorage.getItem(k); } catch { return null; } }
@@ -150,6 +153,7 @@ function renderAll() {
   if (charDlg.open && charCur) showChar(charCur.id, charCur.tab); // veri yenilendiyse pencereyi de yenile
   if (state.view === 'compare') renderCompare($('#rank-table'), $('#gear-matrix'), d, state.sortKey, ctx());
   renderChrome();
+  renderBossesNow();
 }
 
 function renderChrome() {
@@ -169,6 +173,7 @@ function renderChrome() {
   for (const t of document.querySelectorAll('.tab')) t.setAttribute('aria-selected', String(t.dataset.view === state.view));
   $('#view-cards').hidden = state.view !== 'cards';
   $('#view-compare').hidden = state.view !== 'compare';
+  $('#view-bosses').hidden = state.view !== 'bosses';
   $('#sort-key').value = state.sortKey;
 
   const r = gh.getRepo();
@@ -182,6 +187,7 @@ function tick() {
   if (!state.data) return;
   updateEnergyLive($('#view-cards'), state.data, ctx());
   if (state.view === 'compare') renderCompare($('#rank-table'), $('#gear-matrix'), state.data, state.sortKey, ctx());
+  renderBossesNow();
 }
 
 // ---------------- Enerji düzenleme ----------------
@@ -261,6 +267,7 @@ function todoAction(op) {
   applyOp(state.data, op); // iyimser: hemen göster
   pendingTodoOps.push(op);
   renderTodosNow();
+  renderBossesNow();
   if (charDlg.open && charCur) showChar(charCur.id, charCur.tab);
   todoChain = todoChain.then(() => commitTodo(op));
 }
@@ -299,6 +306,7 @@ function adoptRemote(remote, sha, doneOp) {
   state.source = 'api';
   renderTodosNow();
   tick();
+  checkBossNotifications();
   if (charDlg.open && charCur) showChar(charCur.id, charCur.tab); // zindan sayaçları vb.
 }
 
@@ -338,8 +346,10 @@ let deferredRender = false;
 const withoutTodos = (d) => JSON.stringify({ ...d, todos: undefined });
 const typingEnergy = () => !!document.activeElement?.closest?.('#view-cards input');
 
+let hiddenPolls = 0;
 async function poll() {
-  if (!hasAccess() || !state.data || document.hidden || polling || state.busy || pendingTodoOps.length) return;
+  if (document.hidden && (++hiddenPolls % 4)) return; // arka planda dakikada bir
+  if (!hasAccess() || !state.data || polling || state.busy || pendingTodoOps.length) return;
   polling = true;
   try {
     const f = await gh.getFileIfChanged(state.etag);
@@ -353,6 +363,7 @@ async function poll() {
     state.sha = f.sha;
     state.source = 'api';
     pruneEdits();
+    checkBossNotifications();
     if (todosOnly) { renderTodosNow(); return; }
     if (typingEnergy()) { renderTodosNow(); tick(); deferredRender = true; return; }
     renderAll();
@@ -707,6 +718,70 @@ itemDlg.addEventListener('keydown', (e) => {
 });
 // Pencerenin dışına (arka plana) tıklayınca kapat.
 itemDlg.addEventListener('click', (e) => { if (e.target === itemDlg) itemDlg.close(); });
+
+// ---------------- Bosslar ----------------
+const notifState = () => (typeof Notification === 'undefined' ? 'unsupported' : Notification.permission);
+const saveBossPrefs = () => lsSet(LS_BOSS, JSON.stringify(state.boss));
+
+function renderBossesNow() {
+  if (!state.data || state.view !== 'bosses') return;
+  const root = $('#view-bosses');
+  if (root.contains(document.activeElement) && document.activeElement.tagName === 'SELECT') return; // açık listeyi kapatma
+  renderBosses(root, state.data, {
+    editable: canEdit(), user: state.login, notif: notifState(), ...state.boss,
+  });
+}
+
+function checkBossNotifications() {
+  if (!state.data || !state.login) return;
+  fireNotifications(state.data, state.login, state.boss.lead, (title, body) => status(`🔔 <b>${esc(title)}</b> — ${esc(body)}`, 'ok', true));
+}
+
+$('#view-bosses').addEventListener('click', async (e) => {
+  if (e.target.closest('#boss-notif')) {
+    try { await Notification.requestPermission(); } catch { /* yoksay */ }
+    renderBossesNow();
+    if (notifState() === 'granted') {
+      try { new Notification('AION 2 Takip', { body: 'Bildirimler açık. Takip ettiğin bosslar için haber vereceğim.' }); } catch { /* yoksay */ }
+    }
+    return;
+  }
+  const btn = e.target.closest('[data-boss]');
+  if (!btn || !canEdit()) return;
+  const id = btn.closest('.boss').dataset.id;
+  const b = bossById(id);
+  const act = btn.dataset.boss;
+  if (act === 'watch') {
+    const on = !(state.data.bosses?.watch?.[state.login] || []).includes(id);
+    dataAction({ type: 'bossWatch', user: state.login, id, on });
+  } else if (act === 'kill') {
+    dataAction({ type: 'bossKill', id, at: new Date().toISOString(), by: state.login });
+  } else if (act === 'time') {
+    const v = prompt(`${b.name} kaçta öldü? (SS:DD — bu bilgisayarın saatiyle)\nYa da kaç dakika önce öldüğünü yaz: ör. 25`, fmtClock(Date.now()));
+    if (v == null) return;
+    let at;
+    const hm = v.trim().match(/^(\d{1,2})[:.](\d{2})$/);
+    if (hm) {
+      const d = new Date(); d.setHours(Number(hm[1]), Number(hm[2]), 0, 0);
+      if (d.getTime() > Date.now() + 60_000) d.setDate(d.getDate() - 1); // ileri bir saat → dün
+      at = d.getTime();
+    } else if (/^\d{1,4}$/.test(v.trim())) at = Date.now() - Number(v.trim()) * 60_000;
+    else { alert('Anlaşılmadı. Örnek: 14:35 ya da 25'); return; }
+    dataAction({ type: 'bossKill', id, at: new Date(at).toISOString(), by: state.login });
+  } else if (act === 'reset' && confirm(`${b.name} sayacı silinsin mi?`)) {
+    dataAction({ type: 'bossReset', id });
+  }
+});
+$('#view-bosses').addEventListener('change', (e) => {
+  if (e.target.id === 'boss-filter') state.boss.filter = e.target.value;
+  else if (e.target.id === 'boss-only') state.boss.onlyWatched = e.target.checked;
+  else if (e.target.id === 'boss-lead') state.boss.lead = Number(e.target.value);
+  else return;
+  saveBossPrefs();
+  e.target.blur();
+  renderBossesNow();
+});
+setInterval(() => { renderBossesNow(); checkBossNotifications(); }, 20_000);
 
 // ---------------- Diğer olaylar ----------------
 for (const t of document.querySelectorAll('.tab')) {

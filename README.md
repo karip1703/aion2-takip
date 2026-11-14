@@ -176,6 +176,16 @@ node scripts/fetch-characters.mjs                           # "fetch": false olm
 
 **Kayıtlar siteye nasıl gelir?** Program her olayı repodaki `data/inbox/` klasörüne küçük bir dosya olarak gönderir. **Izleyici kayıtlarını uygula** workflow'u (`.github/workflows/inbox.yml`) bunları sitenin kullandığı kurallarla (`assets/js/ops.js`) `data.json`'a uygular. Siteye yansıması yaklaşık yarım dakika sürer, canlı yenileme sayesinde F5 gerekmez.
 
+## 6c. Boss zamanlayıcıları ve bildirimler
+
+**Bosslar** sekmesinde EU sunucusunun saha ve Abyss bossları listelenir:
+
+- **Saha bossları** (Verteron = Elyos, Altgard = Asmodian, 48 boss): öldükten sonra sabit sürede (30 dk – 12 sa) yeniden doğar. Boss ölünce **Öldü**'ye bas; geç kaldıysan **Saat…** ile ölüm saatini (ör. `14:35`) ya da kaç dakika önce öldüğünü (ör. `25`) gir. İşaret herkese yansır.
+- **Abyss** (Watcher Kaira, Argo the Spirit King, Artifact Siege, Executors): sunucu saatine (CET/CEST) göre sabit programla çıkar, işaretlemeye gerek yok.
+- **★** ile takip ettiğin bosslar için bildirim gelir: seçtiğin süre kadar önce (varsayılan 5 dk) ve doğduğu an. Takip listesi kişiye özeldir.
+- Bildirim için **🔔 Bildirimleri aç**'a basıp izin ver. Site bir sekmede açık kalmalı (arka planda olabilir).
+- Süreler topluluk kaynaklarından alındı (Kasım 2026, 4 Kasım yaması sonrası). Değişirse [assets/js/bosses.js](assets/js/bosses.js) içindeki listeden düzeltilir.
+
 ## 7. İlk çalıştırma kontrol listesi
 
 1. Pages adresini aç. Kyrakia gerçek veriyle, diğerleri "örnek veri" etiketiyle salt okunur görünmeli.
