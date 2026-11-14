@@ -7420,5 +7420,13 @@
         "ct": "fhBHyw8z7STwkM7LekVrQGQ5LeTMIKhirpISt0TIEs0T7O2fijpEBZ6N8zfHJSBETWZsTDnVgZI8RRNuO9bnahL7Gw7yBfhb//aGxPUWpSxRoX43l1JGRZQA3dM/AtCKVVAw721p90fmtU8mnsvy0QnftD5SudKZk2Cy6mYoQjEUE01zbTpq0T5BpfG78+EZfuoJLKbUFD6hgS4sE7RH+vDwTxIO973T+LdA6H6kSfp4iA=="
       }
     ]
+  },
+  "bosses": {
+    "kills": {},
+    "watch": {
+      "karip": [
+        "abyss-watcher-kaira"
+      ]
+    }
   }
 }
