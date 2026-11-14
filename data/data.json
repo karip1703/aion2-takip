@@ -7425,7 +7425,8 @@
     "kills": {},
     "watch": {
       "karip": [
-        "abyss-watcher-kaira"
+        "abyss-watcher-kaira",
+        "abyss-artifact-siege"
       ]
     }
   }
