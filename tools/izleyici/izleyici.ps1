@@ -77,6 +77,32 @@ public static class A2Img {
     return n == 0 ? 0 : (double)hit / n;
   }
 
+  // Enerji yazısının yatay sınırları. HUD grubu sayıların uzunluğuna göre kayar; bölgede soldaki ikon ve sağdaki "+"
+  // butonu da olabilir. Sütunlar "gap" kadar boşlukla kümelere ayrılır; turkuaz "(+…)" içeren küme (yoksa en geniş)
+  // yazıdır → { sol, sağ, turkuazSol, turkuazSağ } (turkuaz yoksa -1). Yazı yoksa null.
+  public static int[] TextSpan(Bitmap b, int thr, int gap) {
+    var d = b.LockBits(new Rectangle(0, 0, b.Width, b.Height), ImageLockMode.ReadOnly, PixelFormat.Format32bppArgb);
+    var px = new byte[d.Stride * b.Height]; Marshal.Copy(d.Scan0, px, 0, px.Length); b.UnlockBits(d);
+    int[] best = null; int bestCyan = -1, bestW = -1;
+    int start = -1, last = -1, cyan = 0, cl = -1, cr = -1;
+    for (int x = 0; x <= b.Width; x++) {
+      bool ink = false, cy = false;
+      if (x < b.Width) for (int y = 0; y < b.Height; y++) {
+        int i = y * d.Stride + x * 4; int b0 = px[i], g0 = px[i + 1], r0 = px[i + 2];
+        int mx = Math.Max(b0, Math.Max(g0, r0)), mn = Math.Min(b0, Math.Min(g0, r0));
+        if (b0 > thr && g0 > thr - 30 && r0 < b0 - 50) { ink = true; cy = true; break; }
+        if (mn > thr && (mx - mn) < 60) ink = true;
+      }
+      if (ink) { if (start < 0) { start = x; cyan = 0; cl = -1; cr = -1; } last = x; if (cy) { cyan++; if (cl < 0) cl = x; cr = x; } }
+      if (start >= 0 && (x == b.Width || (!ink && x - last >= gap))) {   // küme bitti
+        int w = last - start + 1;
+        if (cyan > bestCyan || (cyan == bestCyan && w > bestW)) { best = new[] { start, last, cl, cr }; bestCyan = cyan; bestW = w; }
+        start = -1;
+      }
+    }
+    return best;
+  }
+
   // OCR için hazırla: büyüt, renge göre ayıkla (siyah yazı / beyaz zemin), kenar boşluğu, isteğe bağlı sol etiket.
   // mode: all = en parlak kanal > eşik; white = gri/beyaz yazı; light = tüm kanallar parlak (açık mavi dahil); cyan = turkuaz yazı
   public static Bitmap Prep(Bitmap crop, int scale, int thr, string mode, string label) {
@@ -152,7 +178,7 @@ $Regions = @{
   panel     = @{ r1 = 0.560; r2 = 0.020; y1 = 0.010; y2 = 0.975 }  # tek seferde yakalanan büyük alan
   open      = @{ r1 = 0.170; r2 = 0.060; y1 = 0.935; y2 = 0.965 }  # altın "Open" butonu (ucuz kontrol)
   # Enerji yazısı sağa yaslı (bitişi ~0.448H); ek enerji büyüdükçe sola uzar ("0(+1,565)/840") → solda pay bırakıldı.
-  energy    = @{ r1 = 0.575; r2 = 0.441; y1 = 0.018; y2 = 0.052 }
+  energy    = @{ r1 = 0.575; r2 = 0.400; y1 = 0.018; y2 = 0.052 }
   dungeon   = @{ r1 = 0.360; r2 = 0.040; y1 = 0.080; y2 = 0.130 }
   cost      = @{ r1 = 0.204; r2 = 0.150; y1 = 0.728; y2 = 0.768 }
   boxes     = @{ r1 = 0.240; r2 = 0.150; y1 = 0.778; y2 = 0.815 }
@@ -266,9 +292,42 @@ function Read-Cube([System.Drawing.Bitmap]$full) {
 
   # Enerji: beyaz kısım "0 … /840", turkuaz kısım "(+845)". Yazı sağa yaslı ve ek enerji büyüdükçe sola uzar;
   # dar bölge kısa sayılarda, geniş bölge uzun sayılarda iyi okur → üç genişlik denenir, tutarlı sonuç seçilir.
+  # Sabit sol kenar bazen ilk rakamın ortasına denk geliyor (4 → 1, 0 → 1) → yazının başlangıcı pikselden bulunur,
+  # bölge onun biraz solundan başlatılır. Bulunamazsa eski sabit genişliklere dönülür.
   $evotes = @{}
-  foreach ($r1 in 0.522, 0.545, 0.575) {
-    $g = @{ r1 = $r1; r2 = $Regions.energy.r2; y1 = $Regions.energy.y1; y2 = $Regions.energy.y2 }
+  $wide = Sub-Crop $full @{ x = 0; y = 0 } $Regions.energy $W $H
+  $span = [A2Img]::TextSpan($wide, 140, [Math]::Max(5, [int](0.007 * $H))); $wide.Dispose()
+  $x0 = [int]($W - $Regions.energy.r1 * $H)
+  $r2 = 0.441
+  $r1s = if ($span) {
+    $r2 = ($W - ($x0 + $span[1] + 0.006 * $H)) / $H                       # yazının sağı + küçük pay
+    @(0.004, 0.008, 0.013) | ForEach-Object { ($W - ($x0 + $span[0] - $_ * $H)) / $H }
+  } else { @(0.522, 0.545, 0.575) }
+  if ($env:A2_DEBUG) { Write-Host ("    [enerji yazı] span={0} r1={1} r2={2:N3}" -f ($span -join '-'), (($r1s | ForEach-Object { '{0:N3}' -f $_ }) -join ','), $r2) }
+
+  # Turkuaz "(+…)" bulunduysa üç parça ayrı okunur: [doğal] [(+ek)] [/sınır]. Birlikte okununca turkuaz parantezin
+  # kenar pikselleri beyaz modda "I"/"1" gibi görünüp doğal enerjiyi bozuyordu ("0I/840" → 1).
+  if ($span -and $span[2] -ge 0) {
+    $ey = [int]($Regions.energy.y1 * $H); $eh = [int]($Regions.energy.y2 * $H) - $ey
+    $pad = [Math]::Max(3, [int](0.006 * $H))
+    $cut = { param($l, $r) [A2Img]::Crop($full, [int]$l, $ey, [int]([Math]::Max(1, $r - $l + 1)), $eh) }
+    $c = & $cut ($x0 + $span[0] - $pad) ($x0 + $span[2] - 2)
+    $mn = Read-Vote $c 'white' 'ENERGY' @(2, 3, 4) '(\d{1,4})(?!.*\d)' 1; $c.Dispose()
+    $c = & $cut ($x0 + $span[2] - 1) ($x0 + $span[3] + 1)
+    $mb = Read-Vote $c 'cyan' 'ENERGY' @(2, 3, 4) '\+?(\d{1,5})' 1; $c.Dispose()
+    $c = & $cut ($x0 + $span[3] + 2) ($x0 + $span[1] + $pad)
+    $mx = Read-Vote $c 'white' 'ENERGY' @(2, 3, 4) '(\d{3,4})(?!.*\d)' 1; $c.Dispose()
+    if ($mn -and $mx) {
+      $nat = [int]$mn[0]; $emax = [int]$mx[0]; $bon = if ($mb) { [int]$mb[0] } else { 0 }
+      if ($mx[0].Length -eq 4) { $emax = [int]$mx[0].Substring(1) }   # sınır 3 hanelidir (560/840); "/" bazen "1" okunur → "1840"
+      if ($env:A2_DEBUG) { Write-Host ("    [enerji parçalı] {0}|{1}|{2}" -f $nat, $emax, $bon) }
+      if ($nat -le $emax -and $emax -ge 100 -and $emax -le 2000 -and $bon -le 5000) { $evotes["$nat|$emax|$bon"] = 10 }
+    }
+  }
+  if ($evotes.Count -gt 0) { $r1s = @() }   # parçalı okuma başarılı → bütün okuma gerekmez
+
+  foreach ($r1 in $r1s) {
+    $g = @{ r1 = $r1; r2 = $r2; y1 = $Regions.energy.y1; y2 = $Regions.energy.y2 }
     $c = Sub-Crop $full @{ x = 0; y = 0 } $g $W $H
     # Soldaki ikon kırıntısı başa çöp karakter ekleyebilir → başa sabitlenmeden, "/" öncesindeki son sayı
     $mw = Read-Vote $c 'white' 'ENERGY' @(2, 3, 4) '(\d{1,4})\D{0,4}/(\d{3,4})(?!.*/)' 2
