@@ -403,11 +403,11 @@ function Save-Session($s) { ConvertTo-SecureString ($s | ConvertTo-Json -Compres
 function Load-Session {
   if (-not (Test-Path $SessionFile)) { return $null }
   try {
-    $sec = Get-Content $SessionFile -Raw | ConvertTo-SecureString
+    $sec = (Get-Content $SessionFile -Raw).Trim() | ConvertTo-SecureString   # Set-Content sona satır sonu ekler
     $plain = [Runtime.InteropServices.Marshal]::PtrToStringBSTR([Runtime.InteropServices.Marshal]::SecureStringToBSTR($sec))
     $o = $plain | ConvertFrom-Json
     return @{ user = $o.user; token = $o.token; owner = $o.owner; repo = $o.repo; branch = $o.branch }
-  } catch { return $null }
+  } catch { $script:SessionError = $_.Exception.Message; return $null }
 }
 function Load-Settings { if (Test-Path $SettingsFile) { try { return Get-Content $SettingsFile -Raw | ConvertFrom-Json } catch {} }; return [pscustomobject]@{ charId = $null } }
 function Save-Settings($o) { $o | ConvertTo-Json | Set-Content $SettingsFile -Encoding UTF8 }
@@ -616,10 +616,7 @@ function Invoke-Tick {
     if ($script:Paused -or -not $script:Session -or -not (Char-Id)) { return }
     if ($script:Pending -and (Get-Date) -ge $script:Pending.due) { Commit-Pending }
 
-    if (-not (Game-Foreground)) {   # oyun ön planda değil → okuma yok, sayaçlar da ilerlemez
-      if (($script:Tick % 7) -eq 0) { $lblStatus.Text = "Oyun ön planda değil ($($script:FgName)) — bekleniyor." }
-      return
-    }
+    # Not: ön plan kontrolü kaldırıldı — ekran, hangi pencere üstte olursa olsun sürekli okunur.
     $visible = Open-Button-Visible
 
     if ($visible) {
@@ -712,6 +709,7 @@ $form.Add_Shown({
     $bmp.Save($env:A2_GUI_TEST); $bmp.Dispose(); $form.Close(); return
   }
   $s = Load-Session
+  if (-not $s -and $script:SessionError) { Log "Kayıtlı oturum okunamadı, tekrar giriş yap: $($script:SessionError)" }
   if ($s) { try { $script:Session = $s; $txtUser.Text = $s.user; After-Login } catch { $script:Session = $null; Log "Kayıtlı oturum açılamadı: $($_.Exception.Message)" } }
   $timer.Start()
 })
