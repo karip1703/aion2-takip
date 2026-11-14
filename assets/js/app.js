@@ -778,8 +778,8 @@ $('#view-app').addEventListener('click', async (e) => {
   try {
     if (b.dataset.appChar) await appApi.char(b.dataset.appChar);
     else if (b.dataset.app === 'pause') await appApi.pause(!bridge.s?.paused);
-    else if (b.dataset.app === 'overlay') await appApi.overlay({ action: 'toggle' });
-    else if (b.dataset.app === 'ovmode') await appApi.overlay({ action: 'ghost' });
+    else if (b.dataset.app === 'overlay') await appApi.overlay({ action: 'hub' });
+    else if (b.dataset.app === 'ovmode') await appApi.overlay({ action: 'edit' });
     else if (b.dataset.app === 'undo') {
       if (confirm('Son kutu kaydı geri alınsın mı? (Enerji ve garanti sayacı kutudan önceki haline döner.)')) await appApi.undo();
     } else if (b.dataset.app === 'test') {

@@ -186,20 +186,23 @@ node scripts/fetch-characters.mjs                           # "fetch": false olm
 
 **Kayıtlar siteye nasıl gelir?** Program her olayı repodaki `data/inbox/` klasörüne küçük bir dosya olarak gönderir. **Izleyici kayıtlarını uygula** workflow'u (`.github/workflows/inbox.yml`) bunları sitenin kullandığı kurallarla (`assets/js/ops.js`) `data.json`'a uygular. Siteye yansıması yaklaşık yarım dakika sürer, canlı yenileme sayesinde F5 gerekmez.
 
-### Oyun içi panel (overlay)
+### Oyun içi arayüz (overlay)
 
-Oyunun üstünde duran küçük, yarı saydam bir pencere. Uygulama açıkken **Alt+Shift+O** ile açılır (ya da simge → **Oyun içi paneli aç**, ya da sitede **Uygulama** bölümü).
+Uygulama açıkken oyunda **Alt+Shift+O** ile **oyun içi menü** açılır (ya da simge → **Oyun içi menü**, ya da sitede **Uygulama** bölümü).
+Menüde **Enerji, Bosslar, Gear, Yapılacaklar, Zindanlar, Son kutu, Saat, Uygulama durumu** düğmeleri var. Bir düğmeye basınca o bilgi
+kendi küçük penceresinde ekrana gelir; tekrar basınca kalkar.
 
-- **Oyun modu** (**Alt+Shift+T**): pencere yarı saydam olur ve tıklamalar içinden oyuna geçer, oyunu engellemez.
-- **Düzenleme modu** (tekrar **Alt+Shift+T**): tam görünür ve tıklanabilir. Başlığından tutup taşı, kenarından boyutlandır; konum hatırlanır. **⚙** ile:
-  - hangi bileşenlerin görüneceğini ve sırasını (uygulama durumu, enerji, bosslar, aktif karakterin zindan sayaçları, son okunan kutu, yapılacaklar, saat),
-  - oyun modundaki saydamlığı, yazı boyutunu, enerjide hangi karakterlerin görüneceğini seçersin. Ayarlar kullanıcıya özeldir.
-- Düzenleme modunda aktif karakteri değiştirebilir, izlemeyi duraklatabilirsin.
-- **Alt+Shift+O** paneli gizler / gösterir.
+- **Yerleştirme:** bileşeni üst kısmından tutup ekranın istediğin yerine sürükle, sağ alt köşesinden boyutlandır. Konum hatırlanır.
+- **Oyun modu:** bileşenler yarı saydamdır ve tıklamalar içinden oyuna geçer, oyunu engellemez.
+- **Kullanım modu:** oyunda imleci açıp (ör. Alt) bir bileşenin üstüne gelince o bileşen tam görünür ve tıklanabilir olur
+  (⚙ ayarlar, ✕ kaldır, karakter seçimi…). İmleç ayrılınca oyun moduna döner. Pencereler odak almaz; klavye oyunda kalır.
+- **Menüdeki ayarlar:** oyun modundaki görünürlük, yazı boyutu, imleçle etkinleştirme, düzenleme modu, hepsini gizle, konumları sıfırla.
+  Her bileşenin kendi ⚙ ayarları da var (ör. enerjide hangi karakterler, kaç boss). Ayarlar kullanıcıya özeldir.
+- **Kısayollar:** **Alt+Shift+O** menü · **Alt+Shift+H** hepsini gizle/göster · **Alt+Shift+T** düzenleme modu (bütün bileşenler kullanılabilir).
 - Oyun **çerçevesiz pencere** modunda olmalı (özel tam ekranda hiçbir pencere oyunun üstünde görünemez).
-- Panel ayrı bir penceredir: oyuna hiçbir şey eklenmez, oyunun belleği okunmaz.
+- Bileşenler ayrı pencerelerdir: oyuna hiçbir şey eklenmez, oyunun belleği okunmaz.
 
-Yeni bileşen eklemek için [assets/js/overlay.js](assets/js/overlay.js) içindeki `WIDGETS` listesine bir giriş eklemek yeterli.
+Yeni bileşen eklemek için [assets/js/overlay.js](assets/js/overlay.js) içindeki `WIDGETS` listesine bir giriş, [overlay.html](overlay.html) içindeki başlık listesine adını eklemek yeterli; menüde kendiliğinden çıkar.
 
 ## 6c. Boss zamanlayıcıları ve bildirimler
 

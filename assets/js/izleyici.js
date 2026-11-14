@@ -123,13 +123,14 @@ export function renderAppView(root, b, { repo }) {
       </section>
 
       <section class="panel">
-        <header class="panel-head"><h2>Oyun içi panel</h2><span class="muted">${ov.open ? (ov.ghost ? 'açık · oyun modu' : 'açık · düzenleme') : 'kapalı'}</span></header>
-        <p>Oyunun üstünde duran küçük, yarı saydam pencere: enerji, bosslar, zindan sayaçları… Neyin görüneceğini panelin ⚙ düğmesinden kendin seçersin.</p>
+        <header class="panel-head"><h2>Oyun içi arayüz</h2><span class="muted">${(ov.openIds || []).length} bileşen${ov.edit ? ' · düzenleme modu' : ''}</span></header>
+        <p>Oyunda <kbd>Alt+Shift+O</kbd> ile menü açılır: Enerji, Bosslar, Gear, Yapılacaklar… İstediğini ekrana ekle, başlığından tutup istediğin yere taşı.
+        Bileşenler yarı saydamdır ve tıklamaları oyuna geçirir; oyunda imleci açıp üstüne gelince kullanılabilir hale gelir.</p>
         <div class="row">
-          <button type="button" class="btn primary" data-app="overlay">${!ov.open ? 'Oyun içi paneli aç' : ov.hidden ? 'Göster' : 'Gizle'}</button>
-          ${ov.open ? `<button type="button" class="btn" data-app="ovmode">${ov.ghost ? 'Düzenleme moduna geç' : 'Oyun moduna geç'}</button>` : ''}
+          <button type="button" class="btn primary" data-app="overlay">Oyun içi menü</button>
+          <button type="button" class="btn ${ov.edit ? 'primary' : ''}" data-app="ovmode">${ov.edit ? 'Düzenleme modunu kapat' : 'Düzenleme modu'}</button>
         </div>
-        <p class="hint"><kbd>Alt+Shift+O</kbd> aç / gizle · <kbd>Alt+Shift+T</kbd> oyun modu ↔ düzenleme. Oyun modunda tıklamalar panelin içinden oyuna geçer. Oyun <b>çerçevesiz pencere</b> modunda olmalı.${ov.hotkeys === false ? ' <b class="warn-txt">Kısayol tuşları başka bir programda kullanıldığı için kaydedilemedi.</b>' : ''}</p>
+        <p class="hint"><kbd>Alt+Shift+O</kbd> menü · <kbd>Alt+Shift+H</kbd> hepsini gizle/göster · <kbd>Alt+Shift+T</kbd> düzenleme modu. Oyun <b>çerçevesiz pencere</b> modunda olmalı.${ov.hotkeys === false ? ' <b class="warn-txt">Kısayol tuşlarından biri başka bir programda kullanıldığı için kaydedilemedi.</b>' : ''}</p>
       </section>
 
       <section class="panel span-all">

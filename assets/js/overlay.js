@@ -1,97 +1,92 @@
-// Karip Traker — oyun içi panel (overlay).
+// Karip Traker — oyun içi arayüz.
 //
-// Masaüstü uygulaması bu sayfayı her zaman üstte duran küçük bir pencerede açar (Alt+Shift+O).
-//   Oyun modu      : pencere yarı saydam ve tıklamalar içinden geçer (oyunu engellemez).
-//   Düzenleme modu : tam görünür, tıklanabilir; bileşenler ve ayarlar burada değiştirilir.
-//   Alt+Shift+T iki mod arasında geçirir. Pencerenin saydamlığını ve tıklama geçirgenliğini uygulama ayarlar.
+// overlay.html?w=hub      → oyun içi menü (Alt+Shift+O): Enerji, Bosslar, Gear, Yapılacaklar… düğmeleri ve ayarlar.
+// overlay.html?w=<id>     → tek bir bileşenin kendi penceresi; ekranın istenen yerine taşınır.
 //
-// Yeni özellik eklemek: aşağıdaki WIDGETS listesine bir bileşen ekle ({ title, render(c) }).
-// Kullanıcı tercihleri (hangi bileşenler, sıra, saydamlık, yazı boyutu…) kullanıcıya özel saklanır.
+// Pencereleri masaüstü uygulaması (tools/izleyici) açar, üstte tutar ve saydamlığını yönetir:
+//   oyun modu     : yarı saydam, tıklamalar içinden oyuna geçer
+//   kullanım modu : imleç bileşenin üstüne gelince (ya da düzenleme modunda) tam görünür ve tıklanabilir
+// Edge'in başlık çubuğu gizlendiği için taşıma / boyutlandırma bu sayfanın başlığından ve sağ alt köşesinden yapılır.
+//
+// Yeni bileşen eklemek: WIDGETS listesine { title, icon, hint, render(c), settings?() } ekle; menüde kendiliğinden çıkar.
+// (overlay.html içindeki başlık listesine de adını ekle: uygulama pencereyi başlığından bulur.)
 
 import { getSession, setSession } from './auth.js';
 import * as gh from './github.js';
-import { esc, effEnergy } from './render.js';
+import { esc, effEnergy, splitGear } from './render.js';
 import { energyState, energyCfg, fmtDuration } from './energy.js';
 import { BOSSES, bossStatus, fmtLeft, fmtClock, SERVER_TZ } from './bosses.js';
-import { LOCAL, bridge, refreshBridge, appApi } from './izleyici.js';
+import { LOCAL, appApi } from './izleyici.js';
 
-const $ = (s) => document.querySelector(s);
+const W = new URLSearchParams(location.search).get('w') || 'hub';
+const $ = (s, el = document) => el.querySelector(s);
 const nf = new Intl.NumberFormat('tr-TR');
+const dpr = () => window.devicePixelRatio || 1;
+
+// ---------------------------------------------------------------- İkonlar
+const svg = (d) => `<svg class="ic" viewBox="0 0 24 24" aria-hidden="true">${d}</svg>`;
+const ICON = {
+  energy: svg('<path d="M13 2 4 14h7l-1 8 9-12h-7z"/>'),
+  bosses: svg('<path d="M12 3c-4.4 0-8 3.2-8 7.3 0 2.4 1.2 4.4 3 5.7V20h3v-2h4v2h3v-4c1.8-1.3 3-3.3 3-5.7C20 6.2 16.4 3 12 3z"/><circle cx="9" cy="11" r="1.6"/><circle cx="15" cy="11" r="1.6"/>'),
+  gear: svg('<path d="M12 3l8 3v6c0 4.6-3.4 8-8 9-4.6-1-8-4.4-8-9V6z"/><path d="M9 12l2 2 4-4"/>'),
+  todos: svg('<path d="M9 6h11M9 12h11M9 18h11"/><path d="M3.5 6l1.5 1.5L7.5 5M3.5 12l1.5 1.5L7.5 11M3.5 18l1.5 1.5L7.5 17"/>'),
+  dungeons: svg('<path d="M4 21V9l8-5 8 5v12"/><path d="M9 21v-6a3 3 0 0 1 6 0v6"/>'),
+  lastbox: svg('<path d="M12 3l8 4.5v9L12 21l-8-4.5v-9z"/><path d="M4 7.5l8 4.5 8-4.5M12 12v9"/>'),
+  clock: svg('<circle cx="12" cy="12" r="9"/><path d="M12 7v5l3 2"/>'),
+  status: svg('<rect x="3" y="4" width="18" height="12" rx="2"/><path d="M8 20h8M12 16v4"/>'),
+};
 
 // ---------------------------------------------------------------- Durum
-const st = { data: null, etag: null, user: null, err: '', settingsOpen: false };
+const st = { data: null, etag: null, user: null, err: '' };
+let ov = null;            // uygulamanın durumu (/api/ov)
+let online = false;
 
-// ---------------------------------------------------------------- Tercihler (kullanıcıya özel)
+// ---------------------------------------------------------------- Tercihler (kullanıcıya özel, tüm pencereler paylaşır)
 const DEFAULTS = {
-  order: ['status', 'energy', 'bosses', 'dungeons', 'lastbox', 'todos', 'clock'],
-  on: { status: true, energy: true, bosses: true, dungeons: true, lastbox: false, todos: false, clock: false },
-  alpha: 70,          // oyun modunda pencere görünürlüğü (%)
   scale: 100,         // yazı boyutu (%)
   energyChars: null,  // null = hepsi
   bossCount: 5,
   bossLead: 5,        // bu kadar dakika kala turuncu
-  todoCount: 5,
-  autoHeight: true,   // pencere yüksekliği içeriğe otursun
+  todoCount: 6,
+  gearChar: null,     // null = aktif karakter
+  fixed: {},          // { bileşen: true } → yükseklik elle ayarlandı (içeriğe oturtma kapalı)
 };
-const prefKey = () => `kt.overlay.v1.${st.user || 'misafir'}`;
-let prefs = { ...DEFAULTS };
+const prefKey = () => `kt.overlay.v2.${st.user || 'misafir'}`;
+let prefs = structuredClone(DEFAULTS);
 function loadPrefs() {
   let p = null;
   try { p = JSON.parse(localStorage.getItem(prefKey()) || 'null'); } catch { /* yoksay */ }
-  prefs = { ...DEFAULTS, ...(p || {}), on: { ...DEFAULTS.on, ...(p?.on || {}) } };
-  // Sonradan eklenen bileşenler sıranın sonuna girer; kaldırılanlar düşer.
-  prefs.order = [...prefs.order.filter((id) => WIDGETS[id]), ...Object.keys(WIDGETS).filter((id) => !prefs.order.includes(id))];
-  applyPrefs();
+  prefs = { ...structuredClone(DEFAULTS), ...(p || {}) };
+  prefs.fixed ||= {};
+  document.documentElement.style.setProperty('--scale', String(prefs.scale / 100));
 }
 function savePrefs() {
   try { localStorage.setItem(prefKey(), JSON.stringify(prefs)); } catch { /* yoksay */ }
-  applyPrefs();
-}
-let sentAlpha = null;
-function applyPrefs() {
   document.documentElement.style.setProperty('--scale', String(prefs.scale / 100));
-  if (bridge.online && sentAlpha !== prefs.alpha) {
-    sentAlpha = prefs.alpha;
-    appApi.overlay({ action: 'alpha', alpha: prefs.alpha / 100 }).catch(() => { sentAlpha = null; });
-  }
 }
+// Başka pencerede değişince (ör. menüden yazı boyutu) burada da uygula
+window.addEventListener('storage', (e) => { if (e.key === prefKey()) { loadPrefs(); renderAll(true); } });
 
 // ---------------------------------------------------------------- Yardımcılar
 const chars = () => st.data?.characters || [];
-const activeId = () => bridge.s?.charId || null;
+const activeId = () => ov?.charId || null;
 const serverFmt = new Intl.DateTimeFormat('tr-TR', { timeZone: SERVER_TZ, hour: '2-digit', minute: '2-digit' });
 const localFmt = new Intl.DateTimeFormat('tr-TR', { hour: '2-digit', minute: '2-digit', second: '2-digit' });
-const head = (title, right = '') => `<h2 class="w-head">${esc(title)}${right ? `<span class="r">${right}</span>` : ''}</h2>`;
 const empty = (t) => `<p class="empty">${esc(t)}</p>`;
+const safeImg = (u) => typeof u === 'string' && /^https:\/\//i.test(u);
+const gradeCls = (g) => `grade-${String(g || 'common').toLowerCase().replace(/[^a-z]/g, '')}`;
+const sel = (name, vals, cur) => `<select data-num="${name}">${vals.map((v) => `<option ${v === cur ? 'selected' : ''}>${v}</option>`).join('')}</select>`;
 
 // ---------------------------------------------------------------- Bileşenler
-// render(c): c = { now, edit } → HTML. Boş string dönerse bileşen gizlenir.
+// render(c): c = { now } → HTML (başlık satırının sağı için `right` döndürmek istersen { html, right }).
 const WIDGETS = {
-  status: {
-    title: 'Uygulama durumu',
-    render({ edit }) {
-      const s = bridge.s;
-      if (!bridge.online) return head('Uygulama') + empty('Uygulama yanıt vermiyor.');
-      if (!s.loggedIn) return head('Uygulama') + empty('Giriş bekleniyor — ana pencerede giriş yap.');
-      const name = s.chars?.find((c) => c.id === s.charId)?.name || '?';
-      const cls = s.paused ? 'warn' : 'on';
-      return head('Uygulama', s.queue ? `<span class="soon">${s.queue} bekliyor</span>` : '') + `
-        <div class="st-line"><span class="dot ${cls}"></span><b>${s.paused ? 'Duraklatıldı' : 'İzliyor'}</b><span class="muted">· ${esc(name)}</span></div>
-        ${edit ? `
-        <div class="seg" role="radiogroup" aria-label="Aktif karakter">
-          ${(s.chars || []).map((c) => `<button type="button" role="radio" data-char="${esc(c.id)}" aria-checked="${c.id === s.charId}">${esc(c.name)}</button>`).join('')}
-        </div>
-        <div class="seg"><button type="button" data-act="pause">${s.paused ? '▶ Devam et' : '❚❚ Duraklat'}</button></div>` : ''}`;
-    },
-  },
-
   energy: {
-    title: 'Enerji',
+    title: 'Enerji', hint: 'Karakterlerin enerjisi',
     render({ now }) {
       const near = Number(st.data?.config?.nearFullHours ?? 3);
       const list = chars().filter((ch) => !prefs.energyChars || prefs.energyChars.includes(ch.id));
-      if (!list.length) return head('Enerji') + empty('Karakter seçilmedi.');
-      const rows = list.map((ch) => {
+      if (!list.length) return empty(st.data ? 'Karakter seçilmedi (⚙).' : 'Yükleniyor…');
+      return list.map((ch) => {
         const e = energyState(effEnergy(ch, {}), energyCfg(st.data, ch), now);
         const cls = !e.known ? '' : e.isFull ? 'full' : e.msToFull != null && e.msToFull <= near * 3_600_000 ? 'near' : '';
         const full = !e.known ? 'girilmedi' : e.isFull ? 'FULL' : fmtDuration(e.msToFull);
@@ -104,12 +99,14 @@ const WIDGETS = {
             <span class="bar"><i style="width:${e.known ? (e.ratio * 100).toFixed(1) : 0}%"></i></span>
           </div>`;
       }).join('');
-      return head('Enerji') + rows;
+    },
+    settings() {
+      return `<h4>Gösterilen karakterler</h4><div class="row">${chars().map((ch) => `<label class="chk"><input type="checkbox" data-ech="${esc(ch.id)}" ${!prefs.energyChars || prefs.energyChars.includes(ch.id) ? 'checked' : ''}> ${esc(ch.name)}</label>`).join('')}</div>`;
     },
   },
 
   bosses: {
-    title: 'Bosslar',
+    title: 'Bosslar', hint: 'Takip ettiğin bosslar',
     render({ now }) {
       const watched = st.data?.bosses?.watch?.[st.user] || [];
       const pool = watched.length ? BOSSES.filter((b) => watched.includes(b.id)) : BOSSES.filter((b) => b.kind === 'schedule');
@@ -125,171 +122,287 @@ const WIDGETS = {
               : `<span class="${left <= prefs.bossLead * 60_000 ? 'soon' : ''}">${fmtLeft(left)}</span> <span class="muted">${fmtClock(s.at)}</span>`;
           return `<li><span>${esc(b.name)}</span><span>${when}</span></li>`;
         }).join('');
-      return head(watched.length ? 'Takip ettiğin bosslar' : 'Abyss programı') + (rows ? `<ul>${rows}</ul>` : empty('Zamanı bilinen boss yok.'));
+      return {
+        right: watched.length ? 'takip' : 'Abyss',
+        html: rows ? `<ul class="l">${rows}</ul>` : empty(watched.length ? 'Takip ettiğin bossların zamanı bilinmiyor.' : 'Zamanı bilinen boss yok.'),
+      };
+    },
+    settings() {
+      return `<div class="row"><label>Gösterilen ${sel('bossCount', [3, 4, 5, 6, 8, 10, 15], prefs.bossCount)}</label>
+        <label>Turuncu (dk kala) ${sel('bossLead', [1, 3, 5, 10, 15], prefs.bossLead)}</label></div>
+        <p class="empty">Takip listesi sitedeki Bosslar bölümünden (★) seçilir.</p>`;
     },
   },
 
-  dungeons: {
-    title: 'Zindan sayaçları (aktif karakter)',
+  gear: {
+    title: 'Gear', hint: 'Ekipman ve iLvl',
     render() {
-      const ch = chars().find((c) => c.id === activeId()) || chars()[0];
-      if (!ch) return head('Zindanlar') + empty('Karakter yok.');
-      const ds = (ch.dungeons || []).filter((d) => d.max > 0);
-      const rows = ds.map((d) => {
-        const left = d.max - d.count;
-        return `<div class="dg ${left <= 3 ? 'close' : ''}"><span>${esc(d.name)}</span><span><b>${esc(d.count)}</b>/${esc(d.max)} <span class="muted">· ${left} kaldı</span></span><span class="bar"><i style="width:${(d.count / d.max * 100).toFixed(1)}%"></i></span></div>`;
-      }).join('');
-      return head(`Zindanlar · ${ch.name}`) + (rows || empty('Sayaç yok.'));
-    },
-  },
-
-  lastbox: {
-    title: 'Son okunan kutu',
-    render() {
-      const l = bridge.s?.lastRead;
-      if (!l) return head('Son kutu') + empty('Henüz kutu okunmadı.');
-      const t = l.at ? new Date(l.at).toLocaleTimeString('tr-TR', { hour: '2-digit', minute: '2-digit' }) : '';
-      return head('Son kutu', esc(t)) + `<ul>
-        <li><span>${esc(l.dungeon)}</span><span><b>${esc(l.seen)}</b>/${esc(l.max)}</span></li>
-        <li><span class="muted">Enerji</span><span>${l.natural != null ? `${esc(l.natural)} <span class="bonus">+${esc(l.bonus)}</span> / ${esc(l.energyMax)}` : '<span class="muted">okunamadı</span>'}</span></li>
-      </ul>`;
+      const list = chars();
+      if (!list.length) return empty('Yükleniyor…');
+      const id = list.some((c) => c.id === prefs.gearChar) ? prefs.gearChar : (activeId() || list[0].id);
+      const ch = list.find((c) => c.id === id) || list[0];
+      const g = ch.game || {};
+      const items = splitGear(g.gear || []).gear.slice().sort((a, b) => (a.slotPos || 99) - (b.slotPos || 99));
+      const chips = `<div class="seg" role="radiogroup">${list.map((c) => `<button type="button" role="radio" data-gearchar="${esc(c.id)}" aria-checked="${c.id === ch.id}">${esc(c.name)}</button>`).join('')}</div>`;
+      const sum = `<p class="gsum">${esc(g.class || '')}${g.level ? ` · Lv${esc(g.level)}` : ''} · iLvl <b>${g.itemLevel ? nf.format(g.itemLevel) : '—'}</b>${g.combatPower ? ` · CP <b>${nf.format(g.combatPower)}</b>` : ''}</p>`;
+      const rows = items.map((it) => `
+        <li title="${esc(it.slot || '')}">
+          ${safeImg(it.icon) ? `<img src="${esc(it.icon)}" alt="" loading="lazy" referrerpolicy="no-referrer">` : '<img alt="">'}
+          <span class="gn ${gradeCls(it.grade)}">${esc(it.name || it.slot || '?')}</span>
+          <span class="ge">${it.enchant ? `+${esc(it.enchant)}` : ''}${it.exceed ? ` <span class="gx">✦${esc(it.exceed)}</span>` : ''}</span>
+        </li>`).join('');
+      return chips + sum + (rows ? `<ul class="l gear">${rows}</ul>` : empty(ch.sample ? 'Örnek karakter: gear verisi yok.' : 'Gear verisi yok.'));
     },
   },
 
   todos: {
-    title: 'Yapılacaklar',
+    title: 'Yapılacaklar', hint: 'Ortak yapılacaklar listesi',
     render() {
       const open = (st.data?.todos || []).filter((t) => !t.done);
       const rows = open.slice(0, prefs.todoCount).map((t) => `<li><span>• ${esc(t.text)}</span><span class="muted">${esc(t.by || '')}</span></li>`).join('');
-      return head('Yapılacaklar', `${open.length} açık`) + (rows ? `<ul>${rows}</ul>` : empty('Açık madde yok.'));
+      return { right: `${open.length} açık`, html: rows ? `<ul class="l">${rows}</ul>` : empty('Açık madde yok.') };
+    },
+    settings() { return `<div class="row"><label>Gösterilen ${sel('todoCount', [3, 5, 6, 8, 10, 15], prefs.todoCount)}</label></div>`; },
+  },
+
+  dungeons: {
+    title: 'Zindanlar', hint: 'Aktif karakterin garanti sayaçları',
+    render() {
+      const ch = chars().find((c) => c.id === activeId()) || chars()[0];
+      if (!ch) return empty('Yükleniyor…');
+      const rows = (ch.dungeons || []).filter((d) => d.max > 0).map((d) => {
+        const left = d.max - d.count;
+        return `<div class="dg ${left <= 3 ? 'close' : ''}"><span>${esc(d.name)}</span><span><b>${esc(d.count)}</b>/${esc(d.max)} <span class="muted">· ${left} kaldı</span></span><span class="bar"><i style="width:${(d.count / d.max * 100).toFixed(1)}%"></i></span></div>`;
+      }).join('');
+      return { right: esc(ch.name), html: rows || empty('Sayaç yok.') };
+    },
+  },
+
+  lastbox: {
+    title: 'Son kutu', hint: 'Ekrandan son okunan kutu',
+    render() {
+      const l = ov?.lastRead;
+      if (!l) return empty('Henüz kutu okunmadı.');
+      const t = l.at ? new Date(l.at).toLocaleTimeString('tr-TR', { hour: '2-digit', minute: '2-digit' }) : '';
+      return { right: esc(t), html: `<ul class="l">
+        <li><span>${esc(l.dungeon)}</span><span><b>${esc(l.seen)}</b>/${esc(l.max)}</span></li>
+        <li><span class="muted">Kutu · maliyet</span><span>${esc(l.boxes)} · ${esc(l.cost)}</span></li>
+        <li><span class="muted">Enerji</span><span>${l.natural != null ? `${esc(l.natural)} <span class="bonus">+${esc(l.bonus)}</span> / ${esc(l.energyMax)}` : '<span class="muted">okunamadı</span>'}</span></li>
+      </ul>` };
     },
   },
 
   clock: {
-    title: 'Saat',
+    title: 'Saat', hint: 'Yerel ve sunucu saati',
     render({ now }) {
-      return head('Saat') + `<div class="clock"><span><span class="muted">Yerel</span> <b>${localFmt.format(now)}</b></span><span><span class="muted">Sunucu</span> <b>${serverFmt.format(now)}</b></span></div>`;
+      return `<div class="clock"><span><span class="muted">Yerel</span> <b>${localFmt.format(now)}</b></span><span><span class="muted">Sunucu</span> <b>${serverFmt.format(now)}</b></span></div>`;
+    },
+  },
+
+  status: {
+    title: 'Uygulama durumu', hint: 'İzleyici ve aktif karakter',
+    render() {
+      if (!online) return empty('Uygulama yanıt vermiyor.');
+      if (!ov.loggedIn) return empty('Giriş bekleniyor — ana pencerede giriş yap.');
+      const name = ov.chars?.find((c) => c.id === ov.charId)?.name || '?';
+      return { right: ov.queue ? `<span class="soon">${ov.queue} bekliyor</span>` : '', html: `
+        <div class="st-line"><span class="dot ${ov.paused ? 'warn' : 'on'}"></span><b>${ov.paused ? 'Duraklatıldı' : 'İzliyor'}</b><span class="muted">· ${esc(name)}</span></div>
+        <div class="seg" role="radiogroup" aria-label="Aktif karakter">
+          ${(ov.chars || []).map((c) => `<button type="button" role="radio" data-char="${esc(c.id)}" aria-checked="${c.id === ov.charId}">${esc(c.name)}</button>`).join('')}
+        </div>
+        <div class="seg"><button type="button" data-act="pause">${ov.paused ? '▶ Devam et' : '❚❚ Duraklat'}</button></div>` };
     },
   },
 };
+const ORDER = ['energy', 'bosses', 'gear', 'todos', 'dungeons', 'lastbox', 'clock', 'status'];
 
-// ---------------------------------------------------------------- Çizim
-const isGhost = () => !!bridge.s?.overlay?.ghost;
+// ---------------------------------------------------------------- Pencereyi içeriğe oturt
+let fitSent = 0, fitTimer = 0;
+function fitWindow() {
+  if (!online || prefs.fixed[W]) return;
+  clearTimeout(fitTimer);
+  fitTimer = setTimeout(() => {
+    const want = Math.ceil($('#root').getBoundingClientRect().height * dpr());
+    if (Math.abs(want - fitSent) <= 2 && Math.abs(window.innerHeight * dpr() - want) <= 4) return;
+    fitSent = want;
+    appApi.overlay({ action: 'fit', id: W, height: want }).catch(() => { fitSent = 0; });
+  }, 120);
+}
 
-function renderWidgets() {
-  const now = Date.now();
-  const c = { now, edit: !isGhost() };
-  document.body.classList.toggle('ghost', isGhost());
-  const html = prefs.order.filter((id) => prefs.on[id] && WIDGETS[id]).map((id) => {
-    let inner = '';
-    try { inner = WIDGETS[id].render(c); } catch (e) { inner = head(WIDGETS[id].title) + empty(`Hata: ${e.message}`); }
-    return inner ? `<section class="w" data-w="${id}">${inner}</section>` : '';
-  }).join('');
-  $('#ov-widgets').innerHTML = (st.err ? `<div class="ov-err">${esc(st.err)}</div>` : '')
-    + (html || '<section class="w"><p class="empty">Hiç bileşen açık değil. ⚙ ile seç.</p></section>');
-  $('#ov-mode').textContent = isGhost() ? '' : 'düzenleme modu';
-  $('#ov-hint').textContent = isGhost() ? 'Alt+Shift+T: düzenle · Alt+Shift+O: gizle' : 'Başlıktan taşı, kenardan boyutlandır · Alt+Shift+T: oyun modu';
-  $('#ov-settings').classList.toggle('on', st.settingsOpen);
-  $('#ov-panel').hidden = !st.settingsOpen || isGhost();
+// Taşıma / boyutlandırma: uygulama imleci izleyip pencereyi taşır (sol tuş bırakılınca biter).
+document.addEventListener('mousedown', (e) => {
+  if (e.button !== 0) return;
+  if (e.target.closest('.grip')) {
+    e.preventDefault();
+    prefs.fixed[W] = true; savePrefs(); document.body.classList.add('fixed');
+    appApi.overlay({ action: 'drag', id: W, mode: 'size' }).catch(() => {});
+    return;
+  }
+  const h = e.target.closest('[data-drag]');
+  if (h && !e.target.closest('button, input, select, a, label')) {
+    e.preventDefault();
+    appApi.overlay({ action: 'drag', id: W, mode: 'move' }).catch(() => {});
+  }
+});
+
+// ---------------------------------------------------------------- Menü (hub)
+let hubSig = '';
+function renderHub(force) {
+  const o = ov?.overlay || {};
+  const sig = JSON.stringify([online, o.openIds, o.edit, o.hover, o.hoverAny, o.allHidden, Math.round((o.alpha || 0) * 100), prefs.scale, st.err]);
+  if (!force && sig === hubSig) return;
+  hubSig = sig;
+  const open = new Set(o.openIds || []);
+  const alpha = Math.round((o.alpha || 0.7) * 100);
+  $('#root').innerHTML = `
+    <header class="hub-head" data-drag>
+      <img src="assets/img/logo.png" alt="" width="26" height="29">
+      <b><em>Karip</em> Traker</b><span class="muted">oyun içi menü</span>
+      <span class="sp"></span>
+      <button type="button" class="icon-btn" data-hub="close" title="Menüyü kapat (Alt+Shift+O)">✕</button>
+    </header>
+    ${!online ? '<div class="ov-err">Uygulama yanıt vermiyor.</div>' : ''}
+    ${st.err ? `<div class="ov-err">${esc(st.err)}</div>` : ''}
+    <div class="tiles">
+      ${ORDER.map((id) => `
+        <button type="button" class="tile" data-tile="${id}" aria-pressed="${open.has(id)}" title="${open.has(id) ? 'Kapat' : 'Ekrana ekle'}">
+          ${ICON[id]}<span>${esc(WIDGETS[id].title)}</span><small>${esc(WIDGETS[id].hint)}</small>
+        </button>`).join('')}
+    </div>
+    <section class="hub-sec">
+      <h3>Görünüm</h3>
+      <div class="range"><span>Oyun modunda görünürlük</span><input type="range" min="20" max="100" step="5" data-alpha value="${alpha}"><output>%${alpha}</output></div>
+      <div class="range"><span>Yazı boyutu</span><input type="range" min="80" max="150" step="5" data-scale value="${prefs.scale}"><output>%${prefs.scale}</output></div>
+      <label class="chk"><input type="checkbox" data-opt="hover" ${o.hover ? 'checked' : ''}> İmleç bileşenin üstüne gelince kullanım moduna geç</label>
+      <label class="chk"><input type="checkbox" data-opt="hoverAny" ${o.hoverAny ? 'checked' : ''}> Oyun imleci algılanmazsa da çalışsın <span class="muted">(imleç gizliyken de)</span></label>
+      <div class="row">
+        <button type="button" class="btn ${o.edit ? 'on' : ''}" data-hub="edit" title="Bütün bileşenler tam görünür ve tıklanabilir olur (Alt+Shift+T)">${o.edit ? '✓ Düzenleme modu açık' : 'Düzenleme modu'}</button>
+        <button type="button" class="btn" data-hub="hideAll" title="Alt+Shift+H">Hepsini gizle</button>
+        <button type="button" class="btn" data-hub="reset">Konumları sıfırla</button>
+      </div>
+    </section>
+    <div class="keys">
+      <span><kbd>Alt+Shift+O</kbd> menü</span><span><kbd>Alt+Shift+H</kbd> hepsini gizle/göster</span><span><kbd>Alt+Shift+T</kbd> düzenleme modu</span>
+      <span>Bileşeni başlığından taşı, sağ alt köşesinden boyutlandır.</span>
+    </div>
+    <span class="grip" title="Boyutlandır"></span>`;
   fitWindow();
 }
 
-// Pencereyi içeriğin yüksekliğine oturt (oyun modunda boş alan oyunu kapatmasın).
-let fitSent = 0, fitTimer = 0;
-function fitWindow() {
-  if (!prefs.autoHeight || !bridge.online) return;
-  clearTimeout(fitTimer);
-  fitTimer = setTimeout(() => {
-    const chrome = Math.max(0, window.outerHeight - window.innerHeight);
-    const want = Math.ceil((document.body.scrollHeight + chrome) * devicePixelRatio);
-    if (Math.abs(want - fitSent) <= 3 && Math.abs(window.outerHeight * devicePixelRatio - want) <= 6) return;
-    fitSent = want;
-    appApi.overlay({ action: 'fit', height: want }).catch(() => { fitSent = 0; });
-  }, 150);
+function hubEvents() {
+  const root = $('#root');
+  root.addEventListener('click', async (e) => {
+    const t = e.target.closest('[data-tile]');
+    const h = e.target.closest('[data-hub]');
+    try {
+      if (t) {
+        const id = t.dataset.tile, on = t.getAttribute('aria-pressed') !== 'true';
+        t.setAttribute('aria-pressed', String(on));
+        await appApi.overlay({ action: 'widget', id, title: WIDGETS[id].title, on });
+      } else if (h) {
+        const a = h.dataset.hub;
+        if (a === 'close') await appApi.overlay({ action: 'hideHub' });
+        else if (a === 'reset') { if (confirm('Bütün bileşenler varsayılan yerlerine dönsün mü?')) await appApi.overlay({ action: 'reset' }); }
+        else await appApi.overlay({ action: a });
+      } else return;
+      st.err = '';
+    } catch (err) { st.err = err.message; }
+    await poll(); renderHub(true);
+  });
+  root.addEventListener('input', (e) => {
+    const t = e.target;
+    if (t.dataset.scale !== undefined) { prefs.scale = Number(t.value); t.nextElementSibling.textContent = `%${t.value}`; savePrefs(); fitWindow(); }
+    if (t.dataset.alpha !== undefined) t.nextElementSibling.textContent = `%${t.value}`;
+  });
+  root.addEventListener('change', async (e) => {
+    const t = e.target;
+    try {
+      if (t.dataset.alpha !== undefined) await appApi.overlay({ action: 'alpha', alpha: Number(t.value) / 100 });
+      else if (t.dataset.opt) await appApi.overlay({ action: t.dataset.opt, on: t.checked });
+      else return;
+    } catch (err) { st.err = err.message; }
+    await poll(); renderHub(true);
+  });
 }
 
-function renderSettings() {
-  const ids = prefs.order;
-  const list = ids.map((id, i) => `
-    <li>
-      <label><input type="checkbox" data-on="${id}" ${prefs.on[id] ? 'checked' : ''}> ${esc(WIDGETS[id].title)}</label>
-      <button type="button" class="mv" data-mv="${id}" data-d="-1" ${i === 0 ? 'disabled' : ''} title="Yukarı">↑</button>
-      <button type="button" class="mv" data-mv="${id}" data-d="1" ${i === ids.length - 1 ? 'disabled' : ''} title="Aşağı">↓</button>
-    </li>`).join('');
-  const chs = chars().map((ch) => `<label><input type="checkbox" data-ech="${esc(ch.id)}" ${!prefs.energyChars || prefs.energyChars.includes(ch.id) ? 'checked' : ''}> ${esc(ch.name)}</label>`).join('');
-  const opt = (name, vals, cur) => `<select data-num="${name}">${vals.map((v) => `<option ${v === cur ? 'selected' : ''}>${v}</option>`).join('')}</select>`;
-  $('#ov-panel').innerHTML = `
-    <h3>Bileşenler</h3>
-    <ul class="ov-list">${list}</ul>
-    <h3>Görünüm</h3>
-    <div class="ov-row"><span>Oyun modunda görünürlük</span><input type="range" min="20" max="100" step="5" data-range="alpha" value="${prefs.alpha}"><output>%${prefs.alpha}</output></div>
-    <label><input type="checkbox" data-bool="autoHeight" ${prefs.autoHeight ? 'checked' : ''}> Pencere yüksekliği içeriğe otursun</label>
-    <div class="ov-row"><span>Yazı boyutu</span><input type="range" min="80" max="150" step="5" data-range="scale" value="${prefs.scale}"><output>%${prefs.scale}</output></div>
-    <h3>Enerji: gösterilen karakterler</h3>
-    <div class="ov-chips">${chs || '<span class="muted">Veri yükleniyor…</span>'}</div>
-    <h3>Diğer</h3>
-    <div class="ov-chips">
-      <label>Boss sayısı ${opt('bossCount', [3, 4, 5, 6, 8, 10], prefs.bossCount)}</label>
-      <label>Turuncu (dk kala) ${opt('bossLead', [1, 3, 5, 10, 15], prefs.bossLead)}</label>
-      <label>Yapılacak sayısı ${opt('todoCount', [3, 5, 8, 10], prefs.todoCount)}</label>
+// ---------------------------------------------------------------- Bileşen penceresi
+const def = WIDGETS[W];
+let setOpen = false;
+function widgetShell() {
+  $('#root').innerHTML = `
+    <div class="wtop">
+      <h2 class="w-head">${ICON[W] || ''}<span>${esc(def.title)}</span><span class="r" id="w-right"></span></h2>
+      <div class="wbar" data-drag title="Taşımak için sürükle">
+        <span class="t">${ICON[W] || ''}${esc(def.title)}</span>
+        <button type="button" class="icon-btn" data-w="set" title="Ayarlar">⚙</button>
+        <button type="button" class="icon-btn" data-w="close" title="Ekrandan kaldır">✕</button>
+      </div>
     </div>
-    <div class="ov-chips"><button type="button" class="ov-btn" data-reset>Varsayılana dön</button></div>`;
+    <div class="wset" id="wset" hidden></div>
+    <div class="wbody" id="wbody"></div>
+    <span class="grip" title="Boyutlandır"></span>`;
+  document.body.classList.toggle('fixed', !!prefs.fixed[W]);
 }
-
-// ---------------------------------------------------------------- Olaylar
-$('#ov-settings').addEventListener('click', () => {
-  st.settingsOpen = !st.settingsOpen;
-  if (st.settingsOpen) renderSettings();
-  renderWidgets();
-});
-$('#ov-ghost').addEventListener('click', () => appApi.overlay({ action: 'ghost' }).then(tickApp).catch((e) => { st.err = e.message; renderWidgets(); }));
-
-$('#ov-panel').addEventListener('change', (e) => {
-  const t = e.target;
-  if (t.dataset.on) prefs.on[t.dataset.on] = t.checked;
-  else if (t.dataset.ech) {
-    const all = chars().map((c) => c.id);
-    const cur = new Set(prefs.energyChars || all);
-    if (t.checked) cur.add(t.dataset.ech); else cur.delete(t.dataset.ech);
-    prefs.energyChars = all.every((id) => cur.has(id)) ? null : all.filter((id) => cur.has(id));
-  } else if (t.dataset.num) prefs[t.dataset.num] = Number(t.value);
-  else if (t.dataset.bool) prefs[t.dataset.bool] = t.checked;
-  else return;
-  savePrefs(); renderWidgets();
-});
-$('#ov-panel').addEventListener('input', (e) => {
-  const t = e.target;
-  if (!t.dataset.range) return;
-  prefs[t.dataset.range] = Number(t.value);
-  t.nextElementSibling.textContent = `%${t.value}`;
-  savePrefs(); renderWidgets();
-});
-$('#ov-panel').addEventListener('click', (e) => {
-  const mv = e.target.closest('[data-mv]');
-  if (mv) {
-    const i = prefs.order.indexOf(mv.dataset.mv), j = i + Number(mv.dataset.d);
-    if (j < 0 || j >= prefs.order.length) return;
-    [prefs.order[i], prefs.order[j]] = [prefs.order[j], prefs.order[i]];
-    savePrefs(); renderSettings(); renderWidgets();
-    return;
-  }
-  if (e.target.closest('[data-reset]') && confirm('Oyun içi panel ayarları varsayılana dönsün mü?')) {
-    prefs = structuredClone(DEFAULTS);
-    savePrefs(); renderSettings(); renderWidgets();
-  }
-});
-$('#ov-widgets').addEventListener('click', async (e) => {
-  if (isGhost()) return;
-  const b = e.target.closest('[data-char], [data-act]');
-  if (!b) return;
-  try {
-    if (b.dataset.char) await appApi.char(b.dataset.char);
-    else if (b.dataset.act === 'pause') await appApi.pause(!bridge.s?.paused);
-  } catch (err) { st.err = err.message; }
-  await tickApp();
-});
+function renderSettings() {
+  $('#wset').innerHTML = (def.settings ? def.settings() : '') + `
+    <label class="chk"><input type="checkbox" data-auto ${prefs.fixed[W] ? '' : 'checked'}> Yükseklik içeriğe otursun</label>`;
+}
+function renderWidget() {
+  let out;
+  try { out = def.render({ now: Date.now() }); } catch (e) { out = empty(`Hata: ${e.message}`); }
+  if (typeof out === 'string') out = { html: out };
+  $('#wbody').innerHTML = (st.err ? `<div class="ov-err">${esc(st.err)}</div>` : '') + out.html;
+  $('#w-right').innerHTML = out.right || '';
+  const o = ov?.overlay || {};
+  const active = !!o.wins?.[W]?.active;
+  document.body.classList.toggle('edit', !!o.edit);
+  document.body.classList.toggle('active', active);
+  document.body.classList.toggle('ghost', !active && !o.edit);
+  fitWindow();
+}
+function widgetEvents() {
+  const root = $('#root');
+  root.addEventListener('click', async (e) => {
+    const b = e.target.closest('[data-w], [data-char], [data-act], [data-gearchar]');
+    if (!b) return;
+    try {
+      if (b.dataset.w === 'set') { setOpen = !setOpen; if (setOpen) renderSettings(); $('#wset').hidden = !setOpen; fitWindow(); return; }
+      if (b.dataset.w === 'close') { await appApi.overlay({ action: 'widget', id: W, title: def.title, on: false }); return; }
+      if (b.dataset.gearchar) { prefs.gearChar = b.dataset.gearchar; savePrefs(); renderWidget(); return; }
+      if (b.dataset.char) await appApi.char(b.dataset.char);
+      else if (b.dataset.act === 'pause') await appApi.pause(!ov?.paused);
+      st.err = '';
+    } catch (err) { st.err = err.message; }
+    await poll(); renderWidget();
+  });
+  root.addEventListener('change', (e) => {
+    const t = e.target;
+    if (t.dataset.ech) {
+      const all = chars().map((c) => c.id);
+      const cur = new Set(prefs.energyChars || all);
+      if (t.checked) cur.add(t.dataset.ech); else cur.delete(t.dataset.ech);
+      prefs.energyChars = all.every((id) => cur.has(id)) ? null : all.filter((id) => cur.has(id));
+    } else if (t.dataset.num) prefs[t.dataset.num] = Number(t.value);
+    else if (t.dataset.auto !== undefined) {
+      if (t.checked) delete prefs.fixed[W]; else prefs.fixed[W] = true;
+      document.body.classList.toggle('fixed', !!prefs.fixed[W]);
+      fitSent = 0;
+    } else return;
+    savePrefs(); renderWidget();
+  });
+}
 
 // ---------------------------------------------------------------- Veri
+async function poll() {
+  try {
+    const r = await fetch('/api/ov', { cache: 'no-store' });
+    if (!r.ok) throw new Error(`HTTP ${r.status}`);
+    ov = await r.json(); online = true;
+  } catch { online = false; }
+  const u = ov?.user || getSession()?.user || null;
+  if (u !== st.user) { st.user = u; loadPrefs(); renderAll(true); }
+}
+
 async function ensureSession() {
   if (getSession()?.token) return getSession();
   try {
@@ -298,45 +411,42 @@ async function ensureSession() {
   } catch { /* oturum yok */ }
   return null;
 }
-
 async function loadData() {
+  if (W === 'hub' || W === 'clock' || W === 'lastbox' || W === 'status') return; // bunlar repo verisine ihtiyaç duymaz
   try {
-    const s = await ensureSession();
-    if (s) {
+    if (await ensureSession()) {
       const f = await gh.getFileIfChanged(st.etag);
-      if (!f) return; // değişmedi
+      if (!f) return; // değişmedi (GitHub 304 → istek limitinden düşmez)
       st.data = JSON.parse(f.text); st.etag = f.etag;
     } else {
       const r = await fetch(`data/data.json?t=${Date.now()}`, { cache: 'no-store' });
       st.data = await r.json();
     }
     st.err = '';
-    if (st.settingsOpen) renderSettings();
   } catch (e) {
     st.err = `Veri alınamadı: ${e.message}`;
   }
-  renderWidgets();
+  renderAll(true);
 }
 
-let lastUser;
-async function tickApp() {
-  await refreshBridge();
-  const u = bridge.s?.user || getSession()?.user || null;
-  if (u !== lastUser) { lastUser = u; st.user = u; loadPrefs(); sentAlpha = null; applyPrefs(); if (st.settingsOpen) renderSettings(); }
-  else applyPrefs();
-  renderWidgets();
+function renderAll(force) {
+  if (W === 'hub') renderHub(force);
+  else if (def) { renderWidget(); if (force && setOpen) renderSettings(); }
 }
 
 // ---------------------------------------------------------------- Başlat
 (async () => {
   if (!LOCAL) {
-    document.body.innerHTML = '<p class="ov-err">Oyun içi panel yalnızca masaüstü uygulamasından açılır (saat yanındaki simge → Oyun içi panel, ya da Alt+Shift+O).</p>';
+    $('#root').innerHTML = '<p class="ov-err">Oyun içi arayüz yalnızca masaüstü uygulamasından açılır (Alt+Shift+O).</p>';
     return;
   }
+  if (W !== 'hub' && !def) { $('#root').innerHTML = '<p class="ov-err">Bilinmeyen bileşen.</p>'; return; }
   st.user = getSession()?.user || null;
   loadPrefs();
-  await tickApp();
+  if (W === 'hub') hubEvents(); else { widgetShell(); widgetEvents(); }
+  await poll();
+  renderAll(true);
   await loadData();
-  setInterval(tickApp, 1000);                                   // uygulama durumu + geri sayımlar
-  setInterval(() => { if (!document.hidden) loadData(); }, 20_000); // veri (değişmediyse GitHub 304 döner, limitten düşmez)
+  setInterval(async () => { await poll(); renderAll(false); fitWindow(); }, W === 'hub' ? 1000 : 700);   // durum + geri sayımlar (+ pencere boyu doğru mu)
+  setInterval(() => { if (!document.hidden) loadData(); }, 20_000);
 })();

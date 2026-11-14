@@ -472,7 +472,7 @@ function Load-Session {
   } catch { $script:SessionError = $_.Exception.Message; return $null }
 }
 function Load-Settings { if (Test-Path $SettingsFile) { try { return Get-Content $SettingsFile -Raw | ConvertFrom-Json } catch {} }; return [pscustomobject]@{ charId = $null } }
-function Save-Settings($o) { $o | ConvertTo-Json | Set-Content $SettingsFile -Encoding UTF8 }
+function Save-Settings($o) { $o | ConvertTo-Json -Depth 6 | Set-Content $SettingsFile -Encoding UTF8 }
 
 # ---------------------------------------------------------------- GitHub
 [Net.ServicePointManager]::SecurityProtocol = [Net.SecurityProtocolType]::Tls12
@@ -530,7 +530,7 @@ if ($env:A2_SEND_TEST) {
 # Arayüz artık sitenin kendisi: uygulama siteyi http://127.0.0.1:47321 adresinden sunar ve Edge'in uygulama
 # penceresinde açar. Site "Uygulama" bölümünde bu durumu /api/status ile okur; komutlar /api/* ile gelir.
 # Saat yanındaki simge: paneli aç, duraklat, ekranı oku, çıkış.
-$Version = '2.1'
+$Version = '2.2'
 $Port = 47321
 $AppUrl = "http://127.0.0.1:$Port/"
 $AppOrigin = "http://127.0.0.1:$Port"
@@ -756,12 +756,16 @@ if ($env:A2_LOOP_TEST) {   # geliştirici testi: kare dizisiyle döngüyü sına
   return
 }
 
-# ---------------------------------------------------------------- Oyun içi panel (overlay)
-# overlay.html, Edge'in uygulama penceresinde açılır; bu pencere başlığından bulunur ve Windows API ile
-# her zaman üstte tutulur. Oyun modunda yarı saydam yapılır ve tıklamalar içinden geçer (WS_EX_TRANSPARENT);
-# düzenleme modunda tam görünür ve tıklanabilir. Oyuna hiçbir şey enjekte edilmez, oyunun belleği okunmaz:
-# sadece ayrı bir pencere üstte durur.
-# Kısayollar (her yerde çalışır): Alt+Shift+O aç / gizle · Alt+Shift+T oyun modu ↔ düzenleme.
+# ---------------------------------------------------------------- Oyun içi arayüz (overlay)
+# Alt+Shift+O ile oyunda bir menü (hub) açılır: Enerji, Bosslar, Gear, Yapılacaklar… düğmeleri.
+# Her düğme kendi küçük penceresini (bileşen) açar; bileşen ekranın istenen yerine taşınır, konumu hatırlanır.
+# Bileşenler normalde "oyun modunda": yarı saydam ve tıklamalar içinden oyuna geçer.
+# Oyunda imleç açıkken bir bileşenin üstüne gelinince o bileşen kullanım moduna geçer: tam görünür, tıklanabilir;
+# imleç ayrılınca oyun moduna döner. Pencereler odak almaz (WS_EX_NOACTIVATE) → klavye hep oyunda kalır.
+# Pencereler Edge'in uygulama pencereleridir; Edge'in başlık çubuğu pencere bölgesiyle kırpılır, taşıma ve
+# boyutlandırma sayfanın kendi başlığından yapılır (bkz. assets/js/overlay.js). Oyuna hiçbir şey enjekte edilmez,
+# oyunun belleği okunmaz: sadece ayrı pencereler üstte durur.
+# Kısayollar: Alt+Shift+O menü · Alt+Shift+H hepsini gizle/göster · Alt+Shift+T düzenleme modu (hepsi kullanılabilir).
 Add-Type -ReferencedAssemblies System.Windows.Forms -TypeDefinition @'
 using System;
 using System.Text;
@@ -772,6 +776,7 @@ using System.Windows.Forms;
 public static class A2Win {
   delegate bool EnumProc(IntPtr h, IntPtr l);
   [DllImport("user32.dll")] static extern bool EnumWindows(EnumProc f, IntPtr l);
+  [DllImport("user32.dll")] static extern bool EnumChildWindows(IntPtr p, EnumProc f, IntPtr l);
   [DllImport("user32.dll", CharSet = CharSet.Unicode)] static extern int GetWindowText(IntPtr h, StringBuilder s, int n);
   [DllImport("user32.dll", CharSet = CharSet.Unicode)] static extern int GetClassName(IntPtr h, StringBuilder s, int n);
   [DllImport("user32.dll")] public static extern bool IsWindow(IntPtr h);
@@ -784,29 +789,35 @@ public static class A2Win {
   [DllImport("user32.dll")] static extern bool IsIconic(IntPtr h);
   [DllImport("user32.dll")] static extern bool GetWindowRect(IntPtr h, out RECT r);
   [DllImport("user32.dll")] static extern bool PostMessage(IntPtr h, uint m, IntPtr w, IntPtr l);
-  [DllImport("user32.dll")] static extern bool SetForegroundWindow(IntPtr h);
-  struct RECT { public int L, T, R, B; }
-  const int GWL_EXSTYLE = -20, WS_EX_LAYERED = 0x80000, WS_EX_TRANSPARENT = 0x20;
+  [DllImport("user32.dll")] static extern int SetWindowRgn(IntPtr h, IntPtr rgn, bool redraw);
+  [DllImport("user32.dll")] static extern int GetWindowRgnBox(IntPtr h, out RECT r);
+  [DllImport("gdi32.dll")] static extern IntPtr CreateRectRgn(int a, int b, int c, int d);
+  [DllImport("user32.dll")] static extern bool GetCursorInfo(ref CURSORINFO ci);
+  [DllImport("user32.dll")] static extern short GetAsyncKeyState(int vk);
+  [StructLayout(LayoutKind.Sequential)] struct RECT { public int L, T, R, B; }
+  [StructLayout(LayoutKind.Sequential)] struct POINT { public int X, Y; }
+  [StructLayout(LayoutKind.Sequential)] struct CURSORINFO { public int cbSize; public int flags; public IntPtr hCursor; public POINT pt; }
+  const int GWL_EXSTYLE = -20, WS_EX_LAYERED = 0x80000, WS_EX_TRANSPARENT = 0x20, WS_EX_NOACTIVATE = 0x08000000;
   static readonly IntPtr TOPMOST = new IntPtr(-1);
 
-  // Başlığı `prefix` ile başlayan görünür Edge/Chromium penceresi
-  public static IntPtr Find(string prefix) {
+  // Başlığı tam olarak `title` olan görünür Edge/Chromium penceresi
+  public static IntPtr FindExact(string title) {
     IntPtr found = IntPtr.Zero;
     var sb = new StringBuilder(512); var cb = new StringBuilder(256);
     EnumWindows((h, l) => {
       if (!IsWindowVisible(h)) return true;
       sb.Length = 0; GetWindowText(h, sb, 512);
-      if (!sb.ToString().StartsWith(prefix)) return true;
+      if (sb.ToString() != title) return true;
       cb.Length = 0; GetClassName(h, cb, 256);
       if (cb.ToString() != "Chrome_WidgetWin_1") return true;
       found = h; return false;
     }, IntPtr.Zero);
     return found;
   }
-  // Üstte tut + saydamlık + tıklama geçirgenliği
+  // Üstte tut + saydamlık + tıklama geçirgenliği; odak almasın (klavye oyunda kalsın)
   public static void Apply(IntPtr h, byte alpha, bool clickThrough) {
     int ex = GetWindowLong(h, GWL_EXSTYLE);
-    int n = ex | WS_EX_LAYERED;
+    int n = ex | WS_EX_LAYERED | WS_EX_NOACTIVATE;
     if (clickThrough) n |= WS_EX_TRANSPARENT; else n &= ~WS_EX_TRANSPARENT;
     if (n != ex) SetWindowLong(h, GWL_EXSTYLE, n);
     SetLayeredWindowAttributes(h, 0, alpha, 2);
@@ -817,11 +828,40 @@ public static class A2Win {
     if (IsIconic(h) || !GetWindowRect(h, out r)) return null;
     return new int[] { r.L, r.T, r.R - r.L, r.B - r.T };
   }
+  // Sayfa içeriğinin (Chrome_RenderWidgetHostHWND) pencere kenarlarına uzaklığı: sol, üst, sağ, alt
+  public static int[] Inset(IntPtr h) {
+    RECT w; if (!GetWindowRect(h, out w)) return null;
+    int[] res = null; var cb = new StringBuilder(256);
+    EnumChildWindows(h, (c, l) => {
+      cb.Length = 0; GetClassName(c, cb, 256);
+      if (cb.ToString() != "Chrome_RenderWidgetHostHWND") return true;
+      RECT r; if (!GetWindowRect(c, out r)) return true;
+      res = new int[] { r.L - w.L, r.T - w.T, w.R - r.R, w.B - r.B };
+      return false;
+    }, IntPtr.Zero);
+    return res;
+  }
+  // Pencereyi sadece sayfa içeriği görünecek şekilde kırp (Edge'in başlık çubuğu gizlenir)
+  public static void Clip(IntPtr h, int l, int t, int r, int b) {
+    RECT w; if (!GetWindowRect(h, out w)) return;
+    SetWindowRgn(h, CreateRectRgn(l, t, (w.R - w.L) - r, (w.B - w.T) - b), true);
+  }
+  public static bool ClipOk(IntPtr h, int l, int t, int r, int b) {
+    RECT w, g; if (!GetWindowRect(h, out w)) return true;
+    if (GetWindowRgnBox(h, out g) == 0) return false;
+    return g.L == l && g.T == t && g.R == (w.R - w.L) - r && g.B == (w.B - w.T) - b;
+  }
   public static void Place(IntPtr h, int x, int y, int w, int hh) { SetWindowPos(h, TOPMOST, x, y, w, hh, 0x10); }
   public static void Hide(IntPtr h) { ShowWindow(h, 0); }
   public static void Show(IntPtr h) { ShowWindow(h, 4); }          // SW_SHOWNOACTIVATE
-  public static void Front(IntPtr h) { SetForegroundWindow(h); }
   public static void Close(IntPtr h) { PostMessage(h, 0x10, IntPtr.Zero, IntPtr.Zero); }
+  // İmleç: x, y, görünür mü (oyun fareyle bakış modunda imleci gizler)
+  public static int[] Cursor() {
+    var ci = new CURSORINFO(); ci.cbSize = Marshal.SizeOf(typeof(CURSORINFO));
+    if (!GetCursorInfo(ref ci)) return null;
+    return new int[] { ci.pt.X, ci.pt.Y, ci.flags };
+  }
+  public static bool LButton() { return (GetAsyncKeyState(0x01) & 0x8000) != 0; }
 }
 
 // Genel kısayol tuşları: basılanlar kuyruğa girer, zamanlayıcı okur.
@@ -840,96 +880,211 @@ public class A2Hot : NativeWindow {
 }
 '@
 
-$OvTitle = 'Karip Traker · Oyun içi'      # overlay.html <title> ile aynı olmalı
-$OvUrl = "${AppUrl}overlay.html"
-$script:Ov = @{ h = [IntPtr]::Zero; seekUntil = [datetime]::MinValue; placeAt = [datetime]::MinValue; target = $null; ghost = $false; hidden = $false; applyAt = [datetime]::MinValue; rect = ''; hotkeys = $null }
+$OvPrefix = 'Karip Traker · '          # pencere başlıkları: "Karip Traker · Menü", "Karip Traker · Enerji"… (overlay.js ile aynı)
+$script:OvW = @{}                     # id → pencere durumu
+$script:OvEdit = $false               # düzenleme modu: hepsi kullanılabilir
+$script:OvAllHidden = $false
+$script:OvHotkeys = $null
+$script:OvRestored = $false
+$script:OvQuitting = $false
+$script:Drag = $null
+$Min = [datetime]::MinValue
 
 function Edge-Path {
   @("${env:ProgramFiles(x86)}\Microsoft\Edge\Application\msedge.exe", "$env:ProgramFiles\Microsoft\Edge\Application\msedge.exe",
     "$env:LOCALAPPDATA\Microsoft\Edge\Application\msedge.exe") | Where-Object { $_ -and (Test-Path $_) } | Select-Object -First 1
 }
-function Ov-IsOpen { $script:Ov.h -ne [IntPtr]::Zero -and [A2Win]::IsWindow($script:Ov.h) }
+function Ov-Set([string]$name, $value) { $script:Settings | Add-Member -NotePropertyName $name -NotePropertyValue $value -Force; Save-Settings $script:Settings }
 function Ov-Alpha {
   $a = 0.7; if ($script:Settings.overlayAlpha) { $a = [double]$script:Settings.overlayAlpha }
   [byte][Math]::Round(255 * [Math]::Min(1.0, [Math]::Max(0.2, $a)))
 }
-function Ov-Rect {
-  # Not: PowerShell değişken adları büyük/küçük harfe duyarsız ($W ile $w aynı) → ayrı adlar.
+function Ov-HoverOn { $script:Settings.overlayHover -ne $false }
+function Ov-OpenList { @($script:Settings.overlayOpen | Where-Object { $_ -and $_.id }) }
+function Ov-Remember([string]$id, [string]$title, [bool]$on) {
+  $l = @(Ov-OpenList | Where-Object { $_.id -ne $id })
+  if ($on) { $l += [pscustomobject]@{ id = $id; title = $title } }
+  Ov-Set 'overlayOpen' @($l)
+}
+function Ov-SaveRect([string]$id, [int[]]$r) {
+  $o = $script:Settings.overlayRects; if (-not $o) { $o = [pscustomobject]@{} }
+  $o | Add-Member -NotePropertyName $id -NotePropertyValue @($r) -Force
+  Ov-Set 'overlayRects' $o
+}
+# Not: PowerShell değişken adları büyük/küçük harfe duyarsız ($W ile $w aynı) → ayrı adlar.
+function Ov-DefaultRect([string]$id) {
   $scrW = [A2Img]::ScreenW(); $scrH = [A2Img]::ScreenH()
-  $r = @($script:Settings.overlayRect)
-  if ($r.Count -eq 4 -and $r[2] -ge 200 -and $r[3] -ge 150 -and $r[0] -ge -50 -and $r[1] -ge -50 -and ($r[0] + 80) -le $scrW -and ($r[1] + 60) -le $scrH) { return [int[]]$r }
-  $winW = [int]([Math]::Max(330, $scrW * 0.19)); $winH = [int]([Math]::Max(480, $scrH * 0.55))
-  return [int[]]@(($scrW - $winW - 24), [int]($scrH * 0.30), $winW, $winH)   # sağda, mini haritanın altında
+  if ($id -eq 'hub') { $winW = 620; $winH = 560; return [int[]]@([int](($scrW - $winW) / 2), [int](($scrH - $winH) / 2.4), $winW, $winH) }
+  $winW = [int][Math]::Max(330, $scrW * 0.18); $winH = 260
+  # Diğer bileşenlerin kapladığı alanlar (açık olanların gerçek yeri, açılmakta olanların hedefi)
+  $taken = @(foreach ($x in @($script:OvW.Values)) {
+    if ($x.id -eq 'hub' -or $x.id -eq $id) { continue }
+    $r = $(if ((Ov-Alive $x) -and -not $x.h0) { [A2Win]::Rect($x.h) } else { $x.target }); if ($r -and $r[0] -gt -10000) { , $r }
+  })
+  $x0 = $scrW - $winW - 16; $y0 = [int]($scrH * 0.30)   # sağda, mini haritanın altında
+  for ($col = 0; $col -lt 4; $col++) {
+    $x = $x0 - $col * ($winW + 8); $y = $y0
+    for ($k = 0; $k -lt 20; $k++) {
+      $hit = $taken | Where-Object { $_[0] -lt ($x + $winW) -and ($_[0] + $_[2]) -gt $x -and $_[1] -lt ($y + 150) -and ($_[1] + $_[3]) -gt $y } | Select-Object -First 1
+      if (-not $hit) { break }
+      $y = $hit[1] + $hit[3] - 30   # alttaki (gizli) Edge kenarlarını hesaba kat: görünür boşluk ~8 px
+    }
+    if (($y + 150) -le $scrH) { return [int[]]@($x, $y, $winW, $winH) }
+  }
+  return [int[]]@($x0, $y0, $winW, $winH)
 }
-function Ov-Apply {
-  if (-not (Ov-IsOpen) -or $script:Ov.hidden) { return }
-  if ($script:Ov.ghost) { [A2Win]::Apply($script:Ov.h, (Ov-Alpha), $true) } else { [A2Win]::Apply($script:Ov.h, [byte]255, $false) }
-  $script:Ov.applyAt = Get-Date
+function Ov-RectFor([string]$id) {
+  $scrW = [A2Img]::ScreenW(); $scrH = [A2Img]::ScreenH()
+  $r = @($script:Settings.overlayRects.$id)
+  if ($r.Count -eq 4 -and $r[2] -ge 180 -and $r[3] -ge 80 -and $r[0] -ge -50 -and $r[1] -ge -50 -and ($r[0] + 80) -le $scrW -and ($r[1] + 40) -le $scrH) { return [int[]]$r }
+  return (Ov-DefaultRect $id)
 }
-function Open-Overlay {
-  if (Ov-IsOpen) { if ($script:Ov.hidden) { $script:Ov.hidden = $false; [A2Win]::Show($script:Ov.h); Ov-Apply }; return }
+function Ov-Alive($w) { $w -and $w.h -ne [IntPtr]::Zero -and [A2Win]::IsWindow($w.h) }
+function Ov-Interactive($w) { $w.id -eq 'hub' -or $script:OvEdit -or $w.hover -or ($script:Drag -and $script:Drag.w -eq $w) }
+function Ov-Apply($w, [bool]$force) {
+  if (-not (Ov-Alive $w) -or $w.hidden) { return }
+  $mode = $(if (Ov-Interactive $w) { 'i' } else { 'g' })
+  if (-not $force -and $mode -eq $w.mode) { return }
+  if ($mode -eq 'i') { [A2Win]::Apply($w.h, [byte]255, $false) } else { [A2Win]::Apply($w.h, (Ov-Alpha), $true) }
+  $w.mode = $mode; $w.lastApply = Get-Date
+}
+function Ov-Clip($w, [bool]$force) {
+  if (-not $w.inset) { $i = [A2Win]::Inset($w.h); if ($i -and $i[1] -gt 0 -and $i[1] -lt 80) { $w.inset = $i } else { return } }
+  $i = $w.inset
+  if ($force -or -not [A2Win]::ClipOk($w.h, $i[0], $i[1], $i[2], $i[3])) { [A2Win]::Clip($w.h, $i[0], $i[1], $i[2], $i[3]) }
+}
+function Ov-Launch([string]$id, [string]$title) {
+  $w = $script:OvW[$id]
+  if (Ov-Alive $w) { Ov-ShowWin $w; return }
+  if ($w -and (Get-Date) -lt $w.seekUntil) { return }   # zaten açılıyor
+  # Uygulama yeniden başlatıldıysa pencere hâlâ açık olabilir → yenisini açma, onu sahiplen.
+  $ex = [A2Win]::FindExact($OvPrefix + $title)
+  if ($ex -ne [IntPtr]::Zero) {
+    $r = [A2Win]::Rect($ex)
+    $script:OvW[$id] = @{ id = $id; title = $title; h = $ex; seekUntil = $Min; placeUntil = $Min; target = $r
+      hidden = $false; inset = $null; hover = $false; outAt = $Min; lastApply = $Min; mode = ''; rect = ($r -join ',') }
+    Ov-Apply $script:OvW[$id] $true; Ov-Clip $script:OvW[$id] $true
+    return
+  }
   $edge = Edge-Path
-  if (-not $edge) { Log '✖ Oyun içi panel için Microsoft Edge bulunamadı.'; return }
-  $r = Ov-Rect
-  Start-Process $edge -ArgumentList "--app=$OvUrl", "--window-size=$($r[2]),$($r[3])", "--window-position=$($r[0]),$($r[1])"
-  $script:Ov.seekUntil = (Get-Date).AddSeconds(20); $script:Ov.ghost = $false; $script:Ov.hidden = $false
+  if (-not $edge) { Log '✖ Oyun içi arayüz için Microsoft Edge bulunamadı.'; return }
+  $r = Ov-RectFor $id
+  $script:OvW[$id] = @{ id = $id; title = $title; h = [IntPtr]::Zero; seekUntil = (Get-Date).AddSeconds(20); placeUntil = $Min; target = $r
+    hidden = $false; inset = $null; hover = $false; outAt = $Min; lastApply = $Min; mode = ''; rect = '' }
+  Start-Process $edge -ArgumentList "--app=${AppUrl}overlay.html?w=$id", "--window-size=$($r[2]),$($r[3])", "--window-position=$($r[0]),$($r[1])"
 }
-function Toggle-Overlay {
-  if (-not (Ov-IsOpen)) { Open-Overlay; return }
-  if ($script:Ov.hidden) { $script:Ov.hidden = $false; [A2Win]::Show($script:Ov.h); Ov-Apply }
-  else { $script:Ov.hidden = $true; [A2Win]::Hide($script:Ov.h) }
+function Ov-ShowWin($w) {
+  if (-not (Ov-Alive $w)) { return }
+  if ($w.hidden) { $w.hidden = $false; [A2Win]::Show($w.h) }
+  $w.mode = ''; Ov-Apply $w $true
+}
+function Ov-HideWin($w) { if ((Ov-Alive $w) -and -not $w.hidden) { $w.hidden = $true; $w.hover = $false; [A2Win]::Hide($w.h) } }
+function Ov-CloseWin([string]$id) { $w = $script:OvW[$id]; if (Ov-Alive $w) { [A2Win]::Close($w.h) }; $script:OvW.Remove($id) }
+
+function Toggle-Hub {
+  $w = $script:OvW['hub']
+  if (-not (Ov-Alive $w)) {
+    Ov-Launch 'hub' 'Menü'
+    if (-not $script:OvRestored) { $script:OvRestored = $true; foreach ($o in Ov-OpenList) { Ov-Launch ([string]$o.id) ([string]$o.title) } }
+  } elseif ($w.hidden) { $script:OvAllHidden = $false; foreach ($x in @($script:OvW.Values)) { Ov-ShowWin $x } }
+  else { Ov-HideWin $w }
   Update-Tray
 }
-function Set-Ghost([bool]$on) {
-  if (-not (Ov-IsOpen)) { Open-Overlay; return }
-  $script:Ov.ghost = $on
-  if ($script:Ov.hidden) { $script:Ov.hidden = $false; [A2Win]::Show($script:Ov.h) }
-  Ov-Apply
-  if (-not $on) { [A2Win]::Front($script:Ov.h) }
+function Toggle-Edit { $script:OvEdit = -not $script:OvEdit; foreach ($x in @($script:OvW.Values)) { Ov-Apply $x $true }; Update-Tray }
+function Toggle-AllHidden {
+  $script:OvAllHidden = -not $script:OvAllHidden
+  foreach ($x in @($script:OvW.Values)) { if ($script:OvAllHidden) { Ov-HideWin $x } elseif ($x.id -ne 'hub') { Ov-ShowWin $x } }
   Update-Tray
 }
 function Overlay-Object {
-  [ordered]@{ open = [bool](Ov-IsOpen); ghost = [bool]$script:Ov.ghost; hidden = [bool]$script:Ov.hidden
-    alpha = [double]((Ov-Alpha) / 255); hotkeys = $script:Ov.hotkeys }
+  $wins = [ordered]@{}
+  foreach ($x in @($script:OvW.Values)) { $wins[$x.id] = [ordered]@{ open = [bool](Ov-Alive $x); hidden = [bool]$x.hidden; active = [bool](Ov-Interactive $x) } }
+  [ordered]@{ edit = [bool]$script:OvEdit; allHidden = [bool]$script:OvAllHidden; alpha = [double]((Ov-Alpha) / 255)
+    hover = [bool](Ov-HoverOn); hoverAny = [bool]$script:Settings.overlayHoverAny; hotkeys = $script:OvHotkeys
+    wins = $wins; openIds = @(Ov-OpenList | ForEach-Object { [string]$_.id }) }
 }
+
+# Her 100 ms: kısayollar, yeni açılan pencereleri bulma, imleç takibi, konum kaydı.
 function Overlay-Tick {
   for ($k = [A2Hot]::Next(); $k -ne 0; $k = [A2Hot]::Next()) {
-    try { if ($k -eq 1) { Toggle-Overlay } elseif ($k -eq 2) { Set-Ghost (-not $script:Ov.ghost) } } catch { Log "✖ Oyun içi panel: $($_.Exception.Message)" }
+    try { switch ($k) { 1 { Toggle-Hub } 2 { Toggle-Edit } 3 { Toggle-AllHidden } } } catch { Log "✖ Oyun içi arayüz: $($_.Exception.Message)" }
   }
-  if ($script:Ov.h -eq [IntPtr]::Zero) {
-    if ((Get-Date) -lt $script:Ov.seekUntil) {
-      $h = [A2Win]::Find($OvTitle)
+  if ($script:OvW.Count -eq 0) { return }
+  $now = Get-Date
+  $cur = [A2Win]::Cursor(); $lb = [A2Win]::LButton()
+  $curOk = $cur -and ((($cur[2] -band 1) -ne 0) -or [bool]$script:Settings.overlayHoverAny)   # imleç görünür mü
+  $hoverOn = Ov-HoverOn
+  foreach ($w in @($script:OvW.Values)) {
+    if ($w.h -eq [IntPtr]::Zero) {
+      if ($now -ge $w.seekUntil) { $script:OvW.Remove($w.id); Log "✖ Oyun içi pencere açılamadı: $($w.title)"; continue }
+      $h = [A2Win]::FindExact($OvPrefix + $w.title)
       if ($h -ne [IntPtr]::Zero) {
-        $script:Ov.h = $h; $script:Ov.seekUntil = [datetime]::MinValue
-        $r = Ov-Rect; [A2Win]::Place($h, $r[0], $r[1], $r[2], $r[3]); $script:Ov.rect = ($r -join ',')
-        $script:Ov.placeAt = (Get-Date).AddSeconds(6); $script:Ov.target = $r
-        Ov-Apply; Update-Tray
-        Log 'Oyun içi panel açıldı (Alt+Shift+T: oyun modu ↔ düzenleme, Alt+Shift+O: gizle/göster).'
+        $w.h = $h; $w.seekUntil = $Min; $t = $w.target
+        [A2Win]::Place($h, $t[0], $t[1], $t[2], $t[3]); $w.placeUntil = $now.AddSeconds(5)
+        Ov-Apply $w $true; Update-Tray
+      }
+      continue
+    }
+    if (-not [A2Win]::IsWindow($w.h)) {
+      $script:OvW.Remove($w.id)
+      if ($w.id -ne 'hub' -and -not $script:OvQuitting) { Ov-Remember $w.id $w.title $false }
+      Update-Tray; continue
+    }
+    if ($w.hidden) { continue }
+    # Edge açılıştan birkaç saniye sonra pencereyi kendi hatırladığı yere taşıyabiliyor → bu sürede konumu koru.
+    if ($w.placeUntil -ne $Min) {
+      $r = [A2Win]::Rect($w.h); $t = $w.target
+      if ($r -and ($r[0] -ne $t[0] -or $r[1] -ne $t[1] -or $r[2] -ne $t[2])) { [A2Win]::Place($w.h, $t[0], $t[1], $t[2], $r[3]) }
+      if ($now -lt $w.placeUntil) { continue }
+      $w.placeUntil = $Min; $w.inset = $null
+      Ov-Clip $w $true
+      $r = [A2Win]::Rect($w.h); if ($r) { $w.rect = ($r -join ',') }
+    }
+    # İmleç bileşenin üstünde mi? (menü her zaman kullanılabilir)
+    if ($w.id -ne 'hub') {
+      $inside = $false
+      if ($hoverOn -and $curOk) {
+        $r = [A2Win]::Rect($w.h); $i = $(if ($w.inset) { $w.inset } else { @(0, 0, 0, 0) })
+        if ($r) { $inside = $cur[0] -ge ($r[0] + $i[0]) -and $cur[0] -lt ($r[0] + $r[2] - $i[2]) -and $cur[1] -ge ($r[1] + $i[1]) -and $cur[1] -lt ($r[1] + $r[3] - $i[3]) }
+      }
+      if ($inside) { $w.hover = $true; $w.outAt = $Min }
+      elseif ($w.hover -and -not ($lb -and $curOk) -and -not $script:Drag) {
+        if ($w.outAt -eq $Min) { $w.outAt = $now.AddMilliseconds(350) }
+        elseif ($now -ge $w.outAt) { $w.hover = $false; $w.outAt = $Min }
       }
     }
+    Ov-Apply $w $false
+    if (($now - $w.lastApply).TotalSeconds -ge 2) { Ov-Apply $w $true; Ov-Clip $w $false }   # Edge stilleri sıfırlarsa geri getir
+    if (-not $script:Drag -and $w.mode -eq 'i') {
+      $r = [A2Win]::Rect($w.h)
+      if ($r -and $r[0] -gt -10000 -and ($r -join ',') -ne $w.rect) { $w.rect = ($r -join ','); Ov-SaveRect $w.id $r }
+    }
+  }
+}
+
+# Taşıma / boyutlandırma: sayfa başlığına (ya da köşeye) basılınca başlar, sol tuş bırakılınca biter.
+function Drag-Start($w, [string]$mode) {
+  $c = [A2Win]::Cursor(); $r = [A2Win]::Rect($w.h)
+  if (-not $c -or -not $r) { return }
+  $script:Drag = @{ w = $w; mode = $mode; cx = $c[0]; cy = $c[1]; r = $r }
+  Ov-Apply $w $true
+  $dragTimer.Start()
+}
+function Drag-Tick {
+  $d = $script:Drag
+  if (-not $d) { $dragTimer.Stop(); return }
+  $w = $d.w
+  if (-not (Ov-Alive $w) -or -not [A2Win]::LButton()) {
+    $script:Drag = $null; $dragTimer.Stop()
+    if (Ov-Alive $w) { Ov-Clip $w $true; $r = [A2Win]::Rect($w.h); if ($r) { $w.rect = ($r -join ','); Ov-SaveRect $w.id $r } }
     return
   }
-  if (-not [A2Win]::IsWindow($script:Ov.h)) {
-    $script:Ov.h = [IntPtr]::Zero; $script:Ov.ghost = $false; $script:Ov.hidden = $false
-    Update-Tray; return
-  }
-  # Edge açılıştan birkaç saniye sonra pencereyi kendi hatırladığı yere taşıyabiliyor → bu sürede konumu koru.
-  if ($script:Ov.placeAt -ne [datetime]::MinValue) {
-    $t = $script:Ov.target; $r = [A2Win]::Rect($script:Ov.h)
-    if ($r -and ($r[0] -ne $t[0] -or $r[1] -ne $t[1] -or $r[2] -ne $t[2])) { [A2Win]::Place($script:Ov.h, $t[0], $t[1], $t[2], $r[3]) }
-    if ((Get-Date) -lt $script:Ov.placeAt) { return }
-    $script:Ov.placeAt = [datetime]::MinValue
-    $r = [A2Win]::Rect($script:Ov.h); if ($r) { $script:Ov.rect = ($r -join ',') }
-  }
-  if ($script:Ov.hidden -or ((Get-Date) - $script:Ov.applyAt).TotalSeconds -lt 2) { return }
-  Ov-Apply   # Edge stilleri sıfırlarsa geri getir; tam ekran pencerelerin üstünde kalsın
-  if (-not $script:Ov.ghost) {
-    $r = [A2Win]::Rect($script:Ov.h)
-    if ($r -and $r[0] -gt -10000 -and ($r -join ',') -ne $script:Ov.rect) {
-      $script:Ov.rect = ($r -join ',')
-      $script:Settings | Add-Member -NotePropertyName overlayRect -NotePropertyValue @($r) -Force
-      Save-Settings $script:Settings
-    }
+  $c = [A2Win]::Cursor(); if (-not $c) { return }
+  $dx = $c[0] - $d.cx; $dy = $c[1] - $d.cy; $r = $d.r
+  if ($d.mode -eq 'move') { [A2Win]::Place($w.h, $r[0] + $dx, $r[1] + $dy, $r[2], $r[3]) }
+  else {
+    [A2Win]::Place($w.h, $r[0], $r[1], [Math]::Max(220, $r[2] + $dx), [Math]::Max(120, $r[3] + $dy))
+    if ($w.inset) { $i = $w.inset; [A2Win]::Clip($w.h, $i[0], $i[1], $i[2], $i[3]) }
   }
 }
 
@@ -1054,30 +1209,63 @@ function Handle-Request($ctx) {
       }
       return Send-Json $ctx 200 @{ ok = $true }
     }
+    'GET /api/ov' {
+      # Oyun içi pencereler sık sorar → hafif durum (kayıt listesi yok)
+      return Send-Json $ctx 200 ([ordered]@{
+        loggedIn = [bool]$script:Session; user = $(if ($script:Session) { $script:Session.user } else { $null })
+        paused = [bool]$script:Paused; charId = (Char-Id); queue = $script:Queue.Count
+        chars = @($script:Chars | ForEach-Object { [ordered]@{ id = $_.id; name = $_.name } })
+        lastRead = $script:LastRead; overlay = (Overlay-Object) })
+    }
     'POST /api/overlay' {
       $b = Read-Body $ctx
+      $id = [string]$b.id
+      if ($id -and $id -notmatch '^[a-z]{2,16}$') { return Send-Json $ctx 400 @{ error = 'Geçersiz bileşen' } }
       switch ([string]$b.action) {
-        'toggle' { Toggle-Overlay }
-        'open' { Open-Overlay }
-        'ghost' { Set-Ghost (-not $script:Ov.ghost) }
-        'close' { if (Ov-IsOpen) { [A2Win]::Close($script:Ov.h) } }
+        'hub' { Toggle-Hub }
+        'hideHub' { Ov-HideWin $script:OvW['hub'] }
+        'edit' { Toggle-Edit }
+        'hideAll' { Toggle-AllHidden }
+        'widget' {
+          $title = [string]$b.title
+          if (-not $id -or $id -eq 'hub' -or $title -notmatch '^[\p{L}\p{N} ]{1,30}$') { return Send-Json $ctx 400 @{ error = 'Geçersiz bileşen' } }
+          if ($b.on) { $script:OvAllHidden = $false; Ov-Launch $id $title } else { Ov-CloseWin $id }
+          Ov-Remember $id $title ([bool]$b.on)
+        }
+        'drag' {
+          $w = $script:OvW[$id]
+          if ((Ov-Alive $w) -and @('move', 'size') -contains [string]$b.mode) { Drag-Start $w ([string]$b.mode) }
+        }
         'fit' {
-          # Sayfa içeriğinin yüksekliğine otur (piksel). Konum ve genişlik aynı kalır.
-          if (Ov-IsOpen) {
-            $r = [A2Win]::Rect($script:Ov.h)
-            if ($script:Ov.placeAt -ne [datetime]::MinValue) { $t = $script:Ov.target; $r = @($t[0], $t[1], $t[2], $(if ($r) { $r[3] } else { $t[3] })) }
-            $hh = [int][Math]::Min([A2Img]::ScreenH() * 0.92, [Math]::Max(120, [double]$b.height))
-            if ($r -and [Math]::Abs($r[3] - $hh) -gt 3) { [A2Win]::Place($script:Ov.h, $r[0], $r[1], $r[2], $hh) }
+          # Pencereyi sayfa içeriğinin yüksekliğine oturt (piksel). Konum ve genişlik aynı kalır.
+          $w = $script:OvW[$id]
+          if ((Ov-Alive $w) -and -not $script:Drag) {
+            $i = $(if ($w.inset) { $w.inset } else { @(7, 30, 7, 7) })
+            $hh = [int][Math]::Min([A2Img]::ScreenH() * 0.92, [Math]::Max(80, [double]$b.height) + $i[1] + $i[3])
+            if ($w.placeUntil -ne $Min) { $w.target = @($w.target[0], $w.target[1], $w.target[2], $hh) }
+            $r = [A2Win]::Rect($w.h)
+            if ($r -and [Math]::Abs($r[3] - $hh) -gt 2) { [A2Win]::Place($w.h, $r[0], $r[1], $r[2], $hh); if ($w.inset) { Ov-Clip $w $true } }
           }
         }
         'alpha' {
           $a = [double]$b.alpha
           if (-not ($a -ge 0.2 -and $a -le 1)) { return Send-Json $ctx 400 @{ error = 'Geçersiz saydamlık' } }
-          if ([double]$script:Settings.overlayAlpha -ne $a) {
-            $script:Settings | Add-Member -NotePropertyName overlayAlpha -NotePropertyValue $a -Force
-            Save-Settings $script:Settings
+          if ([double]$script:Settings.overlayAlpha -ne $a) { Ov-Set 'overlayAlpha' $a; foreach ($x in @($script:OvW.Values)) { Ov-Apply $x $true } }
+        }
+        'hover' { Ov-Set 'overlayHover' ([bool]$b.on) }
+        'hoverAny' { Ov-Set 'overlayHoverAny' ([bool]$b.on) }
+        'reset' {
+          $script:Settings.PSObject.Properties.Remove('overlayRects'); Save-Settings $script:Settings
+          # Hepsini önce ekran dışına al, sonra sırayla boş yere diz (birbirinin altına)
+          $live = @($script:OvW.Values | Where-Object { Ov-Alive $_ })
+          foreach ($x in $live) { if ($x.id -ne 'hub') { $x.target = @(-30000, -30000, 10, 10); $x.h0 = $x.h } }
+          foreach ($x in $live) {
+            $r = Ov-DefaultRect $x.id
+            $cur = [A2Win]::Rect($x.h); $hh = $(if ($cur -and $x.id -ne 'hub') { $cur[3] } else { $r[3] })
+            [A2Win]::Place($x.h, $r[0], $r[1], $r[2], $hh); $x.target = @($r[0], $r[1], $r[2], $hh); $x.rect = ''
+            if ($x.inset) { Ov-Clip $x $true }
+            $x.Remove('h0')
           }
-          if ($script:Ov.ghost) { Ov-Apply }
         }
         default { return Send-Json $ctx 400 @{ error = 'Bilinmeyen işlem' } }
       }
@@ -1118,8 +1306,9 @@ $miOpen = $menu.Items.Add('Paneli aç'); $miOpen.Font = New-Object Drawing.Font(
 $miPause = $menu.Items.Add('Duraklat')
 $miTest = $menu.Items.Add('Ekranı şimdi oku')
 [void]$menu.Items.Add('-')
-$miOv = $menu.Items.Add('Oyun içi panel   (Alt+Shift+O)')
-$miGhost = $menu.Items.Add('Oyun modu   (Alt+Shift+T)')
+$miOv = $menu.Items.Add('Oyun içi menü   (Alt+Shift+O)')
+$miHideAll = $menu.Items.Add('Hepsini gizle   (Alt+Shift+H)')
+$miGhost = $menu.Items.Add('Düzenleme modu   (Alt+Shift+T)')
 [void]$menu.Items.Add('-')
 $miQuit = $menu.Items.Add('Çıkış')
 $tray.ContextMenuStrip = $menu
@@ -1131,16 +1320,18 @@ function Update-Tray {
   $tray.Text = $t
   $miPause.Text = $(if ($script:Paused) { 'Devam et' } else { 'Duraklat' })
   $miPause.Enabled = [bool]$script:Session
-  $open = Ov-IsOpen
-  $miOv.Text = $(if (-not $open) { 'Oyun içi paneli aç   (Alt+Shift+O)' } elseif ($script:Ov.hidden) { 'Oyun içi paneli göster   (Alt+Shift+O)' } else { 'Oyun içi paneli gizle   (Alt+Shift+O)' })
-  $miGhost.Text = $(if ($script:Ov.ghost) { 'Düzenleme modu   (Alt+Shift+T)' } else { 'Oyun modu   (Alt+Shift+T)' })
-  $miGhost.Enabled = $open
+  $any = $script:OvW.Count -gt 0
+  $miHideAll.Text = $(if ($script:OvAllHidden) { 'Hepsini göster   (Alt+Shift+H)' } else { 'Hepsini gizle   (Alt+Shift+H)' })
+  $miHideAll.Enabled = $any
+  $miGhost.Checked = [bool]$script:OvEdit
+  $miGhost.Enabled = $any
 }
 
 function Quit-App {
-  $timer.Stop(); $httpTimer.Stop(); $ovTimer.Stop()
+  $timer.Stop(); $httpTimer.Stop(); $ovTimer.Stop(); $dragTimer.Stop()
   try { $hot.Clear() } catch {}
-  if (Ov-IsOpen) { [A2Win]::Close($script:Ov.h) }
+  $script:OvQuitting = $true
+  foreach ($x in @($script:OvW.Values)) { if (Ov-Alive $x) { [A2Win]::Close($x.h) } }
   if ($script:Pending) { Commit-Pending }
   $tray.Visible = $false; $tray.Dispose()
   try { $Http.Stop() } catch {}
@@ -1158,16 +1349,18 @@ $miPause.add_Click({
 })
 $miTest.add_Click({ try { [void](Do-Test) } catch { Log "✖ Test: $($_.Exception.Message)" } })
 $miQuit.add_Click({ Quit-App })
-$miOv.add_Click({ Toggle-Overlay })
-$miGhost.add_Click({ Set-Ghost (-not $script:Ov.ghost) })
+$miOv.add_Click({ Toggle-Hub })
+$miHideAll.add_Click({ Toggle-AllHidden })
+$miGhost.add_Click({ Toggle-Edit })
 
 # ---------------------------------------------------------------- Başlat
 $timer = New-Object Windows.Forms.Timer; $timer.Interval = 150; $timer.Add_Tick({ Invoke-Tick })
 $httpTimer = New-Object Windows.Forms.Timer; $httpTimer.Interval = 40; $httpTimer.Add_Tick({ Pump-Http })
-$ovTimer = New-Object Windows.Forms.Timer; $ovTimer.Interval = 200; $ovTimer.Add_Tick({ Overlay-Tick })
+$ovTimer = New-Object Windows.Forms.Timer; $ovTimer.Interval = 100; $ovTimer.Add_Tick({ Overlay-Tick })
+$dragTimer = New-Object Windows.Forms.Timer; $dragTimer.Interval = 15; $dragTimer.Add_Tick({ Drag-Tick })
 $hot = New-Object A2Hot
-$script:Ov.hotkeys = [bool]($hot.Add(1, 5, 0x4F) -and $hot.Add(2, 5, 0x54))   # Alt+Shift (5) + O / T
-if (-not $script:Ov.hotkeys) { Log '… Alt+Shift+O / Alt+Shift+T kısayolları başka bir program tarafından kullanılıyor; oyun içi paneli simgeden aç.' }
+$script:OvHotkeys = [bool](($hot.Add(1, 5, 0x4F)) -and ($hot.Add(2, 5, 0x54)) -and ($hot.Add(3, 5, 0x48)))   # Alt+Shift (5) + O / T / H
+if (-not $script:OvHotkeys) { Log '… Alt+Shift+O / T / H kısayollarından biri başka bir program tarafından kullanılıyor; oyun içi menüyü simgeden aç.' }
 
 Log "Uygulama başladı (v$Version). Ekran: $([A2Img]::ScreenW())x$([A2Img]::ScreenH()) · panel: $AppUrl$(if ($SiteDir) { ' (yerel dosyalar)' } else { '' })"
 $s = Load-Session
@@ -1175,5 +1368,8 @@ if (-not $s -and $script:SessionError) { Log "Kayıtlı oturum okunamadı, panel
 if ($s) { Set-Session $s $false $false }
 Update-Tray
 $timer.Start(); $httpTimer.Start(); $ovTimer.Start()
+# Önceki çalışmadan açık kalan oyun içi pencereler varsa onları sahiplen (yeniden başlatmada kopya açılmasın).
+if ([A2Win]::FindExact($OvPrefix + 'Menü') -ne [IntPtr]::Zero) { Ov-Launch 'hub' 'Menü' }
+foreach ($o in Ov-OpenList) { if ([A2Win]::FindExact($OvPrefix + $o.title) -ne [IntPtr]::Zero) { $script:OvRestored = $true; Ov-Launch ([string]$o.id) ([string]$o.title) } }
 if (-not $env:A2_NO_PANEL) { Open-Panel }
 [Windows.Forms.Application]::Run()
