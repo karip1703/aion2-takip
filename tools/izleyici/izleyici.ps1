@@ -553,7 +553,7 @@ if ($env:A2_SEND_TEST) {
 # Arayüz artık sitenin kendisi: uygulama siteyi http://127.0.0.1:47321 adresinden sunar ve Edge'in uygulama
 # penceresinde açar. Site "Uygulama" bölümünde bu durumu /api/status ile okur; komutlar /api/* ile gelir.
 # Saat yanındaki simge: paneli aç, duraklat, ekranı oku, çıkış.
-$Version = '2.2'
+$Version = '2.3'
 $Port = 47321
 $AppUrl = "http://127.0.0.1:$Port/"
 $AppOrigin = "http://127.0.0.1:$Port"
@@ -647,12 +647,15 @@ function Commit-Pending {
   $p = $script:Pending; $script:Pending = $null
   if (-not $p) { return }
   $r = $p.read; $cid = $p.charId
-  $op = $(if ($r.kind -eq 'trans') { @{ type = 'energySpend'; charId = $cid; name = $r.dungeon; boxes = $r.boxes; cost = $r.cost } }
-    else { @{ type = 'dungeonOpen'; charId = $cid; name = $r.dungeon; boxes = $r.boxes; cost = $r.cost; max = $r.max; seen = $r.seen } })
+  # Paketten enerji okunuyorsa harcamayı oyunun kendi değeri getirir → burada enerji düşülmez (iki kez düşmesin).
+  $netE = Net-Active
+  $cost = $(if ($netE) { 0 } else { $r.cost })
+  $op = $(if ($r.kind -eq 'trans') { if ($netE) { $null } else { @{ type = 'energySpend'; charId = $cid; name = $r.dungeon; boxes = $r.boxes; cost = $cost } } }
+    else { @{ type = 'dungeonOpen'; charId = $cid; name = $r.dungeon; boxes = $r.boxes; cost = $cost; max = $r.max; seen = $r.seen } })
   $script:LastSent = @{ before = $r; charId = $cid; charName = $p.charName }
   $script:Synced = $null   # harcama sonrası değerler değişti → bir sonraki açılışta mutlaka yeniden eşitle (Cancel düzeltmesi)
   Set-Status ("Kaydedildi: {0} {1} kutu, -{2} enerji" -f $r.dungeon, $r.boxes, $r.cost)
-  Send-Ops @($op) ("{0}: {1} {2} kutu, -{3} enerji" -f $p.charName, $r.dungeon, $r.boxes, $r.cost)
+  if ($op) { Send-Ops @($op) ("{0}: {1} {2} kutu{3}" -f $p.charName, $r.dungeon, $r.boxes, $(if ($netE) { ' (enerji oyundan)' } else { ", -$($r.cost) enerji" })) }
 }
 
 function On-Read($r) {
@@ -671,7 +674,7 @@ function On-Read($r) {
   if ($script:Synced -ne $key) {
     $ops = @()
     if (-not $trans) { $ops += @{ type = 'dungeonSet'; charId = (Char-Id); name = $r.dungeon; count = $r.seen; max = $r.max } }
-    if ($null -ne $r.natural) { $ops += @{ type = 'energySync'; charId = (Char-Id); natural = $r.natural; bonus = $r.bonus; max = $r.energyMax } }
+    if ($null -ne $r.natural -and -not (Net-Active)) { $ops += @{ type = 'energySync'; charId = (Char-Id); natural = $r.natural; bonus = $r.bonus; max = $r.energyMax } }
     if ($ops.Count) {
       Send-Ops $ops ("{0}: {1}{2}{3}" -f (Char-Name), $r.dungeon, $(if ($trans) { '' } else { " $($r.seen)/$($r.max)" }), $(if ($null -ne $r.natural) { ", enerji $($r.natural)(+$($r.bonus))" } else { '' }))
     }
@@ -790,6 +793,102 @@ if ($env:A2_LOOP_TEST) {   # geliştirici testi: kare dizisiyle döngüyü sına
   }
   $cube.Dispose(); $none.Dispose(); $other.Dispose()
   return
+}
+
+# ---------------------------------------------------------------- Ağ okuma (oyun trafiği, Npcap)
+# ag.cs: AION2.exe'nin kendi bağlantılarına gelen trafiğin bir kopyasını okur (Questlog vb. sayaçların yöntemi).
+# Oyuna, dosyalarına ya da belleğine dokunmaz, paket göndermez. Npcap kurulu değilse sessizce kapalı kalır.
+# Buradan gelenler:
+#   * oyundaki karakter → aktif karakter kendiliğinden seçilir
+#   * Odyle enerjisi (doğal + ek) → kesin değerle siteye eşitlenir (ekrandan okumaya gerek kalmaz)
+#   * saha bossu öldü → Bosslar sayacı kendiliğinden işaretlenir
+#   * hasar → oyun içi "Hasar" bileşeni (DPS)
+$script:NetOk = $false
+$script:NetEnergyAt = [datetime]::MinValue      # paketten en son enerji okunan an
+$script:NetEnergyPending = $null                # @{ n; b; due } — kısa bekleme (art arda değişimleri tek kayıtta topla)
+$script:NetSelfName = ''
+$AgFile = Join-Path $PSScriptRoot 'ag.cs'
+$NetBosses = @(
+  @(2100003, 'verteron-neikel-of-the-east', 'Neikel of the East'), @(2100040, 'verteron-rotten-kutar', 'Rotten Kutar'),
+  @(2100050, 'verteron-kernon-of-the-west', 'Kernon of the West'), @(2100076, 'verteron-kusan-the-mad-gladiator', 'Kusan the Mad Gladiator'),
+  @(2100077, 'verteron-ritualist-garshim', 'Ritualist Garshim'), @(2100079, 'verteron-bodyguard-teegant', 'Bodyguard Teegant'),
+  @(2100141, 'verteron-blooming-korin', 'Blooming Korin'), @(2100177, 'verteron-furious-saursus', 'Furious Saursus'),
+  @(2100178, 'verteron-bloodfang-pnyn', 'Bloodfang Pnyn'), @(2100582, 'verteron-heretic-layla', 'Heretic Layla'),
+  @(2100617, 'verteron-black-tentacle-lawa', 'Black Tentacle Lawa'), @(2100661, 'verteron-phantasm-kasia', 'Phantasm Kasia'),
+  @(2100708, 'verteron-centurion-demiros', 'Centurion Demiros'), @(2100718, 'verteron-divine-ansas', 'Divine Ansas'),
+  @(2100876, 'verteron-harvest-manager-moshav', 'Harvest Manager Moshav'), @(2100877, 'verteron-sentinel-k-nash', "Sentinel K'nash"),
+  @(2100988, 'verteron-scholar-aulla', 'Scholar Aulla'), @(2100989, 'verteron-forest-warrior-aullamu', 'Forest Warrior Aullamu'),
+  @(2100991, 'verteron-chaser-taulo', 'Chaser Taulo'), @(2101016, 'verteron-researcher-setram', 'Researcher Setram'),
+  @(2101074, 'verteron-eternal-gartua', 'Eternal Gartua'), @(2101120, 'verteron-silent-dartan', 'Silent Dartan'),
+  @(2101122, 'verteron-soul-ruler-kashapa', 'Soul Ruler Kashapa'), @(2101131, 'verteron-high-commander-lagta', 'High Commander Lagta'),
+  @(2400017, 'altgard-melted-danar', 'Melted Danar'), @(2400074, 'altgard-black-warrior-aed', 'Black Warrior Aed'),
+  @(2400140, 'altgard-faithful-rajit', 'Faithful Rajit'), @(2400141, 'altgard-berserker-vargor', 'Berserker Vargor'),
+  @(2400212, 'altgard-predator-garsan', 'Predator Garsan'), @(2400223, 'altgard-blood-warrior-lannar', 'Blood Warrior Lannar'),
+  @(2400274, 'altgard-deceiver-trid', 'Deceiver Trid'), @(2400335, 'altgard-blue-wave-kelpina', 'Blue Wave Kelpina'),
+  @(2400353, 'altgard-high-overseer-nutah', 'High Overseer Nutah'), @(2400358, 'altgard-advisor-resana', 'Advisor Resana'),
+  @(2400419, 'altgard-special-operations-leader-linx', 'Special Operations Leader Linx'), @(2400424, 'altgard-desecrator-newbold', 'Desecrator Newbold'),
+  @(2400425, 'altgard-specter-archon-axios', 'Specter Archon Axios'), @(2400474, 'altgard-addicted-hardirun', 'Addicted Hardirun'),
+  @(2400504, 'altgard-executioner-barthien', 'Executioner Barthien'), @(2400593, 'altgard-drakan-battalion-weapon-guruta', 'Drakan Battalion Weapon Guruta'),
+  @(2400607, 'altgard-veteran-shujakan', 'Veteran Shujakan'), @(2400608, 'altgard-visionary-karuka', 'Visionary Karuka'),
+  @(2400659, 'altgard-dark-shadow-vishwada', 'Dark Shadow Vishwada'), @(2400709, 'altgard-sharp-shylak', 'Sharp Shylak'),
+  @(2400800, 'altgard-immortal-gartua', 'Immortal Gartua'), @(2400853, 'altgard-high-commander-lagta', 'High Commander Lagta'),
+  @(2400854, 'altgard-soul-ruler-kashapa', 'Soul Ruler Kashapa'), @(2400855, 'altgard-silent-dartan', 'Silent Dartan')
+)
+function Net-Init {
+  if (-not (Test-Path $AgFile)) { Log "… Ağ okuma kapalı: ag.cs bulunamadı (izleyici.ps1 ile aynı klasörde olmalı)."; return }
+  if ($script:Settings.netEnabled -eq $false) { Log '… Ağ okuma ayarlardan kapatılmış.'; return }
+  try {
+    if (-not ('A2Net' -as [type])) { Add-Type -Path $AgFile }
+    foreach ($b in $NetBosses) { [A2Net]::AddBoss($b[0], $b[1], $b[2]) }
+    [A2Net]::Start()
+    $script:NetOk = $true
+  } catch { Log "✖ Ağ okuma başlatılamadı: $($_.Exception.Message)" }
+}
+function Net-Active { $script:NetOk -and ((Get-Date) - $script:NetEnergyAt).TotalMinutes -lt 30 }   # paketten enerji geliyor mu?
+
+function Net-Tick {
+  if (-not $script:NetOk) { return }
+  $e = $null
+  for ($k = 0; $k -lt 50 -and [A2Net]::Events.TryDequeue([ref]$e); $k++) {
+    try {
+      $p = $e -split '\|'
+      switch ($p[0]) {
+        'self' {
+          $name = $p[2]; $script:NetSelfName = $name
+          $c = $script:Chars | Where-Object { $_.name -and $_.name.ToLowerInvariant() -eq $name.ToLowerInvariant() } | Select-Object -First 1
+          if ($c) {
+            if ((Char-Id) -ne $c.id) { Set-Char $c.id; Log "Oyundaki karakter: $name → aktif karakter kendiliğinden seçildi." }
+          } else { Log "… Oyundaki karakter ($name) sitedeki karakterler arasında yok; aktif karakter değiştirilmedi." }
+        }
+        'energy' {
+          $script:NetEnergyAt = Get-Date
+          $script:NetEnergyPending = @{ n = [int]$p[1]; b = [int]$p[2]; due = (Get-Date).AddSeconds(3) }
+        }
+        'bossKill' {
+          $id = $p[2]; $at = [DateTimeOffset]::FromUnixTimeMilliseconds([int64]$p[3]).UtcDateTime.ToString('o')
+          $bn = ($NetBosses | Where-Object { $_[1] -eq $id } | Select-Object -First 1)[2]
+          Log "Boss öldü (oyundan okundu): $bn"
+          if ($script:Session) { Send-Ops @(@{ type = 'bossKill'; id = $id; at = $at }) "Boss öldü: $bn (oyundan)" }
+        }
+        'bossSpawn' {
+          $bn = ($NetBosses | Where-Object { $_[1] -eq $p[2] } | Select-Object -First 1)[2]
+          Log "Boss yakında: $bn görüldü."
+        }
+      }
+    } catch { Log "✖ Ağ olayı: $($_.Exception.Message)" }
+  }
+  # Enerji: değer 3 sn sabit kalınca, oyundaki karakter aktif karakterse kaydet
+  $q = $script:NetEnergyPending
+  if ($q -and (Get-Date) -ge $q.due) {
+    $script:NetEnergyPending = $null
+    $cid = Char-Id
+    $match = (-not $script:NetSelfName) -or ((Char-Name).ToLowerInvariant() -eq $script:NetSelfName.ToLowerInvariant())
+    $key = "$cid|$($q.n)|$($q.b)"
+    if ($script:Session -and $cid -and $match -and $script:NetEnergySent -ne $key) {
+      $script:NetEnergySent = $key
+      Send-Ops @(@{ type = 'energySync'; charId = $cid; natural = $q.n; bonus = $q.b }) ("{0}: enerji {1}(+{2}) (oyundan)" -f (Char-Name), $q.n, $q.b)
+    }
+  }
 }
 
 # ---------------------------------------------------------------- Oyun içi arayüz (overlay)
@@ -1176,6 +1275,9 @@ function Status-Object {
     lastRead = $script:LastRead
     overlay = (Overlay-Object)
     log = @($script:LogLines | Select-Object -First 60)
+    net = $(if ($script:NetOk) { [ordered]@{ on = $true; status = [A2Net]::Status; error = [A2Net]::Error; self = [A2Net]::SelfName; packets = [A2Net]::Packets
+      energy = $(if ([A2Net]::EnergyNatural -ge 0) { "$([A2Net]::EnergyNatural)(+$([A2Net]::EnergyBonus))" } else { $null }); energyActive = [bool](Net-Active); recording = [bool][A2Net]::RecordPath } }
+      else { [ordered]@{ on = $false; status = $(if (-not (Test-Path $AgFile)) { 'ag.cs bulunamadı' } elseif ($script:Settings.netEnabled -eq $false) { 'kapalı' } else { 'başlatılamadı' }) } })
   }
 }
 
@@ -1242,6 +1344,27 @@ function Handle-Request($ctx) {
         Log $(if ($p) { 'Duraklatıldı.' } else { 'İzleme devam ediyor.' })
         Set-Status $(if ($p) { 'Duraklatıldı — kutular kaydedilmiyor.' } else { 'İzleniyor — ödül kutusu penceresi bekleniyor.' })
         Update-Tray
+      }
+      return Send-Json $ctx 200 @{ ok = $true }
+    }
+    'GET /api/net' {
+      if (-not $script:NetOk) { return Send-Json $ctx 200 @{ npcap = $false; status = $(if (Test-Path $AgFile) { 'kapalı' } else { 'ag.cs yok' }) } }
+      return Send-Bytes $ctx 200 ([Text.Encoding]::UTF8.GetBytes([A2Net]::StateJson())) 'application/json; charset=utf-8'
+    }
+    'POST /api/net' {
+      $b = Read-Body $ctx
+      switch ([string]$b.action) {
+        'reset' { if ($script:NetOk) { [A2Net]::ResetFight() } }
+        'enable' {
+          $script:Settings | Add-Member -NotePropertyName netEnabled -NotePropertyValue ([bool]$b.on) -Force; Save-Settings $script:Settings
+          if ($b.on -and -not $script:NetOk) { Net-Init } elseif (-not $b.on -and $script:NetOk) { [A2Net]::Stop(); $script:NetOk = $false; Log 'Ağ okuma kapatıldı.' }
+        }
+        'record' {
+          if (-not $script:NetOk) { return Send-Json $ctx 409 @{ error = 'Ağ okuma kapalı' } }
+          if ($b.on) { $f = Join-Path $AppDir ('paket-{0:yyyyMMdd-HHmmss}.bin' -f (Get-Date)); [A2Net]::RecordPath = $f; Log "Paket kaydı başladı: $f" }
+          else { [A2Net]::StopRecording(); Log 'Paket kaydı durdu.' }
+        }
+        default { return Send-Json $ctx 400 @{ error = 'Bilinmeyen işlem' } }
       }
       return Send-Json $ctx 200 @{ ok = $true }
     }
@@ -1364,7 +1487,8 @@ function Update-Tray {
 }
 
 function Quit-App {
-  $timer.Stop(); $httpTimer.Stop(); $ovTimer.Stop(); $dragTimer.Stop()
+  $timer.Stop(); $httpTimer.Stop(); $ovTimer.Stop(); $dragTimer.Stop(); $netTimer.Stop()
+  if ($script:NetOk) { try { [A2Net]::StopRecording(); [A2Net]::Stop() } catch {} }
   try { $hot.Clear() } catch {}
   $script:OvQuitting = $true
   foreach ($x in @($script:OvW.Values)) { if (Ov-Alive $x) { [A2Win]::Close($x.h) } }
@@ -1394,6 +1518,7 @@ $timer = New-Object Windows.Forms.Timer; $timer.Interval = 150; $timer.Add_Tick(
 $httpTimer = New-Object Windows.Forms.Timer; $httpTimer.Interval = 40; $httpTimer.Add_Tick({ Pump-Http })
 $ovTimer = New-Object Windows.Forms.Timer; $ovTimer.Interval = 100; $ovTimer.Add_Tick({ Overlay-Tick })
 $dragTimer = New-Object Windows.Forms.Timer; $dragTimer.Interval = 15; $dragTimer.Add_Tick({ Drag-Tick })
+$netTimer = New-Object Windows.Forms.Timer; $netTimer.Interval = 500; $netTimer.Add_Tick({ Net-Tick })
 $hot = New-Object A2Hot
 $script:OvHotkeys = [bool](($hot.Add(1, 5, 0x4F)) -and ($hot.Add(2, 5, 0x54)) -and ($hot.Add(3, 5, 0x48)))   # Alt+Shift (5) + O / T / H
 if (-not $script:OvHotkeys) { Log '… Alt+Shift+O / T / H kısayollarından biri başka bir program tarafından kullanılıyor; oyun içi menüyü simgeden aç.' }
@@ -1403,7 +1528,8 @@ $s = Load-Session
 if (-not $s -and $script:SessionError) { Log "Kayıtlı oturum okunamadı, panelde tekrar giriş yap: $($script:SessionError)" }
 if ($s) { Set-Session $s $false $false }
 Update-Tray
-$timer.Start(); $httpTimer.Start(); $ovTimer.Start()
+Net-Init
+$timer.Start(); $httpTimer.Start(); $ovTimer.Start(); $netTimer.Start()
 # Önceki çalışmadan açık kalan oyun içi pencereler varsa onları sahiplen (yeniden başlatmada kopya açılmasın).
 if ([A2Win]::FindExact($OvPrefix + 'Menü') -ne [IntPtr]::Zero) { Ov-Launch 'hub' 'Menü' }
 foreach ($o in Ov-OpenList) { if ([A2Win]::FindExact($OvPrefix + $o.title) -ne [IntPtr]::Zero) { $script:OvRestored = $true; Ov-Launch ([string]$o.id) ([string]$o.title) } }

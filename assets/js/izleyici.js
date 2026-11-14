@@ -42,6 +42,7 @@ export const appApi = {
   session: (s) => api('/session', s),
   logout: () => api('/logout', {}),
   getSession: () => api('/session'),
+  net: (b) => api('/net', b),
   overlay: (b) => api('/overlay', b),
 };
 
@@ -131,6 +132,22 @@ export function renderAppView(root, b, { repo }) {
           <button type="button" class="btn ${ov.edit ? 'primary' : ''}" data-app="ovmode">${ov.edit ? 'Düzenleme modunu kapat' : 'Düzenleme modu'}</button>
         </div>
         <p class="hint"><kbd>Alt+Shift+O</kbd> menü · <kbd>Alt+Shift+H</kbd> hepsini gizle/göster · <kbd>Alt+Shift+T</kbd> düzenleme modu. Oyun <b>çerçevesiz pencere</b> modunda olmalı.${ov.hotkeys === false ? ' <b class="warn-txt">Kısayol tuşlarından biri başka bir programda kullanıldığı için kaydedilemedi.</b>' : ''}</p>
+      </section>
+
+      <section class="panel">
+        <header class="panel-head"><h2>Ağ okuma (oyun trafiği)</h2><span class="muted">${esc(s.net?.status || '')}</span></header>
+        ${s.net?.on ? `
+        <dl class="kv">
+          <dt>Oyundaki karakter</dt><dd>${esc(s.net.self || '—')}</dd>
+          <dt>Odyle enerjisi</dt><dd>${s.net.energy ? `${esc(s.net.energy)}${s.net.energyActive ? ' <span class="muted">· siteye kendiliğinden yazılıyor</span>' : ''}` : '<span class="muted">henüz okunmadı</span>'}</dd>
+          <dt>Paket</dt><dd>${esc(s.net.packets)}${s.net.error ? ` · <span class="warn-txt">${esc(s.net.error)}</span>` : ''}</dd>
+        </dl>
+        <div class="row">
+          <button type="button" class="btn" data-app="netoff">Ağ okumayı kapat</button>
+          <button type="button" class="btn ${s.net.recording ? 'primary' : ''}" data-app="netrec" title="Geliştirme için: oyun trafiğini dosyaya kaydeder (sohbet de dahil). İşin bitince kapat.">${s.net.recording ? '■ Kaydı durdur' : 'Paket kaydı (geliştirme)'}</button>
+        </div>` : `<p class="hint">Kapalı. Npcap kurulu olmalı (Questlog vb. ile kurulmuş olabilir) ve <code>ag.cs</code>, <code>izleyici.ps1</code> ile aynı klasörde olmalı.</p>
+        <div class="row"><button type="button" class="btn" data-app="neton">Ağ okumayı aç</button></div>`}
+        <p class="hint">Oyunun bu bilgisayara gelen trafiğinin bir kopyası okunur; oyuna, dosyalarına ya da belleğine dokunulmaz. Aktif karakter, Odyle enerjisi, saha bossu ölümleri ve hasar buradan gelir.</p>
       </section>
 
       <section class="panel span-all">

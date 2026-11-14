@@ -172,7 +172,7 @@ node scripts/fetch-characters.mjs                           # "fetch": false olm
 
 **Kurulum (ikiniz de, kurulum gerektirmez):**
 
-1. GitHub'da repo sayfası → **Code → Download ZIP**. ZIP'i aç ve `tools/izleyici` klasörünü istediğin bir yere kopyala (`Baslat.bat` ve `izleyici.ps1` yeterli).
+1. GitHub'da repo sayfası → **Code → Download ZIP**. ZIP'i aç ve `tools/izleyici` klasörünü istediğin bir yere kopyala (`Baslat.bat`, `izleyici.ps1` ve `ag.cs` birlikte durmalı).
 2. `Baslat.bat` dosyasına çift tıkla. Windows "bilinmeyen yayıncı" uyarısı verirse: dosyaya sağ tık → **Özellikler** → alttaki **Engellemeyi kaldır** → Tamam.
 3. **Uygulama penceresi** açılır: sitenin kendisi, sekmesiz kendi penceresinde. Saat yanında da **Karip Traker** simgesi belirir.
 4. Pencerede **site kullanıcı adın ve şifrenle** bir kez giriş yap. Ekran izleyici de aynı hesapla bağlanır; sonraki açılışlarda giriş sormaz.
@@ -186,6 +186,20 @@ node scripts/fetch-characters.mjs                           # "fetch": false olm
 **İlk kullanımda kontrol:** ödül penceresi açıkken simge → sağ tık → **Ekranı şimdi oku** (ya da Uygulama bölümündeki buton). Kayıtlarda zindan, maliyet, kutu, garanti ve enerji değerleri doğru görünmeli. Yanlışsa kaydedilen ekran görüntüsünü bana gönder (konum kayıtta yazar: `%APPDATA%\aion2-izleyici`).
 
 **Kayıtlar siteye nasıl gelir?** Program her olayı repodaki `data/inbox/` klasörüne küçük bir dosya olarak gönderir. **Izleyici kayıtlarını uygula** workflow'u (`.github/workflows/inbox.yml`) bunları sitenin kullandığı kurallarla (`assets/js/ops.js`) `data.json`'a uygular. Siteye yansıması yaklaşık yarım dakika sürer, canlı yenileme sayesinde F5 gerekmez.
+
+### Ağ okuma (oyun trafiği)
+
+Npcap kuruluysa (Questlog gibi sayaçlar kurduysa zaten vardır; yoksa [npcap.com](https://npcap.com)), izleyici **AION2.exe'nin kendi
+bağlantılarına gelen trafiğin bir kopyasını** okur ([tools/izleyici/ag.cs](tools/izleyici/ag.cs)). Oyuna, dosyalarına ya da belleğine
+dokunmaz, paket göndermez. Yönetici izni gerekmez (Npcap'in "sadece yöneticiler" ayarı kapalıysa; varsayılan budur).
+
+- **Aktif karakter kendiliğinden seçilir:** oyundaki karakterin adı sitedekiyle eşleşince.
+- **Odyle enerjisi** (doğal + ek) oyunun kendi değeriyle siteye yazılır. Bu sırada ekran okuyucu enerjiyi düşmez, sadece zindan sayacını işler (iki kez düşmesin).
+- **Saha bossu ölünce** Bosslar sayacı kendiliğinden işaretlenir (48 saha bossu, NPC koduyla).
+- **Hasar (DPS):** oyun içi menüdeki **Hasar** bileşeni. Üstten **Ben / Parti / Herkes** seçilir. Her oyuncu için sınıf, DPS, toplam hasar, pay, kritik oranı (ayarlardan en büyük vuruş ve alınan hasar da açılır); bir oyuncuya tıklayınca yetenek dökümü (hasar, pay, vuruş, kritik, en büyük vuruş), DoT payı ve alınan hasar. Çağrılan yaratıkların hasarı sahibine eklenir. Hedef saha bossu ya da büyük bir hedefse adı ve HP'si görünür; o ölünce savaş kapanır. Son 6 savaş ‹ › ile gezilir. Yetenek adları: [assets/data/skills.json](assets/data/skills.json).
+- Uygulama bölümünde durumu görünür; oradan kapatılabilir. **Paket kaydı** düğmesi geliştirme içindir (trafiği `%APPDATA%\aion2-izleyici\paket-*.bin` dosyasına yazar, sohbet de dahil); işin bitince kapat.
+- Protokol bilgisi topluluğun açık kaynak sayaçlarından (A2Tools DPS Meter, TK-open-public Aion2-Dps-Meter) öğrenildi; kod bu proje için yazıldı.
+- Not: NCSOFT'un kuralları "izinsiz program" kullanımını yasaklar ve sayaçlar resmi olarak onaylı değildir. Bilinen bir yaptırım yok ama risk tamamen sıfır değildir.
 
 ### Oyun içi arayüz (overlay)
 

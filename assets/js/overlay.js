@@ -26,6 +26,7 @@ const dpr = () => window.devicePixelRatio || 1;
 // ---------------------------------------------------------------- İkonlar
 const svg = (d) => `<svg class="ic" viewBox="0 0 24 24" aria-hidden="true">${d}</svg>`;
 const ICON = {
+  dps: svg('<path d="M4 20V10M10 20V4M16 20v-8M22 20H2"/>'),
   energy: svg('<path d="M13 2 4 14h7l-1 8 9-12h-7z"/>'),
   bosses: svg('<path d="M12 3c-4.4 0-8 3.2-8 7.3 0 2.4 1.2 4.4 3 5.7V20h3v-2h4v2h3v-4c1.8-1.3 3-3.3 3-5.7C20 6.2 16.4 3 12 3z"/><circle cx="9" cy="11" r="1.6"/><circle cx="15" cy="11" r="1.6"/>'),
   gear: svg('<path d="M12 3l8 3v6c0 4.6-3.4 8-8 9-4.6-1-8-4.4-8-9V6z"/><path d="M9 12l2 2 4-4"/>'),
@@ -40,6 +41,7 @@ const ICON = {
 const st = { data: null, etag: null, user: null, err: '' };
 let ov = null;            // uygulamanın durumu (/api/ov)
 let online = false;
+let net = null;           // ağ okuma durumu (/api/net): hasar, hedef, enerji
 
 // ---------------------------------------------------------------- Tercihler (kullanıcıya özel, tüm pencereler paylaşır)
 const DEFAULTS = {
@@ -49,6 +51,10 @@ const DEFAULTS = {
   bossLead: 5,        // bu kadar dakika kala turuncu
   todoCount: 6,
   gearChar: null,     // null = aktif karakter
+  dpsRows: 8,
+  dpsNamedOnly: false,
+  dpsMode: 'party',   // me | party | all
+  dpsCols: { dmg: true, crit: true, max: false, taken: false },
   fixed: {},          // { bileşen: true } → yükseklik elle ayarlandı (içeriğe oturtma kapalı)
 };
 const prefKey = () => `kt.overlay.v2.${st.user || 'misafir'}`;
@@ -58,6 +64,7 @@ function loadPrefs() {
   try { p = JSON.parse(localStorage.getItem(prefKey()) || 'null'); } catch { /* yoksay */ }
   prefs = { ...structuredClone(DEFAULTS), ...(p || {}) };
   prefs.fixed ||= {};
+  prefs.dpsCols = { ...DEFAULTS.dpsCols, ...(prefs.dpsCols || {}) };
   document.documentElement.style.setProperty('--scale', String(prefs.scale / 100));
 }
 function savePrefs() {
@@ -79,7 +86,108 @@ const sel = (name, vals, cur) => `<select data-num="${name}">${vals.map((v) => `
 
 // ---------------------------------------------------------------- Bileşenler
 // render(c): c = { now } → HTML (başlık satırının sağı için `right` döndürmek istersen { html, right }).
+const kfmt = (n) => (n >= 1e9 ? `${(n / 1e9).toFixed(2)}B` : n >= 1e6 ? `${(n / 1e6).toFixed(2)}M` : n >= 1e4 ? `${(n / 1e3).toFixed(1)}k` : nf.format(Math.round(n)));
+const mmss = (ms) => { const s = Math.max(0, Math.round(ms / 1000)); return `${Math.floor(s / 60)}:${String(s % 60).padStart(2, '0')}`; };
+
+// ---- Hasar bileşeni yardımcıları ----
+const dpsView = { fight: 0, detail: null };
+const CLASSES = {
+  11: ['GL', 'Gladiator', '#e0803a'], 12: ['TE', 'Templar', '#c9b24a'], 13: ['AS', 'Assassin', '#b462e0'],
+  14: ['RA', 'Ranger', '#4fbf6a'], 15: ['SO', 'Sorcerer', '#4f8fe8'], 16: ['EL', 'Elementalist', '#3ec6c6'],
+  17: ['CL', 'Cleric', '#e8e2c6'], 18: ['CH', 'Chanter', '#e0a64f'], 19: ['FI', 'Fighter', '#e05a5a'],
+};
+const clsBadge = (cls) => (CLASSES[cls] ? `<span class="cls" style="border-color:${CLASSES[cls][2]};color:${CLASSES[cls][2]}" title="${CLASSES[cls][1]}">${CLASSES[cls][0]}</span>` : '');
+const clsColor = (cls) => (CLASSES[cls] ? `background:${CLASSES[cls][2]}` : '');
+const pct = (a, b) => (b ? Math.round(a / b * 100) : 0);
+let skillNames = null;
+async function loadSkillNames() {
+  if (skillNames) return;
+  try { skillNames = await (await fetch('assets/data/skills.json')).json(); } catch { skillNames = {}; }
+}
+const skillName = (code) => skillNames?.[code] || (code >= 10000000 ? `Yetenek ${code}` : code < 1000 ? 'Temel saldırı' : `#${code}`);
+function dpsModes() {
+  const m = prefs.dpsMode;
+  const b = (k, label) => `<button type="button" role="radio" data-dpsmode="${k}" aria-checked="${m === k}">${label}</button>`;
+  return `<div class="seg dp-modes" role="radiogroup" aria-label="Kimler">${b('me', 'Ben')}${b('party', 'Parti')}${b('all', 'Herkes')}</div>`;
+}
+function dpsDetail(r, f) {
+  const dur = f.dur;
+  const skills = (r.skills || []).map((s) => `
+    <li><span>${esc(skillName(s.code))}</span><span><b>${kfmt(s.dmg)}</b> <span class="muted">%${pct(s.dmg, r.dmg)} · ${s.hits}× · K%${pct(s.crits, s.hits)} · ↑${kfmt(s.max)}</span></span></li>`).join('');
+  return `
+    <div class="dp-head"><button type="button" class="btn" data-dpsd="">‹ Geri</button>
+      <b>${clsBadge(r.cls)}${esc(r.name || `#${r.id}`)}</b>${r.self ? ' <span class="muted">(sen)</span>' : ''}</div>
+    <dl class="dp-kv">
+      <dt>Hasar</dt><dd><b>${kfmt(r.dmg)}</b> · ${kfmt(r.dmg * 1000 / dur)}/sn · %${pct(r.dmg, f.total)}</dd>
+      <dt>Vuruş</dt><dd>${r.hits} · kritik %${pct(r.crits, r.hits)} · en büyük ${kfmt(r.max)}</dd>
+      ${r.dot ? `<dt>DoT</dt><dd>${kfmt(r.dot)} (%${pct(r.dot, r.dmg)})</dd>` : ''}
+      ${r.taken ? `<dt>Alınan</dt><dd>${kfmt(r.taken)}</dd>` : ''}
+      ${r.pets ? `<dt>Pet</dt><dd>${r.pets} çağrı hasarı eklendi</dd>` : ''}
+    </dl>
+    <h3 class="dp-h">Yetenekler</h3>
+    ${skills ? `<ul class="l dp-sk">${skills}</ul>` : empty('Yetenek bilgisi yok.')}`;
+}
+
 const WIDGETS = {
+  dps: {
+    title: 'Hasar', hint: 'DPS, parti, yetenekler (oyun trafiğinden)',
+    render() {
+      if (!net) return empty('Uygulama yanıt vermiyor.');
+      if (net.npcap === false) return empty(`Ağ okuma kapalı: ${net.status || ''}`);
+      const fights = [net.fight, ...(net.history || [])].filter(Boolean);
+      if (!fights.length) {
+        const st = net.status === 'dinleniyor' ? (net.self?.name ? `${net.self.name} · savaş bekleniyor` : 'savaş bekleniyor') : (net.status || '');
+        return { html: dpsModes() + empty(st) };
+      }
+      if (dpsView.fight >= fights.length) dpsView.fight = 0;
+      const f = fights[dpsView.fight];
+      const all = f.rows;
+      const mode = prefs.dpsMode;
+      let rows = all.filter((r) => (mode === 'me' ? r.self : mode === 'party' ? r.party || r.self : true));
+      if (prefs.dpsNamedOnly) rows = rows.filter((r) => r.name || r.self);
+      const nav = `<span class="dp-nav">
+        <button type="button" data-dpsf="1" ${dpsView.fight >= fights.length - 1 ? 'disabled' : ''} title="Önceki savaş">‹</button>
+        <span>${dpsView.fight === 0 && f.active ? '<span class="ok-txt">●</span> canlı' : `#${f.no}`}</span>
+        <button type="button" data-dpsf="-1" ${dpsView.fight === 0 ? 'disabled' : ''} title="Sonraki savaş">›</button></span>`;
+      const right = `${nav} ${mmss(f.dur)}`;
+
+      // Ayrıntı: bir oyuncunun yetenekleri
+      const sel = dpsView.detail != null ? all.find((r) => r.id === dpsView.detail) : null;
+      if (sel) return { right, html: dpsDetail(sel, f) };
+      dpsView.detail = null;
+
+      const t = f.target || {};
+      const hp = t.hp != null && t.hpMax ? Math.max(0, Math.min(1, t.hp / t.hpMax)) : null;
+      const tname = t.boss || (t.id ? `Hedef #${t.id}` : '');
+      const top = rows[0]?.dmg || 1;
+      const c = prefs.dpsCols;
+      const body = rows.slice(0, prefs.dpsRows).map((r, i) => `
+        <button type="button" class="dp ${r.self ? 'me' : ''}" data-dpsd="${r.id}" title="Yetenekleri gör">
+          <span class="dp-n">${i + 1}. ${clsBadge(r.cls)}${esc(r.name || `#${r.id}`)}${r.pets ? ' <span class="muted">+pet</span>' : ''}</span>
+          <span class="dp-v"><b>${kfmt(r.dps)}</b>/sn${c.dmg ? ` <span class="muted">${kfmt(r.dmg)}</span>` : ''} <span class="muted">%${(r.dmg / f.total * 100).toFixed(0)}</span>${c.crit ? ` <span class="muted">K%${pct(r.crits, r.hits)}</span>` : ''}${c.max ? ` <span class="muted">↑${kfmt(r.max)}</span>` : ''}${c.taken && r.taken ? ` <span class="muted">⬇${kfmt(r.taken)}</span>` : ''}</span>
+          <span class="bar"><i style="width:${(r.dmg / top * 100).toFixed(1)}%;${clsColor(r.cls)}"></i></span>
+        </button>`).join('');
+      const sumRows = rows.reduce((a, r) => a + r.dmg, 0);
+      return {
+        right,
+        html: dpsModes()
+          + (tname ? `<div class="dp-t"><span>${esc(tname)}</span><span class="muted">${hp != null ? `%${(hp * 100).toFixed(1)}` : ''}</span>${hp != null ? `<span class="bar hp"><i style="width:${(hp * 100).toFixed(1)}%"></i></span>` : ''}</div>` : '')
+          + (body || empty(mode === 'me' ? 'Bu savaşta hasarın yok.' : 'Gösterilecek oyuncu yok.'))
+          + `<p class="dp-sum muted">${mode === 'all' ? 'Toplam' : mode === 'party' ? 'Parti' : 'Sen'} ${kfmt(sumRows)} · ${kfmt(sumRows * 1000 / f.dur)}/sn${mode !== 'all' ? ` · herkes ${kfmt(f.total)}` : ''}</p>`,
+      };
+    },
+    settings() {
+      const c = prefs.dpsCols;
+      const chk = (k, label) => `<label class="chk"><input type="checkbox" data-dpscol="${k}" ${c[k] ? 'checked' : ''}> ${label}</label>`;
+      return `<h4>Sütunlar</h4><div class="row">${chk('dmg', 'Toplam hasar')}${chk('crit', 'Kritik %')}${chk('max', 'En büyük vuruş')}${chk('taken', 'Alınan hasar')}</div>
+        <div class="row"><label>Satır ${sel('dpsRows', [4, 6, 8, 12, 16, 24], prefs.dpsRows)}</label>
+        <label class="chk"><input type="checkbox" data-bool="dpsNamedOnly" ${prefs.dpsNamedOnly ? 'checked' : ''}> Sadece adı bilinenler</label>
+        <button type="button" class="btn" data-net="reset">Savaşı bitir</button></div>
+        <p class="empty">Veri, oyunun bu bilgisayara gelen trafiğinden okunur (Npcap). Parti: sunucunun sana ve partine gönderdiği kayıtlardan.
+        Çağrılan yaratıkların hasarı sahibine eklenir (+pet). Bir savaş 15 sn hasarsız geçince biter; son 6 savaş ‹ › ile gezilir.</p>`;
+    },
+  },
+
   energy: {
     title: 'Enerji', hint: 'Karakterlerin enerjisi',
     render({ now }) {
@@ -214,7 +322,7 @@ const WIDGETS = {
     },
   },
 };
-const ORDER = ['energy', 'bosses', 'gear', 'todos', 'dungeons', 'lastbox', 'clock', 'status'];
+const ORDER = ['dps', 'energy', 'bosses', 'gear', 'todos', 'dungeons', 'lastbox', 'clock', 'status'];
 
 // ---------------------------------------------------------------- Pencereyi içeriğe oturt
 let fitSent = 0, fitTimer = 0;
@@ -363,11 +471,15 @@ function renderWidget() {
 function widgetEvents() {
   const root = $('#root');
   root.addEventListener('click', async (e) => {
-    const b = e.target.closest('[data-w], [data-char], [data-act], [data-gearchar]');
+    const b = e.target.closest('[data-w], [data-char], [data-act], [data-gearchar], [data-net], [data-dpsmode], [data-dpsf], [data-dpsd]');
     if (!b) return;
     try {
       if (b.dataset.w === 'set') { setOpen = !setOpen; if (setOpen) renderSettings(); $('#wset').hidden = !setOpen; fitWindow(); return; }
       if (b.dataset.w === 'close') { await appApi.overlay({ action: 'widget', id: W, title: def.title, on: false }); return; }
+      if (b.dataset.dpsmode) { prefs.dpsMode = b.dataset.dpsmode; savePrefs(); renderWidget(); return; }
+      if (b.dataset.dpsf) { dpsView.fight = Math.max(0, dpsView.fight + Number(b.dataset.dpsf)); dpsView.detail = null; renderWidget(); return; }
+      if (b.dataset.dpsd !== undefined) { dpsView.detail = b.dataset.dpsd ? Number(b.dataset.dpsd) : null; renderWidget(); return; }
+      if (b.dataset.net === 'reset') { await fetch('/api/net', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ action: 'reset' }) }); await pollNet(); renderWidget(); return; }
       if (b.dataset.gearchar) { prefs.gearChar = b.dataset.gearchar; savePrefs(); renderWidget(); return; }
       if (b.dataset.char) await appApi.char(b.dataset.char);
       else if (b.dataset.act === 'pause') await appApi.pause(!ov?.paused);
@@ -383,6 +495,8 @@ function widgetEvents() {
       if (t.checked) cur.add(t.dataset.ech); else cur.delete(t.dataset.ech);
       prefs.energyChars = all.every((id) => cur.has(id)) ? null : all.filter((id) => cur.has(id));
     } else if (t.dataset.num) prefs[t.dataset.num] = Number(t.value);
+    else if (t.dataset.bool) prefs[t.dataset.bool] = t.checked;
+    else if (t.dataset.dpscol) prefs.dpsCols[t.dataset.dpscol] = t.checked;
     else if (t.dataset.auto !== undefined) {
       if (t.checked) delete prefs.fixed[W]; else prefs.fixed[W] = true;
       document.body.classList.toggle('fixed', !!prefs.fixed[W]);
@@ -393,7 +507,11 @@ function widgetEvents() {
 }
 
 // ---------------------------------------------------------------- Veri
+async function pollNet() {
+  try { const r = await fetch('/api/net', { cache: 'no-store' }); net = r.ok ? await r.json() : null; } catch { net = null; }
+}
 async function poll() {
+  if (W === 'dps') await pollNet();
   try {
     const r = await fetch('/api/ov', { cache: 'no-store' });
     if (!r.ok) throw new Error(`HTTP ${r.status}`);
@@ -412,7 +530,7 @@ async function ensureSession() {
   return null;
 }
 async function loadData() {
-  if (W === 'hub' || W === 'clock' || W === 'lastbox' || W === 'status') return; // bunlar repo verisine ihtiyaç duymaz
+  if (W === 'hub' || W === 'clock' || W === 'lastbox' || W === 'status' || W === 'dps') return; // bunlar repo verisine ihtiyaç duymaz
   try {
     if (await ensureSession()) {
       const f = await gh.getFileIfChanged(st.etag);
@@ -444,9 +562,10 @@ function renderAll(force) {
   st.user = getSession()?.user || null;
   loadPrefs();
   if (W === 'hub') hubEvents(); else { widgetShell(); widgetEvents(); }
+  if (W === 'dps') await loadSkillNames();
   await poll();
   renderAll(true);
   await loadData();
-  setInterval(async () => { await poll(); renderAll(false); fitWindow(); }, W === 'hub' ? 1000 : 700);   // durum + geri sayımlar (+ pencere boyu doğru mu)
+  setInterval(async () => { await poll(); renderAll(false); fitWindow(); }, W === 'hub' ? 1000 : W === 'dps' ? 500 : 700);   // durum + geri sayımlar (+ pencere boyu doğru mu)
   setInterval(() => { if (!document.hidden) loadData(); }, 20_000);
 })();
