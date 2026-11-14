@@ -26,7 +26,7 @@
     },
     "nearFullHours": 3
   },
-  "lastFetch": "2026-11-13T18:31:05.653Z",
+  "lastFetch": "2026-11-14T00:32:05.976Z",
   "characters": [
     {
       "id": "kyrakia",
@@ -35,8 +35,8 @@
       "game": {
         "class": "Sorcerer",
         "level": 45,
-        "itemLevel": 3189,
-        "combatPower": 214293,
+        "itemLevel": 3236,
+        "combatPower": 217337,
         "race": "Elyos",
         "title": "Divine Skill",
         "profileImage": "https://profileimg.plaync.com/game_profile_images/aion2global/images?gameServerKey=1301&charKey=366198944700801654",
@@ -258,7 +258,7 @@
             "name": "Nuakum Helm",
             "grade": "Unique",
             "enchant": 15,
-            "exceed": 2,
+            "exceed": 3,
             "itemLevel": 86,
             "icon": "https://assets.playnccdn.com/static-aion2-gamedata/resources/Icon_Equip_AR_L_Idris_01_Helmet.png",
             "detail": {
@@ -524,7 +524,7 @@
             "name": "Nuakum Greaves",
             "grade": "Unique",
             "enchant": 15,
-            "exceed": 2,
+            "exceed": 3,
             "itemLevel": 86,
             "icon": "https://assets.playnccdn.com/static-aion2-gamedata/resources/Icon_Equip_AR_L_Idris_01_Pants.png",
             "detail": {
@@ -532,7 +532,7 @@
               "equipLevel": 45,
               "maxEnchant": 15,
               "maxExceed": 5,
-              "soulBind": "39.1",
+              "soulBind": "35.4",
               "main": [
                 {
                   "name": "Defense",
@@ -564,8 +564,8 @@
                   "added": false
                 },
                 {
-                  "name": "Block",
-                  "value": "29",
+                  "name": "Attack increase",
+                  "value": "2%",
                   "added": false
                 }
               ],
@@ -797,7 +797,7 @@
               "equipLevel": 45,
               "maxEnchant": 15,
               "maxExceed": 5,
-              "soulBind": "33.6",
+              "soulBind": "32.7",
               "main": [
                 {
                   "name": "Attack",
@@ -824,8 +824,8 @@
                   "added": false
                 },
                 {
-                  "name": "HP",
-                  "value": "242",
+                  "name": "Accuracy",
+                  "value": "53",
                   "added": false
                 }
               ],
@@ -2536,7 +2536,7 @@
           "enchant": 0,
           "icon": "https://assets.playnccdn.com/static-aion2-gamedata/resources/Icon_WingD_005.png"
         },
-        "updatedAt": "2026-11-13T18:30:57.202Z"
+        "updatedAt": "2026-11-14T00:31:51.676Z"
       },
       "energy": {
         "value": 0,
