@@ -26,7 +26,7 @@
     },
     "nearFullHours": 3
   },
-  "lastFetch": "2026-11-14T09:29:30.683Z",
+  "lastFetch": "2026-11-14T09:31:13.379Z",
   "characters": [
     {
       "id": "kyrakia",
@@ -4973,108 +4973,2303 @@
       "id": "tengri",
       "name": "Tengri",
       "owner": null,
-      "fetch": false,
-      "sample": true,
       "game": {
-        "class": "Templar",
-        "level": 43,
-        "itemLevel": 119,
-        "combatPower": 46610,
+        "class": "Chanter",
+        "level": 45,
+        "itemLevel": 1761,
+        "combatPower": 91540,
+        "race": "Elyos",
+        "title": "Unbound by Genus",
+        "profileImage": "https://profileimg.plaync.com/game_profile_images/aion2global/images?gameServerKey=1301&charKey=366198944700864403",
         "gear": [
           {
             "slot": "Main Hand",
-            "name": "Örnek Main Hand",
+            "slotPos": 1,
+            "id": 110830047,
+            "name": "Spiritforged Staff",
+            "grade": "Unique",
             "enchant": 10,
-            "itemLevel": 116
+            "exceed": 0,
+            "itemLevel": 45,
+            "icon": "https://assets.playnccdn.com/static-aion2-gamedata/resources/Icon_WP_ST_0078_T05.png",
+            "detail": {
+              "category": "Staff",
+              "equipLevel": 1,
+              "maxEnchant": 15,
+              "maxExceed": null,
+              "soulBind": "100",
+              "main": [
+                {
+                  "name": "Attack",
+                  "value": "252",
+                  "extra": "50",
+                  "min": "183"
+                },
+                {
+                  "name": "Accuracy",
+                  "value": "75",
+                  "extra": null,
+                  "min": null
+                },
+                {
+                  "name": "Critical Hit",
+                  "value": "100",
+                  "extra": null,
+                  "min": null
+                },
+                {
+                  "name": "Block",
+                  "value": "125",
+                  "extra": null,
+                  "min": null
+                }
+              ],
+              "sub": [
+                {
+                  "name": "Might",
+                  "value": "15",
+                  "added": false
+                },
+                {
+                  "name": "Critical Hit",
+                  "value": "16",
+                  "added": false
+                },
+                {
+                  "name": "MP",
+                  "value": "57",
+                  "added": false
+                },
+                {
+                  "name": "Block",
+                  "value": "23",
+                  "added": false
+                }
+              ],
+              "subSkills": [],
+              "subSkillMax": 0,
+              "desc": null,
+              "set": null,
+              "magicSlots": 4,
+              "magicStones": [
+                {
+                  "name": "Block",
+                  "value": "+13",
+                  "grade": "Rare",
+                  "icon": "https://assets.playnccdn.com/static-aion2-gamedata/resources/Icon_Item_Usable_Enchant_MagicStone_A_c_002.png"
+                },
+                {
+                  "name": "Critical Hit",
+                  "value": "+9",
+                  "grade": "Rare",
+                  "icon": "https://assets.playnccdn.com/static-aion2-gamedata/resources/Icon_Item_Usable_Enchant_MagicStone_A_c_002.png"
+                },
+                {
+                  "name": "Critical Hit",
+                  "value": "+6",
+                  "grade": "Common",
+                  "icon": "https://assets.playnccdn.com/static-aion2-gamedata/resources/Icon_Item_Usable_Enchant_MagicStone_A_c_002.png"
+                },
+                {
+                  "name": "Accuracy Bonus",
+                  "value": "+6",
+                  "grade": "Common",
+                  "icon": "https://assets.playnccdn.com/static-aion2-gamedata/resources/Icon_Item_Usable_Enchant_MagicStone_A_c_002.png"
+                }
+              ],
+              "godSlots": 1,
+              "godStones": []
+            }
           },
           {
-            "slot": "Off Hand",
-            "name": "Örnek Off Hand",
-            "enchant": 4,
-            "itemLevel": 118
+            "slot": "Sub Hand",
+            "slotPos": 2,
+            "id": 115030052,
+            "name": "Vakron Guard",
+            "grade": "Unique",
+            "enchant": 5,
+            "exceed": 0,
+            "itemLevel": 70,
+            "icon": "https://assets.playnccdn.com/static-aion2-gamedata/resources/Icon_Weapon_Guarder_U_003.png",
+            "detail": {
+              "category": "Guard",
+              "equipLevel": 45,
+              "maxEnchant": 15,
+              "maxExceed": 3,
+              "soulBind": "18.3",
+              "main": [
+                {
+                  "name": "Attack",
+                  "value": "144",
+                  "extra": "39",
+                  "min": null
+                },
+                {
+                  "name": "Accuracy",
+                  "value": "50",
+                  "extra": null,
+                  "min": null
+                },
+                {
+                  "name": "Critical Hit",
+                  "value": "50",
+                  "extra": null,
+                  "min": null
+                }
+              ],
+              "sub": [
+                {
+                  "name": "Precision",
+                  "value": "15",
+                  "added": false
+                },
+                {
+                  "name": "Back Attack",
+                  "value": "61",
+                  "added": false
+                },
+                {
+                  "name": "Status Effect Chance",
+                  "value": "15.5%",
+                  "added": false
+                },
+                {
+                  "name": "Critical Hit",
+                  "value": "43",
+                  "added": false
+                }
+              ],
+              "subSkills": [],
+              "subSkillMax": 4,
+              "desc": null,
+              "set": null,
+              "magicSlots": 4,
+              "magicStones": [
+                {
+                  "name": "HP",
+                  "value": "+45",
+                  "grade": "Common",
+                  "icon": "https://assets.playnccdn.com/static-aion2-gamedata/resources/Icon_Item_Usable_Enchant_MagicStone_A_c_002.png"
+                },
+                {
+                  "name": "Accuracy Bonus",
+                  "value": "+9",
+                  "grade": "Rare",
+                  "icon": "https://assets.playnccdn.com/static-aion2-gamedata/resources/Icon_Item_Usable_Enchant_MagicStone_A_c_002.png"
+                },
+                {
+                  "name": "Accuracy Bonus",
+                  "value": "+13",
+                  "grade": "Legend",
+                  "icon": "https://assets.playnccdn.com/static-aion2-gamedata/resources/Icon_Item_Usable_Enchant_MagicStone_A_c_002.png"
+                },
+                {
+                  "name": "Critical Hit",
+                  "value": "+6",
+                  "grade": "Common",
+                  "icon": "https://assets.playnccdn.com/static-aion2-gamedata/resources/Icon_Item_Usable_Enchant_MagicStone_A_c_002.png"
+                }
+              ],
+              "godSlots": 1,
+              "godStones": []
+            }
           },
           {
             "slot": "Helmet",
-            "name": "Örnek Helmet",
-            "enchant": 4,
-            "itemLevel": 123
+            "slotPos": 3,
+            "id": 210330052,
+            "name": "Vakron Helm",
+            "grade": "Unique",
+            "enchant": 0,
+            "exceed": 0,
+            "itemLevel": 70,
+            "icon": "https://assets.playnccdn.com/static-aion2-gamedata/resources/Icon_Equip_AR_L_0028_T05_Helmet.png",
+            "detail": {
+              "category": "Helm",
+              "equipLevel": 45,
+              "maxEnchant": 15,
+              "maxExceed": 3,
+              "soulBind": "39.8",
+              "main": [
+                {
+                  "name": "Defense",
+                  "value": "388",
+                  "extra": null,
+                  "min": null
+                },
+                {
+                  "name": "HP",
+                  "value": "175",
+                  "extra": null,
+                  "min": null
+                }
+              ],
+              "sub": [
+                {
+                  "name": "Accuracy",
+                  "value": "39",
+                  "added": false
+                },
+                {
+                  "name": "Critical Damage Defense",
+                  "value": "205",
+                  "added": false
+                },
+                {
+                  "name": "Defense",
+                  "value": "203",
+                  "added": false
+                }
+              ],
+              "subSkills": [
+                {
+                  "name": "Raging Spell",
+                  "level": 1,
+                  "icon": "https://assets.playnccdn.com/static-aion2-gamedata/resources/ICON_CH_SKILL_Passive_007.png",
+                  "added": false
+                }
+              ],
+              "subSkillMax": 4,
+              "desc": null,
+              "set": null,
+              "magicSlots": 4,
+              "magicStones": [
+                {
+                  "name": "Critical Hit",
+                  "value": "+6",
+                  "grade": "Common",
+                  "icon": "https://assets.playnccdn.com/static-aion2-gamedata/resources/Icon_Item_Usable_Enchant_MagicStone_A_c_002.png"
+                },
+                {
+                  "name": "MP",
+                  "value": "+23",
+                  "grade": "Common",
+                  "icon": "https://assets.playnccdn.com/static-aion2-gamedata/resources/Icon_Item_Usable_Enchant_MagicStone_A_c_002.png"
+                },
+                {
+                  "name": "MP",
+                  "value": "+40",
+                  "grade": "Rare",
+                  "icon": "https://assets.playnccdn.com/static-aion2-gamedata/resources/Icon_Item_Usable_Enchant_MagicStone_A_c_002.png"
+                },
+                {
+                  "name": "Critical Hit Resist",
+                  "value": "+9",
+                  "grade": "Rare",
+                  "icon": "https://assets.playnccdn.com/static-aion2-gamedata/resources/Icon_Item_Usable_Enchant_MagicStone_A_c_002.png"
+                }
+              ],
+              "godSlots": 0,
+              "godStones": []
+            }
           },
           {
-            "slot": "Chest",
-            "name": "Örnek Chest",
-            "enchant": 4,
-            "itemLevel": 118
+            "slot": "Shoulder",
+            "slotPos": 4,
+            "id": 210440043,
+            "name": "Divine Canyon Pauldrons",
+            "grade": "Legend",
+            "enchant": 0,
+            "exceed": 0,
+            "itemLevel": 42,
+            "icon": "https://assets.playnccdn.com/static-aion2-gamedata/resources/Icon_GM_0072_T05_Shoulder.png",
+            "detail": {
+              "category": "Pauldrons",
+              "equipLevel": 45,
+              "maxEnchant": 10,
+              "maxExceed": null,
+              "soulBind": "68.6",
+              "main": [
+                {
+                  "name": "Defense",
+                  "value": "230",
+                  "extra": null,
+                  "min": null
+                },
+                {
+                  "name": "HP",
+                  "value": "105",
+                  "extra": null,
+                  "min": null
+                }
+              ],
+              "sub": [
+                {
+                  "name": "Status Effect Resist",
+                  "value": "2.9%",
+                  "added": false
+                }
+              ],
+              "subSkills": [
+                {
+                  "name": "Survival Willpower",
+                  "level": 1,
+                  "icon": "https://assets.playnccdn.com/static-aion2-gamedata/resources/ICON_CH_SKILL_Passive_009.png",
+                  "added": false
+                },
+                {
+                  "name": "Protection Circle",
+                  "level": 1,
+                  "icon": "https://assets.playnccdn.com/static-aion2-gamedata/resources/ICON_CH_SKILL_Passive_003.png",
+                  "added": false
+                }
+              ],
+              "subSkillMax": 3,
+              "desc": null,
+              "set": null,
+              "magicSlots": 3,
+              "magicStones": [],
+              "godSlots": 0,
+              "godStones": []
+            }
           },
           {
-            "slot": "Shoulders",
-            "name": "Örnek Shoulders",
-            "enchant": 2,
-            "itemLevel": 115
-          },
-          {
-            "slot": "Gloves",
-            "name": "Örnek Gloves",
-            "enchant": 8,
-            "itemLevel": 114
+            "slot": "Torso",
+            "slotPos": 5,
+            "id": 210130052,
+            "name": "Vakron Breastplate",
+            "grade": "Unique",
+            "enchant": 0,
+            "exceed": 0,
+            "itemLevel": 70,
+            "icon": "https://assets.playnccdn.com/static-aion2-gamedata/resources/Icon_Equip_AR_L_0028_T05_Torso.png",
+            "detail": {
+              "category": "Top",
+              "equipLevel": 45,
+              "maxEnchant": 15,
+              "maxExceed": 3,
+              "soulBind": "33.8",
+              "main": [
+                {
+                  "name": "Defense",
+                  "value": "517",
+                  "extra": null,
+                  "min": null
+                },
+                {
+                  "name": "HP",
+                  "value": "280",
+                  "extra": null,
+                  "min": null
+                }
+              ],
+              "sub": [
+                {
+                  "name": "Willpower",
+                  "value": "8",
+                  "added": false
+                },
+                {
+                  "name": "Critical Damage Defense",
+                  "value": "255",
+                  "added": false
+                },
+                {
+                  "name": "Front Defense",
+                  "value": "246",
+                  "added": false
+                }
+              ],
+              "subSkills": [
+                {
+                  "name": "Protection Circle",
+                  "level": 1,
+                  "icon": "https://assets.playnccdn.com/static-aion2-gamedata/resources/ICON_CH_SKILL_Passive_003.png",
+                  "added": false
+                }
+              ],
+              "subSkillMax": 4,
+              "desc": null,
+              "set": null,
+              "magicSlots": 4,
+              "magicStones": [
+                {
+                  "name": "HP",
+                  "value": "+130",
+                  "grade": "Legend",
+                  "icon": "https://assets.playnccdn.com/static-aion2-gamedata/resources/Icon_Item_Usable_Enchant_MagicStone_A_c_002.png"
+                },
+                {
+                  "name": "HP",
+                  "value": "+45",
+                  "grade": "Common",
+                  "icon": "https://assets.playnccdn.com/static-aion2-gamedata/resources/Icon_Item_Usable_Enchant_MagicStone_A_c_002.png"
+                },
+                {
+                  "name": "Defense",
+                  "value": "+20",
+                  "grade": "Common",
+                  "icon": "https://assets.playnccdn.com/static-aion2-gamedata/resources/Icon_Item_Usable_Enchant_MagicStone_A_c_002.png"
+                },
+                {
+                  "name": "Critical Hit Resist",
+                  "value": "+9",
+                  "grade": "Rare",
+                  "icon": "https://assets.playnccdn.com/static-aion2-gamedata/resources/Icon_Item_Usable_Enchant_MagicStone_A_c_002.png"
+                }
+              ],
+              "godSlots": 0,
+              "godStones": []
+            }
           },
           {
             "slot": "Pants",
-            "name": "Örnek Pants",
-            "enchant": 2,
-            "itemLevel": 122
+            "slotPos": 6,
+            "id": 210230052,
+            "name": "Vakron Greaves",
+            "grade": "Unique",
+            "enchant": 0,
+            "exceed": 0,
+            "itemLevel": 70,
+            "icon": "https://assets.playnccdn.com/static-aion2-gamedata/resources/Icon_Equip_AR_L_0028_T05_Pants.png",
+            "detail": {
+              "category": "Legs",
+              "equipLevel": 45,
+              "maxEnchant": 15,
+              "maxExceed": 3,
+              "soulBind": "12.7",
+              "main": [
+                {
+                  "name": "Defense",
+                  "value": "431",
+                  "extra": null,
+                  "min": null
+                },
+                {
+                  "name": "HP",
+                  "value": "210",
+                  "extra": null,
+                  "min": null
+                }
+              ],
+              "sub": [
+                {
+                  "name": "Damage Tolerance",
+                  "value": "8.8%",
+                  "added": false
+                },
+                {
+                  "name": "Critical Damage Defense",
+                  "value": "228",
+                  "added": false
+                },
+                {
+                  "name": "HP",
+                  "value": "170",
+                  "added": false
+                },
+                {
+                  "name": "Endurance",
+                  "value": "2.8%",
+                  "added": false
+                }
+              ],
+              "subSkills": [],
+              "subSkillMax": 4,
+              "desc": null,
+              "set": null,
+              "magicSlots": 4,
+              "magicStones": [
+                {
+                  "name": "Evasion Bonus",
+                  "value": "+6",
+                  "grade": "Common",
+                  "icon": "https://assets.playnccdn.com/static-aion2-gamedata/resources/Icon_Item_Usable_Enchant_MagicStone_A_c_002.png"
+                },
+                {
+                  "name": "Evasion Bonus",
+                  "value": "+13",
+                  "grade": "Legend",
+                  "icon": "https://assets.playnccdn.com/static-aion2-gamedata/resources/Icon_Item_Usable_Enchant_MagicStone_A_c_002.png"
+                },
+                {
+                  "name": "Evasion Bonus",
+                  "value": "+13",
+                  "grade": "Legend",
+                  "icon": "https://assets.playnccdn.com/static-aion2-gamedata/resources/Icon_Item_Usable_Enchant_MagicStone_A_c_002.png"
+                },
+                {
+                  "name": "Block",
+                  "value": "+13",
+                  "grade": "Rare",
+                  "icon": "https://assets.playnccdn.com/static-aion2-gamedata/resources/Icon_Item_Usable_Enchant_MagicStone_A_c_002.png"
+                }
+              ],
+              "godSlots": 0,
+              "godStones": []
+            }
+          },
+          {
+            "slot": "Gloves",
+            "slotPos": 7,
+            "id": 210530052,
+            "name": "Vakron Gloves",
+            "grade": "Unique",
+            "enchant": 0,
+            "exceed": 0,
+            "itemLevel": 70,
+            "icon": "https://assets.playnccdn.com/static-aion2-gamedata/resources/Icon_Equip_AR_L_0028_T05_Gloves.png",
+            "detail": {
+              "category": "Gloves",
+              "equipLevel": 45,
+              "maxEnchant": 15,
+              "maxExceed": 3,
+              "soulBind": "31.5",
+              "main": [
+                {
+                  "name": "Defense",
+                  "value": "345",
+                  "extra": null,
+                  "min": null
+                },
+                {
+                  "name": "HP",
+                  "value": "140",
+                  "extra": null,
+                  "min": null
+                }
+              ],
+              "sub": [
+                {
+                  "name": "Dexterity",
+                  "value": "15",
+                  "added": false
+                },
+                {
+                  "name": "Constitution",
+                  "value": "12",
+                  "added": false
+                },
+                {
+                  "name": "Combat Speed",
+                  "value": "5.8%",
+                  "added": false
+                },
+                {
+                  "name": "Critical Hit",
+                  "value": "17",
+                  "added": false
+                }
+              ],
+              "subSkills": [],
+              "subSkillMax": 4,
+              "desc": null,
+              "set": null,
+              "magicSlots": 4,
+              "magicStones": [
+                {
+                  "name": "Critical Hit Resist",
+                  "value": "+6",
+                  "grade": "Common",
+                  "icon": "https://assets.playnccdn.com/static-aion2-gamedata/resources/Icon_Item_Usable_Enchant_MagicStone_A_c_002.png"
+                },
+                {
+                  "name": "Attack",
+                  "value": "+8",
+                  "grade": "Legend",
+                  "icon": "https://assets.playnccdn.com/static-aion2-gamedata/resources/Icon_Item_Usable_Enchant_MagicStone_A_c_002.png"
+                },
+                {
+                  "name": "Attack",
+                  "value": "+2",
+                  "grade": "Common",
+                  "icon": "https://assets.playnccdn.com/static-aion2-gamedata/resources/Icon_Item_Usable_Enchant_MagicStone_A_c_002.png"
+                },
+                {
+                  "name": "HP",
+                  "value": "+130",
+                  "grade": "Legend",
+                  "icon": "https://assets.playnccdn.com/static-aion2-gamedata/resources/Icon_Item_Usable_Enchant_MagicStone_A_c_002.png"
+                }
+              ],
+              "godSlots": 0,
+              "godStones": []
+            }
           },
           {
             "slot": "Boots",
-            "name": "Örnek Boots",
-            "enchant": 9,
-            "itemLevel": 124
-          },
-          {
-            "slot": "Cape",
-            "name": "Örnek Cape",
-            "enchant": 10,
-            "itemLevel": 123
+            "slotPos": 8,
+            "id": 210640043,
+            "name": "Divine Canyon Boots",
+            "grade": "Legend",
+            "enchant": 0,
+            "exceed": 0,
+            "itemLevel": 42,
+            "icon": "https://assets.playnccdn.com/static-aion2-gamedata/resources/Icon_GM_0072_T05_Boots.png",
+            "detail": {
+              "category": "Shoes",
+              "equipLevel": 45,
+              "maxEnchant": 10,
+              "maxExceed": null,
+              "soulBind": "48.4",
+              "main": [
+                {
+                  "name": "Defense",
+                  "value": "204",
+                  "extra": null,
+                  "min": null
+                },
+                {
+                  "name": "HP",
+                  "value": "84",
+                  "extra": null,
+                  "min": null
+                }
+              ],
+              "sub": [
+                {
+                  "name": "Critical Hit",
+                  "value": "16",
+                  "added": false
+                },
+                {
+                  "name": "Natural HP Regen",
+                  "value": "31",
+                  "added": false
+                },
+                {
+                  "name": "Critical Damage Defense",
+                  "value": "144",
+                  "added": false
+                }
+              ],
+              "subSkills": [],
+              "subSkillMax": 3,
+              "desc": null,
+              "set": null,
+              "magicSlots": 3,
+              "magicStones": [],
+              "godSlots": 0,
+              "godStones": []
+            }
           },
           {
             "slot": "Necklace",
-            "name": "Örnek Necklace",
-            "enchant": 8,
-            "itemLevel": 120
+            "slotPos": 10,
+            "id": 310130050,
+            "name": "Aulamus Necklace",
+            "grade": "Unique",
+            "enchant": 0,
+            "exceed": 0,
+            "itemLevel": 70,
+            "icon": "https://assets.playnccdn.com/static-aion2-gamedata/resources/Icon_ACC_NL_0072.png",
+            "detail": {
+              "category": "Necklace",
+              "equipLevel": 45,
+              "maxEnchant": 15,
+              "maxExceed": 3,
+              "soulBind": "16.4",
+              "main": [
+                {
+                  "name": "Attack",
+                  "value": "108",
+                  "extra": null,
+                  "min": null
+                },
+                {
+                  "name": "Defense",
+                  "value": "259",
+                  "extra": null,
+                  "min": null
+                }
+              ],
+              "sub": [
+                {
+                  "name": "Critical Hit Resist",
+                  "value": "50",
+                  "added": false
+                },
+                {
+                  "name": "Attack",
+                  "value": "24",
+                  "added": false
+                },
+                {
+                  "name": "Flight Power",
+                  "value": "273",
+                  "added": false
+                },
+                {
+                  "name": "Critical Hit",
+                  "value": "38",
+                  "added": false
+                }
+              ],
+              "subSkills": [],
+              "subSkillMax": 4,
+              "desc": null,
+              "set": null,
+              "magicSlots": 4,
+              "magicStones": [
+                {
+                  "name": "Critical Hit",
+                  "value": "+9",
+                  "grade": "Rare",
+                  "icon": "https://assets.playnccdn.com/static-aion2-gamedata/resources/Icon_Item_Usable_Enchant_SoulStone_A_c_002.png"
+                },
+                {
+                  "name": "Block",
+                  "value": "+18",
+                  "grade": "Legend",
+                  "icon": "https://assets.playnccdn.com/static-aion2-gamedata/resources/Icon_Item_Usable_Enchant_SoulStone_A_c_002.png"
+                },
+                {
+                  "name": "Accuracy Bonus",
+                  "value": "+9",
+                  "grade": "Rare",
+                  "icon": "https://assets.playnccdn.com/static-aion2-gamedata/resources/Icon_Item_Usable_Enchant_SoulStone_A_c_002.png"
+                },
+                {
+                  "name": "Block",
+                  "value": "+9",
+                  "grade": "Common",
+                  "icon": "https://assets.playnccdn.com/static-aion2-gamedata/resources/Icon_Item_Usable_Enchant_SoulStone_A_c_002.png"
+                }
+              ],
+              "godSlots": 0,
+              "godStones": []
+            }
           },
           {
             "slot": "Earring 1",
-            "name": "Örnek Earring 1",
-            "enchant": 6,
-            "itemLevel": 113
+            "slotPos": 11,
+            "id": 310230052,
+            "name": "Aulamus Earrings",
+            "grade": "Unique",
+            "enchant": 0,
+            "exceed": 0,
+            "itemLevel": 70,
+            "icon": "https://assets.playnccdn.com/static-aion2-gamedata/resources/Icon_ACC_ER_0072.png",
+            "detail": {
+              "category": "Earrings",
+              "equipLevel": 45,
+              "maxEnchant": 15,
+              "maxExceed": 3,
+              "soulBind": "29.9",
+              "main": [
+                {
+                  "name": "Attack",
+                  "value": "90",
+                  "extra": null,
+                  "min": null
+                },
+                {
+                  "name": "Defense",
+                  "value": "216",
+                  "extra": null,
+                  "min": null
+                }
+              ],
+              "sub": [
+                {
+                  "name": "Accuracy",
+                  "value": "41",
+                  "added": false
+                },
+                {
+                  "name": "Natural MP Regen",
+                  "value": "22",
+                  "added": false
+                },
+                {
+                  "name": "Flight Power",
+                  "value": "261",
+                  "added": false
+                },
+                {
+                  "name": "Critical Hit Resist",
+                  "value": "44",
+                  "added": false
+                }
+              ],
+              "subSkills": [],
+              "subSkillMax": 4,
+              "desc": null,
+              "set": null,
+              "magicSlots": 4,
+              "magicStones": [
+                {
+                  "name": "Evasion Bonus",
+                  "value": "+6",
+                  "grade": "Common",
+                  "icon": "https://assets.playnccdn.com/static-aion2-gamedata/resources/Icon_Item_Usable_Enchant_SoulStone_A_c_002.png"
+                },
+                {
+                  "name": "Critical Hit",
+                  "value": "+9",
+                  "grade": "Rare",
+                  "icon": "https://assets.playnccdn.com/static-aion2-gamedata/resources/Icon_Item_Usable_Enchant_SoulStone_A_c_002.png"
+                },
+                {
+                  "name": "HP",
+                  "value": "+80",
+                  "grade": "Rare",
+                  "icon": "https://assets.playnccdn.com/static-aion2-gamedata/resources/Icon_Item_Usable_Enchant_SoulStone_A_c_002.png"
+                },
+                {
+                  "name": "Evasion Bonus",
+                  "value": "+13",
+                  "grade": "Legend",
+                  "icon": "https://assets.playnccdn.com/static-aion2-gamedata/resources/Icon_Item_Usable_Enchant_SoulStone_A_c_002.png"
+                }
+              ],
+              "godSlots": 0,
+              "godStones": []
+            }
           },
           {
             "slot": "Earring 2",
-            "name": "Örnek Earring 2",
-            "enchant": 3,
-            "itemLevel": 117
+            "slotPos": 12,
+            "id": 310230051,
+            "name": "Berk Earrings",
+            "grade": "Unique",
+            "enchant": 5,
+            "exceed": 0,
+            "itemLevel": 54,
+            "icon": "https://assets.playnccdn.com/static-aion2-gamedata/resources/Icon_ACC_ER_0066.png",
+            "detail": {
+              "category": "Earrings",
+              "equipLevel": 45,
+              "maxEnchant": 15,
+              "maxExceed": 1,
+              "soulBind": "34",
+              "main": [
+                {
+                  "name": "Attack",
+                  "value": "69",
+                  "extra": "15",
+                  "min": null
+                },
+                {
+                  "name": "Defense",
+                  "value": "166",
+                  "extra": "35",
+                  "min": null
+                }
+              ],
+              "sub": [
+                {
+                  "name": "Might",
+                  "value": "8",
+                  "added": false
+                },
+                {
+                  "name": "Natural MP Regen",
+                  "value": "29",
+                  "added": false
+                },
+                {
+                  "name": "Natural HP Regen",
+                  "value": "39",
+                  "added": false
+                },
+                {
+                  "name": "MP",
+                  "value": "83",
+                  "added": false
+                }
+              ],
+              "subSkills": [],
+              "subSkillMax": 4,
+              "desc": null,
+              "set": null,
+              "magicSlots": 4,
+              "magicStones": [
+                {
+                  "name": "Evasion Bonus",
+                  "value": "+7",
+                  "grade": "Rare",
+                  "icon": "https://assets.playnccdn.com/static-aion2-gamedata/resources/Icon_Item_Usable_Enchant_SoulStone_A_c_001.png"
+                },
+                {
+                  "name": "MP",
+                  "value": "+30",
+                  "grade": "Rare",
+                  "icon": "https://assets.playnccdn.com/static-aion2-gamedata/resources/Icon_Item_Usable_Enchant_SoulStone_A_c_001.png"
+                },
+                {
+                  "name": "Critical Hit Resist",
+                  "value": "+5",
+                  "grade": "Common",
+                  "icon": "https://assets.playnccdn.com/static-aion2-gamedata/resources/Icon_Item_Usable_Enchant_SoulStone_A_c_001.png"
+                },
+                {
+                  "name": "Evasion Bonus",
+                  "value": "+5",
+                  "grade": "Common",
+                  "icon": "https://assets.playnccdn.com/static-aion2-gamedata/resources/Icon_Item_Usable_Enchant_SoulStone_A_c_001.png"
+                }
+              ],
+              "godSlots": 0,
+              "godStones": []
+            }
           },
           {
             "slot": "Ring 1",
-            "name": "Örnek Ring 1",
-            "enchant": 2,
-            "itemLevel": 117
+            "slotPos": 13,
+            "id": 310330052,
+            "name": "Aulamus Ring",
+            "grade": "Unique",
+            "enchant": 0,
+            "exceed": 0,
+            "itemLevel": 70,
+            "icon": "https://assets.playnccdn.com/static-aion2-gamedata/resources/Icon_ACC_Ring_0072.png",
+            "detail": {
+              "category": "Ring",
+              "equipLevel": 45,
+              "maxEnchant": 15,
+              "maxExceed": 3,
+              "soulBind": "42.6",
+              "main": [
+                {
+                  "name": "Attack",
+                  "value": "72",
+                  "extra": null,
+                  "min": null
+                },
+                {
+                  "name": "Defense",
+                  "value": "172",
+                  "extra": null,
+                  "min": null
+                }
+              ],
+              "sub": [
+                {
+                  "name": "Critical Hit",
+                  "value": "28",
+                  "added": false
+                },
+                {
+                  "name": "Might",
+                  "value": "5",
+                  "added": false
+                },
+                {
+                  "name": "MP",
+                  "value": "80",
+                  "added": false
+                }
+              ],
+              "subSkills": [
+                {
+                  "name": "Spinning Strike",
+                  "level": 1,
+                  "icon": "https://assets.playnccdn.com/static-aion2-gamedata/resources/ICON_CH_SKILL_029.png",
+                  "added": false
+                }
+              ],
+              "subSkillMax": 4,
+              "desc": null,
+              "set": null,
+              "magicSlots": 4,
+              "magicStones": [
+                {
+                  "name": "Critical Hit",
+                  "value": "+9",
+                  "grade": "Rare",
+                  "icon": "https://assets.playnccdn.com/static-aion2-gamedata/resources/Icon_Item_Usable_Enchant_SoulStone_A_c_002.png"
+                },
+                {
+                  "name": "Block",
+                  "value": "+13",
+                  "grade": "Rare",
+                  "icon": "https://assets.playnccdn.com/static-aion2-gamedata/resources/Icon_Item_Usable_Enchant_SoulStone_A_c_002.png"
+                },
+                {
+                  "name": "Attack",
+                  "value": "+2",
+                  "grade": "Common",
+                  "icon": "https://assets.playnccdn.com/static-aion2-gamedata/resources/Icon_Item_Usable_Enchant_SoulStone_A_c_002.png"
+                },
+                {
+                  "name": "Critical Hit Resist",
+                  "value": "+6",
+                  "grade": "Common",
+                  "icon": "https://assets.playnccdn.com/static-aion2-gamedata/resources/Icon_Item_Usable_Enchant_SoulStone_A_c_002.png"
+                }
+              ],
+              "godSlots": 0,
+              "godStones": []
+            }
           },
           {
             "slot": "Ring 2",
-            "name": "Örnek Ring 2",
-            "enchant": 7,
-            "itemLevel": 121
+            "slotPos": 14,
+            "id": 310330052,
+            "name": "Aulamus Ring",
+            "grade": "Unique",
+            "enchant": 0,
+            "exceed": 0,
+            "itemLevel": 70,
+            "icon": "https://assets.playnccdn.com/static-aion2-gamedata/resources/Icon_ACC_Ring_0072.png",
+            "detail": {
+              "category": "Ring",
+              "equipLevel": 45,
+              "maxEnchant": 15,
+              "maxExceed": 3,
+              "soulBind": "11.7",
+              "main": [
+                {
+                  "name": "Attack",
+                  "value": "72",
+                  "extra": null,
+                  "min": null
+                },
+                {
+                  "name": "Defense",
+                  "value": "172",
+                  "extra": null,
+                  "min": null
+                }
+              ],
+              "sub": [
+                {
+                  "name": "Natural MP Regen",
+                  "value": "19",
+                  "added": false
+                },
+                {
+                  "name": "Natural HP Regen",
+                  "value": "36",
+                  "added": false
+                },
+                {
+                  "name": "Defense",
+                  "value": "205",
+                  "added": false
+                },
+                {
+                  "name": "MP",
+                  "value": "76",
+                  "added": false
+                }
+              ],
+              "subSkills": [],
+              "subSkillMax": 4,
+              "desc": null,
+              "set": null,
+              "magicSlots": 4,
+              "magicStones": [
+                {
+                  "name": "MP",
+                  "value": "+40",
+                  "grade": "Rare",
+                  "icon": "https://assets.playnccdn.com/static-aion2-gamedata/resources/Icon_Item_Usable_Enchant_SoulStone_A_c_002.png"
+                },
+                {
+                  "name": "MP",
+                  "value": "+65",
+                  "grade": "Legend",
+                  "icon": "https://assets.playnccdn.com/static-aion2-gamedata/resources/Icon_Item_Usable_Enchant_SoulStone_A_c_002.png"
+                },
+                {
+                  "name": "MP",
+                  "value": "+23",
+                  "grade": "Common",
+                  "icon": "https://assets.playnccdn.com/static-aion2-gamedata/resources/Icon_Item_Usable_Enchant_SoulStone_A_c_002.png"
+                },
+                {
+                  "name": "HP",
+                  "value": "+45",
+                  "grade": "Common",
+                  "icon": "https://assets.playnccdn.com/static-aion2-gamedata/resources/Icon_Item_Usable_Enchant_SoulStone_A_c_002.png"
+                }
+              ],
+              "godSlots": 0,
+              "godStones": []
+            }
+          },
+          {
+            "slot": "Bracelet 1",
+            "slotPos": 15,
+            "id": 310430046,
+            "name": "Ascension Bracelet",
+            "grade": "Unique",
+            "enchant": 4,
+            "exceed": 0,
+            "itemLevel": 51,
+            "icon": "https://assets.playnccdn.com/static-aion2-gamedata/resources/Icon_Acc_Bracelet_R_027.png",
+            "detail": {
+              "category": "Bracelet",
+              "equipLevel": 1,
+              "maxEnchant": 15,
+              "maxExceed": null,
+              "soulBind": "100",
+              "main": [
+                {
+                  "name": "Attack",
+                  "value": "65",
+                  "extra": "10",
+                  "min": null
+                },
+                {
+                  "name": "Defense",
+                  "value": "156",
+                  "extra": "28",
+                  "min": null
+                }
+              ],
+              "sub": [
+                {
+                  "name": "Evasion",
+                  "value": "12",
+                  "added": false
+                },
+                {
+                  "name": "Critical Hit",
+                  "value": "9",
+                  "added": false
+                },
+                {
+                  "name": "MP",
+                  "value": "26",
+                  "added": false
+                },
+                {
+                  "name": "Natural MP Regen",
+                  "value": "9",
+                  "added": false
+                }
+              ],
+              "subSkills": [],
+              "subSkillMax": 0,
+              "desc": null,
+              "set": null,
+              "magicSlots": 4,
+              "magicStones": [
+                {
+                  "name": "HP",
+                  "value": "+60",
+                  "grade": "Rare",
+                  "icon": "https://assets.playnccdn.com/static-aion2-gamedata/resources/Icon_Item_Usable_Enchant_SoulStone_A_c_001.png"
+                },
+                {
+                  "name": "MP",
+                  "value": "+15",
+                  "grade": "Common",
+                  "icon": "https://assets.playnccdn.com/static-aion2-gamedata/resources/Icon_Item_Usable_Enchant_SoulStone_A_c_001.png"
+                },
+                {
+                  "name": "Accuracy Bonus",
+                  "value": "+5",
+                  "grade": "Common",
+                  "icon": "https://assets.playnccdn.com/static-aion2-gamedata/resources/Icon_Item_Usable_Enchant_SoulStone_A_c_001.png"
+                },
+                {
+                  "name": "Block",
+                  "value": "+7",
+                  "grade": "Common",
+                  "icon": "https://assets.playnccdn.com/static-aion2-gamedata/resources/Icon_Item_Usable_Enchant_SoulStone_A_c_001.png"
+                }
+              ],
+              "godSlots": 0,
+              "godStones": []
+            }
+          },
+          {
+            "slot": "Bracelet 2",
+            "slotPos": 16,
+            "id": 310440017,
+            "name": "Pilgrim Bracelet",
+            "grade": "Legend",
+            "enchant": 5,
+            "exceed": 0,
+            "itemLevel": 43,
+            "icon": "https://assets.playnccdn.com/static-aion2-gamedata/resources/Icon_ACC_Bracelet_0071.png",
+            "detail": {
+              "category": "Bracelet",
+              "equipLevel": 1,
+              "maxEnchant": 10,
+              "maxExceed": null,
+              "soulBind": "100",
+              "main": [
+                {
+                  "name": "Attack",
+                  "value": "55",
+                  "extra": "10",
+                  "min": null
+                },
+                {
+                  "name": "Defense",
+                  "value": "131",
+                  "extra": "30",
+                  "min": null
+                }
+              ],
+              "sub": [
+                {
+                  "name": "Critical Hit",
+                  "value": "8",
+                  "added": false
+                },
+                {
+                  "name": "MP",
+                  "value": "22",
+                  "added": false
+                },
+                {
+                  "name": "Natural MP Regen",
+                  "value": "8",
+                  "added": false
+                }
+              ],
+              "subSkills": [],
+              "subSkillMax": 0,
+              "desc": null,
+              "set": null,
+              "magicSlots": 3,
+              "magicStones": [],
+              "godSlots": 0,
+              "godStones": []
+            }
           },
           {
             "slot": "Belt",
-            "name": "Örnek Belt",
+            "slotPos": 17,
+            "id": 215250001,
+            "name": "Noble Belt",
+            "grade": "Rare",
             "enchant": 2,
-            "itemLevel": 124
+            "exceed": 0,
+            "itemLevel": 13,
+            "icon": "https://assets.playnccdn.com/static-aion2-gamedata/resources/Icon_Acc_Belt_C_018.png",
+            "detail": {
+              "category": "Belt",
+              "equipLevel": 1,
+              "maxEnchant": 10,
+              "maxExceed": null,
+              "soulBind": "100",
+              "main": [
+                {
+                  "name": "HP",
+                  "value": "100",
+                  "extra": "100",
+                  "min": null
+                },
+                {
+                  "name": "HP Potion Recovery increase",
+                  "value": "10%",
+                  "extra": "0%",
+                  "min": null
+                }
+              ],
+              "sub": [],
+              "subSkills": [],
+              "subSkillMax": 0,
+              "desc": "A belt available only those with noble intentions.\nCan be enhanced with Belt Enhance Scroll acquired in Strongholds.\nCan be upgraded via Substance Morph after enhancing it 10 times.",
+              "set": null,
+              "magicSlots": 0,
+              "magicStones": [],
+              "godSlots": 0,
+              "godStones": []
+            }
+          },
+          {
+            "slot": "Cape",
+            "slotPos": 19,
+            "id": 210730052,
+            "name": "Vakron Cloak",
+            "grade": "Unique",
+            "enchant": 0,
+            "exceed": 0,
+            "itemLevel": 70,
+            "icon": "https://assets.playnccdn.com/static-aion2-gamedata/resources/Icon_Equip_AR_L_0028_T05_Cape.png",
+            "detail": {
+              "category": "Cloak",
+              "equipLevel": 45,
+              "maxEnchant": 15,
+              "maxExceed": 3,
+              "soulBind": "44.6",
+              "main": [
+                {
+                  "name": "Defense",
+                  "value": "345",
+                  "extra": null,
+                  "min": null
+                },
+                {
+                  "name": "HP",
+                  "value": "140",
+                  "extra": null,
+                  "min": null
+                }
+              ],
+              "sub": [
+                {
+                  "name": "Defense",
+                  "value": "176",
+                  "added": false
+                },
+                {
+                  "name": "Natural MP Regen",
+                  "value": "17",
+                  "added": false
+                },
+                {
+                  "name": "Constitution",
+                  "value": "13",
+                  "added": false
+                },
+                {
+                  "name": "Block",
+                  "value": "18",
+                  "added": false
+                }
+              ],
+              "subSkills": [],
+              "subSkillMax": 4,
+              "desc": null,
+              "set": null,
+              "magicSlots": 4,
+              "magicStones": [
+                {
+                  "name": "Evasion Bonus",
+                  "value": "+6",
+                  "grade": "Common",
+                  "icon": "https://assets.playnccdn.com/static-aion2-gamedata/resources/Icon_Item_Usable_Enchant_MagicStone_A_c_002.png"
+                },
+                {
+                  "name": "Attack",
+                  "value": "+4",
+                  "grade": "Rare",
+                  "icon": "https://assets.playnccdn.com/static-aion2-gamedata/resources/Icon_Item_Usable_Enchant_MagicStone_A_c_002.png"
+                },
+                {
+                  "name": "HP",
+                  "value": "+45",
+                  "grade": "Common",
+                  "icon": "https://assets.playnccdn.com/static-aion2-gamedata/resources/Icon_Item_Usable_Enchant_MagicStone_A_c_002.png"
+                },
+                {
+                  "name": "MP",
+                  "value": "+23",
+                  "grade": "Common",
+                  "icon": "https://assets.playnccdn.com/static-aion2-gamedata/resources/Icon_Item_Usable_Enchant_MagicStone_A_c_002.png"
+                }
+              ],
+              "godSlots": 0,
+              "godStones": []
+            }
+          },
+          {
+            "slot": "Amulet",
+            "slotPos": 22,
+            "id": 311040001,
+            "name": "Revelation Amulet",
+            "grade": "Legend",
+            "enchant": 6,
+            "exceed": 0,
+            "itemLevel": 36,
+            "icon": "https://assets.playnccdn.com/static-aion2-gamedata/resources/Icon_Item_Craft_Conversion_Crystal_L_lv4_01.png",
+            "detail": {
+              "category": "Amulet",
+              "equipLevel": 1,
+              "maxEnchant": 10,
+              "maxExceed": null,
+              "soulBind": "100",
+              "main": [
+                {
+                  "name": "Penetration",
+                  "value": "400",
+                  "extra": "180",
+                  "min": null
+                },
+                {
+                  "name": "Power Shard Damage Bonus",
+                  "value": "10",
+                  "extra": "18",
+                  "min": null
+                },
+                {
+                  "name": "Weapon Damage Boost",
+                  "value": "7.5%",
+                  "extra": "0%",
+                  "min": null
+                }
+              ],
+              "sub": [],
+              "subSkills": [],
+              "subSkillMax": 0,
+              "desc": "An amulet granted only to those who follow the revelation.\nCan be enhanced with Amulet Enhance Scroll acquired through Monolith Resonance.\nCan be upgraded via Substance Morph after enhancing it 10 times.",
+              "set": null,
+              "magicSlots": 0,
+              "magicStones": [],
+              "godSlots": 0,
+              "godStones": []
+            }
+          },
+          {
+            "slot": "Rune 1",
+            "slotPos": 23,
+            "id": 310900001,
+            "name": "Clash Rune",
+            "grade": "Special",
+            "enchant": 4,
+            "exceed": 0,
+            "itemLevel": 40,
+            "icon": "https://assets.playnccdn.com/static-aion2-gamedata/resources/Icon_Acc_Rune_R_002.png",
+            "detail": {
+              "category": "Rune",
+              "equipLevel": 10,
+              "maxEnchant": 10,
+              "maxExceed": null,
+              "soulBind": "100",
+              "main": [
+                {
+                  "name": "Combat Speed",
+                  "value": "1%",
+                  "extra": "0%",
+                  "min": null
+                },
+                {
+                  "name": "Penetration",
+                  "value": "100",
+                  "extra": null,
+                  "min": null
+                },
+                {
+                  "name": "Multi-hit Chance",
+                  "value": "1%",
+                  "extra": "0%",
+                  "min": null
+                },
+                {
+                  "name": "PvE Damage Boost",
+                  "value": "0.5%",
+                  "extra": "1%",
+                  "min": null
+                },
+                {
+                  "name": "PvE Damage Tolerance",
+                  "value": "0.5%",
+                  "extra": "2%",
+                  "min": null
+                }
+              ],
+              "sub": [],
+              "subSkills": [],
+              "subSkillMax": 0,
+              "desc": null,
+              "set": null,
+              "magicSlots": 0,
+              "magicStones": [],
+              "godSlots": 0,
+              "godStones": []
+            }
+          },
+          {
+            "slot": "Rune 2",
+            "slotPos": 24,
+            "id": 310900001,
+            "name": "Clash Rune",
+            "grade": "Special",
+            "enchant": 4,
+            "exceed": 0,
+            "itemLevel": 40,
+            "icon": "https://assets.playnccdn.com/static-aion2-gamedata/resources/Icon_Acc_Rune_R_002.png",
+            "detail": {
+              "category": "Rune",
+              "equipLevel": 10,
+              "maxEnchant": 10,
+              "maxExceed": null,
+              "soulBind": "100",
+              "main": [
+                {
+                  "name": "Combat Speed",
+                  "value": "1%",
+                  "extra": "0%",
+                  "min": null
+                },
+                {
+                  "name": "Penetration",
+                  "value": "100",
+                  "extra": null,
+                  "min": null
+                },
+                {
+                  "name": "Multi-hit Chance",
+                  "value": "1%",
+                  "extra": "0%",
+                  "min": null
+                },
+                {
+                  "name": "PvE Damage Boost",
+                  "value": "0.5%",
+                  "extra": "1%",
+                  "min": null
+                },
+                {
+                  "name": "PvE Damage Tolerance",
+                  "value": "0.5%",
+                  "extra": "2%",
+                  "min": null
+                }
+              ],
+              "sub": [],
+              "subSkills": [],
+              "subSkillMax": 0,
+              "desc": null,
+              "set": null,
+              "magicSlots": 0,
+              "magicStones": [],
+              "godSlots": 0,
+              "godStones": []
+            }
+          },
+          {
+            "slot": "Arcana 1",
+            "slotPos": 41,
+            "id": 810160001,
+            "name": "Chalice of Vigor",
+            "grade": "Common",
+            "enchant": 0,
+            "exceed": 0,
+            "itemLevel": 20,
+            "icon": "https://assets.playnccdn.com/static-aion2-gamedata/resources/Icon_Arcana_Card_Grail_u_PveSet2.png",
+            "detail": {
+              "category": "Chalice",
+              "equipLevel": 45,
+              "maxEnchant": 2,
+              "maxExceed": null,
+              "soulBind": "100",
+              "main": [
+                {
+                  "name": "Time [Siel]",
+                  "value": "8",
+                  "extra": null,
+                  "min": null
+                }
+              ],
+              "sub": [],
+              "subSkills": [
+                {
+                  "name": "Spinning Strike",
+                  "level": 1,
+                  "icon": "https://assets.playnccdn.com/static-aion2-gamedata/resources/ICON_CH_SKILL_029.png",
+                  "added": false
+                }
+              ],
+              "subSkillMax": 1,
+              "desc": null,
+              "set": {
+                "name": "Primal Vigor",
+                "equipped": 3,
+                "items": [
+                  {
+                    "name": "Chalice of Vigor",
+                    "equipped": true
+                  },
+                  {
+                    "name": "Parchment of Vigor",
+                    "equipped": true
+                  },
+                  {
+                    "name": "Compass of Vigor",
+                    "equipped": false
+                  },
+                  {
+                    "name": "Bell of Vigor",
+                    "equipped": false
+                  },
+                  {
+                    "name": "Mirror of Vigor",
+                    "equipped": true
+                  }
+                ],
+                "bonuses": [
+                  {
+                    "degree": 2,
+                    "text": [
+                      "+60 PvE Attack when HP is 70% or more"
+                    ]
+                  },
+                  {
+                    "degree": 4,
+                    "text": [
+                      "+150 PvE Attack when HP is 70% or more"
+                    ]
+                  }
+                ]
+              },
+              "magicSlots": 0,
+              "magicStones": [],
+              "godSlots": 0,
+              "godStones": []
+            }
+          },
+          {
+            "slot": "Arcana 2",
+            "slotPos": 42,
+            "id": 810260001,
+            "name": "Parchment of Vigor",
+            "grade": "Common",
+            "enchant": 0,
+            "exceed": 0,
+            "itemLevel": 20,
+            "icon": "https://assets.playnccdn.com/static-aion2-gamedata/resources/Icon_Arcana_Card_Parchment_u_PveSet2.png",
+            "detail": {
+              "category": "Parchment",
+              "equipLevel": 45,
+              "maxEnchant": 2,
+              "maxExceed": null,
+              "soulBind": "100",
+              "main": [
+                {
+                  "name": "Life [Yustiel]",
+                  "value": "8",
+                  "extra": null,
+                  "min": null
+                }
+              ],
+              "sub": [],
+              "subSkills": [
+                {
+                  "name": "Rushing Smash",
+                  "level": 1,
+                  "icon": "https://assets.playnccdn.com/static-aion2-gamedata/resources/ICON_CH_SKILL_009.png",
+                  "added": false
+                }
+              ],
+              "subSkillMax": 1,
+              "desc": null,
+              "set": {
+                "name": "Primal Vigor",
+                "equipped": 3,
+                "items": [
+                  {
+                    "name": "Chalice of Vigor",
+                    "equipped": true
+                  },
+                  {
+                    "name": "Parchment of Vigor",
+                    "equipped": true
+                  },
+                  {
+                    "name": "Compass of Vigor",
+                    "equipped": false
+                  },
+                  {
+                    "name": "Bell of Vigor",
+                    "equipped": false
+                  },
+                  {
+                    "name": "Mirror of Vigor",
+                    "equipped": true
+                  }
+                ],
+                "bonuses": [
+                  {
+                    "degree": 2,
+                    "text": [
+                      "+60 PvE Attack when HP is 70% or more"
+                    ]
+                  },
+                  {
+                    "degree": 4,
+                    "text": [
+                      "+150 PvE Attack when HP is 70% or more"
+                    ]
+                  }
+                ]
+              },
+              "magicSlots": 0,
+              "magicStones": [],
+              "godSlots": 0,
+              "godStones": []
+            }
+          },
+          {
+            "slot": "Arcana 3",
+            "slotPos": 43,
+            "id": 810350002,
+            "name": "Compass of Magic",
+            "grade": "Rare",
+            "enchant": 0,
+            "exceed": 0,
+            "itemLevel": 40,
+            "icon": "https://assets.playnccdn.com/static-aion2-gamedata/resources/Icon_Arcana_Card_Compass_u_DefenceSet2.png",
+            "detail": {
+              "category": "Compass",
+              "equipLevel": 45,
+              "maxEnchant": 3,
+              "maxExceed": null,
+              "soulBind": "100",
+              "main": [
+                {
+                  "name": "Death [Triniel]",
+                  "value": "12",
+                  "extra": null,
+                  "min": null
+                }
+              ],
+              "sub": [],
+              "subSkills": [
+                {
+                  "name": "Recuperation",
+                  "level": 1,
+                  "icon": "https://assets.playnccdn.com/static-aion2-gamedata/resources/ICON_CH_SKILL_012.png",
+                  "added": false
+                },
+                {
+                  "name": "Impactful Crush",
+                  "level": 1,
+                  "icon": "https://assets.playnccdn.com/static-aion2-gamedata/resources/ICON_CH_SKILL_006.png",
+                  "added": false
+                }
+              ],
+              "subSkillMax": 2,
+              "desc": null,
+              "set": {
+                "name": "Magic Armor",
+                "equipped": 2,
+                "items": [
+                  {
+                    "name": "Chalice of Magic",
+                    "equipped": false
+                  },
+                  {
+                    "name": "Parchment of Magic",
+                    "equipped": false
+                  },
+                  {
+                    "name": "Compass of Magic",
+                    "equipped": true
+                  },
+                  {
+                    "name": "Bell of Magic",
+                    "equipped": true
+                  },
+                  {
+                    "name": "Mirror of Magic",
+                    "equipped": false
+                  }
+                ],
+                "bonuses": [
+                  {
+                    "degree": 2,
+                    "text": [
+                      "Restores 1,500 MP when MP is 20% or less [Cooldown: 30s]"
+                    ]
+                  },
+                  {
+                    "degree": 4,
+                    "text": [
+                      "+1,000 PvE Defense when MP is 50% or more"
+                    ]
+                  }
+                ]
+              },
+              "magicSlots": 0,
+              "magicStones": [],
+              "godSlots": 0,
+              "godStones": []
+            }
+          },
+          {
+            "slot": "Arcana 4",
+            "slotPos": 44,
+            "id": 810460002,
+            "name": "Bell of Magic",
+            "grade": "Common",
+            "enchant": 0,
+            "exceed": 0,
+            "itemLevel": 20,
+            "icon": "https://assets.playnccdn.com/static-aion2-gamedata/resources/Icon_Arcana_Card_Bell_u_DefenceSet2.png",
+            "detail": {
+              "category": "Bell",
+              "equipLevel": 45,
+              "maxEnchant": 2,
+              "maxExceed": null,
+              "soulBind": "100",
+              "main": [
+                {
+                  "name": "Destruction [Zikel]",
+                  "value": "8",
+                  "extra": null,
+                  "min": null
+                }
+              ],
+              "sub": [],
+              "subSkills": [
+                {
+                  "name": "Protection Circle",
+                  "level": 1,
+                  "icon": "https://assets.playnccdn.com/static-aion2-gamedata/resources/ICON_CH_SKILL_Passive_003.png",
+                  "added": false
+                }
+              ],
+              "subSkillMax": 1,
+              "desc": null,
+              "set": {
+                "name": "Magic Armor",
+                "equipped": 2,
+                "items": [
+                  {
+                    "name": "Chalice of Magic",
+                    "equipped": false
+                  },
+                  {
+                    "name": "Parchment of Magic",
+                    "equipped": false
+                  },
+                  {
+                    "name": "Compass of Magic",
+                    "equipped": true
+                  },
+                  {
+                    "name": "Bell of Magic",
+                    "equipped": true
+                  },
+                  {
+                    "name": "Mirror of Magic",
+                    "equipped": false
+                  }
+                ],
+                "bonuses": [
+                  {
+                    "degree": 2,
+                    "text": [
+                      "Restores 1,500 MP when MP is 20% or less [Cooldown: 30s]"
+                    ]
+                  },
+                  {
+                    "degree": 4,
+                    "text": [
+                      "+1,000 PvE Defense when MP is 50% or more"
+                    ]
+                  }
+                ]
+              },
+              "magicSlots": 0,
+              "magicStones": [],
+              "godSlots": 0,
+              "godStones": []
+            }
+          },
+          {
+            "slot": "Arcana 5",
+            "slotPos": 45,
+            "id": 810560001,
+            "name": "Mirror of Vigor",
+            "grade": "Common",
+            "enchant": 0,
+            "exceed": 0,
+            "itemLevel": 20,
+            "icon": "https://assets.playnccdn.com/static-aion2-gamedata/resources/Icon_Arcana_Card_Mirror_u_PveSet2.png",
+            "detail": {
+              "category": "Mirror",
+              "equipLevel": 45,
+              "maxEnchant": 2,
+              "maxExceed": null,
+              "soulBind": "100",
+              "main": [
+                {
+                  "name": "Illusion [Kaisinel]",
+                  "value": "8",
+                  "extra": null,
+                  "min": null
+                }
+              ],
+              "sub": [],
+              "subSkills": [
+                {
+                  "name": "Earth's Promise",
+                  "level": 1,
+                  "icon": "https://assets.playnccdn.com/static-aion2-gamedata/resources/ICON_CH_SKILL_Passive_008.png",
+                  "added": false
+                }
+              ],
+              "subSkillMax": 1,
+              "desc": null,
+              "set": {
+                "name": "Primal Vigor",
+                "equipped": 3,
+                "items": [
+                  {
+                    "name": "Chalice of Vigor",
+                    "equipped": true
+                  },
+                  {
+                    "name": "Parchment of Vigor",
+                    "equipped": true
+                  },
+                  {
+                    "name": "Compass of Vigor",
+                    "equipped": false
+                  },
+                  {
+                    "name": "Bell of Vigor",
+                    "equipped": false
+                  },
+                  {
+                    "name": "Mirror of Vigor",
+                    "equipped": true
+                  }
+                ],
+                "bonuses": [
+                  {
+                    "degree": 2,
+                    "text": [
+                      "+60 PvE Attack when HP is 70% or more"
+                    ]
+                  },
+                  {
+                    "degree": 4,
+                    "text": [
+                      "+150 PvE Attack when HP is 70% or more"
+                    ]
+                  }
+                ]
+              },
+              "magicSlots": 0,
+              "magicStones": [],
+              "godSlots": 0,
+              "godStones": []
+            }
           }
         ],
-        "updatedAt": "2026-11-13T13:19:00.000Z"
+        "skills": [
+          {
+            "id": 18010000,
+            "name": "Onslaught",
+            "category": "Active",
+            "level": 14,
+            "icon": "https://assets.playnccdn.com/static-aion2-gamedata/resources/ICON_CH_SKILL_001.png",
+            "equip": true,
+            "acquired": true
+          },
+          {
+            "id": 18040000,
+            "name": "Incandescent Blow",
+            "category": "Active",
+            "level": 14,
+            "icon": "https://assets.playnccdn.com/static-aion2-gamedata/resources/ICON_CH_SKILL_004.png",
+            "equip": true,
+            "acquired": true
+          },
+          {
+            "id": 18090000,
+            "name": "Rushing Smash",
+            "category": "Active",
+            "level": 14,
+            "icon": "https://assets.playnccdn.com/static-aion2-gamedata/resources/ICON_CH_SKILL_009.png",
+            "equip": true,
+            "acquired": true
+          },
+          {
+            "id": 18060000,
+            "name": "Impactful Crush",
+            "category": "Active",
+            "level": 14,
+            "icon": "https://assets.playnccdn.com/static-aion2-gamedata/resources/ICON_CH_SKILL_006.png",
+            "equip": true,
+            "acquired": true
+          },
+          {
+            "id": 18100000,
+            "name": "Dark Crush",
+            "category": "Active",
+            "level": 14,
+            "icon": "https://assets.playnccdn.com/static-aion2-gamedata/resources/ICON_CH_SKILL_010.png",
+            "equip": true,
+            "acquired": true
+          },
+          {
+            "id": 18300000,
+            "name": "Gust Rampage",
+            "category": "Active",
+            "level": 13,
+            "icon": "https://assets.playnccdn.com/static-aion2-gamedata/resources/ICON_CH_SKILL_030.png",
+            "equip": true,
+            "acquired": true
+          },
+          {
+            "id": 18150000,
+            "name": "Heat Wave Blow",
+            "category": "Active",
+            "level": 12,
+            "icon": "https://assets.playnccdn.com/static-aion2-gamedata/resources/ICON_CH_SKILL_015.png",
+            "equip": true,
+            "acquired": true
+          },
+          {
+            "id": 18120000,
+            "name": "Recuperation",
+            "category": "Active",
+            "level": 15,
+            "icon": "https://assets.playnccdn.com/static-aion2-gamedata/resources/ICON_CH_SKILL_013.png",
+            "equip": true,
+            "acquired": true
+          },
+          {
+            "id": 18210000,
+            "name": "Tremor Crush",
+            "category": "Active",
+            "level": 13,
+            "icon": "https://assets.playnccdn.com/static-aion2-gamedata/resources/ICON_CH_SKILL_021.png",
+            "equip": true,
+            "acquired": true
+          },
+          {
+            "id": 18080000,
+            "name": "Wave Blow",
+            "category": "Active",
+            "level": 13,
+            "icon": "https://assets.playnccdn.com/static-aion2-gamedata/resources/ICON_CH_SKILL_008.png",
+            "equip": true,
+            "acquired": true
+          },
+          {
+            "id": 18290000,
+            "name": "Spinning Strike",
+            "category": "Active",
+            "level": 16,
+            "icon": "https://assets.playnccdn.com/static-aion2-gamedata/resources/ICON_CH_SKILL_029.png",
+            "equip": true,
+            "acquired": true
+          },
+          {
+            "id": 18200000,
+            "name": "Defiance",
+            "category": "Active",
+            "level": 1,
+            "icon": "https://assets.playnccdn.com/static-aion2-gamedata/resources/ICON_CO_SKILL_002.png",
+            "equip": false,
+            "acquired": true
+          },
+          {
+            "id": 18710000,
+            "name": "Blessing of Life",
+            "category": "Passive",
+            "level": 11,
+            "icon": "https://assets.playnccdn.com/static-aion2-gamedata/resources/ICON_CH_SKILL_Passive_012.png",
+            "equip": false,
+            "acquired": true
+          },
+          {
+            "id": 18720000,
+            "name": "Crossguard",
+            "category": "Passive",
+            "level": 9,
+            "icon": "https://assets.playnccdn.com/static-aion2-gamedata/resources/ICON_CH_SKILL_Passive_002.png",
+            "equip": false,
+            "acquired": true
+          },
+          {
+            "id": 18730000,
+            "name": "Protection Circle",
+            "category": "Passive",
+            "level": 8,
+            "icon": "https://assets.playnccdn.com/static-aion2-gamedata/resources/ICON_CH_SKILL_Passive_001.png",
+            "equip": false,
+            "acquired": true
+          },
+          {
+            "id": 18740000,
+            "name": "Inspiring Spell",
+            "category": "Passive",
+            "level": 14,
+            "icon": "https://assets.playnccdn.com/static-aion2-gamedata/resources/ICON_CH_SKILL_Passive_011.png",
+            "equip": false,
+            "acquired": true
+          },
+          {
+            "id": 18750000,
+            "name": "Attack Preparation",
+            "category": "Passive",
+            "level": 14,
+            "icon": "https://assets.playnccdn.com/static-aion2-gamedata/resources/ICON_GL_SKILL_Passive_005.png",
+            "equip": false,
+            "acquired": true
+          },
+          {
+            "id": 18760000,
+            "name": "Impact Hit",
+            "category": "Passive",
+            "level": 14,
+            "icon": "https://assets.playnccdn.com/static-aion2-gamedata/resources/ICON_GL_SKILL_Passive_006.png",
+            "equip": false,
+            "acquired": true
+          },
+          {
+            "id": 18770000,
+            "name": "Raging Spell",
+            "category": "Passive",
+            "level": 15,
+            "icon": "https://assets.playnccdn.com/static-aion2-gamedata/resources/ICON_CH_SKILL_Passive_007.png",
+            "equip": false,
+            "acquired": true
+          },
+          {
+            "id": 18780000,
+            "name": "Earth's Promise",
+            "category": "Passive",
+            "level": 5,
+            "icon": "https://assets.playnccdn.com/static-aion2-gamedata/resources/ICON_CH_SKILL_Passive_010.png",
+            "equip": false,
+            "acquired": true
+          },
+          {
+            "id": 18790000,
+            "name": "Survival Willpower",
+            "category": "Passive",
+            "level": 14,
+            "icon": "https://assets.playnccdn.com/static-aion2-gamedata/resources/ICON_GL_SKILL_Passive_009.png",
+            "equip": false,
+            "acquired": true
+          },
+          {
+            "id": 18800000,
+            "name": "Wind's Promise",
+            "category": "Passive",
+            "level": 14,
+            "icon": "https://assets.playnccdn.com/static-aion2-gamedata/resources/ICON_CH_SKILL_Passive_008.png",
+            "equip": false,
+            "acquired": true
+          },
+          {
+            "id": 18220000,
+            "name": "Obliterate",
+            "category": "Dp",
+            "level": 0,
+            "icon": "https://assets.playnccdn.com/static-aion2-gamedata/resources/ICON_CH_SKILL_022.png",
+            "equip": false,
+            "acquired": true
+          },
+          {
+            "id": 18190000,
+            "name": "Undefeated Mantra",
+            "category": "Dp",
+            "level": 15,
+            "icon": "https://assets.playnccdn.com/static-aion2-gamedata/resources/ICON_CH_SKILL_019.png",
+            "equip": true,
+            "acquired": true
+          },
+          {
+            "id": 18140000,
+            "name": "Focused Defense",
+            "category": "Dp",
+            "level": 0,
+            "icon": "https://assets.playnccdn.com/static-aion2-gamedata/resources/ICON_CH_SKILL_014.png",
+            "equip": false,
+            "acquired": false
+          },
+          {
+            "id": 18160000,
+            "name": "Sprint Mantra",
+            "category": "Dp",
+            "level": 2,
+            "icon": "https://assets.playnccdn.com/static-aion2-gamedata/resources/ICON_CH_SKILL_016.png",
+            "equip": true,
+            "acquired": true
+          },
+          {
+            "id": 18130000,
+            "name": "Fracturing Blow",
+            "category": "Dp",
+            "level": 0,
+            "icon": "https://assets.playnccdn.com/static-aion2-gamedata/resources/ICON_CH_SKILL_043.png",
+            "equip": false,
+            "acquired": false
+          },
+          {
+            "id": 18330000,
+            "name": "Marchutan's Wrath",
+            "category": "Dp",
+            "level": 1,
+            "icon": "https://assets.playnccdn.com/static-aion2-gamedata/resources/ICON_CH_SKILL_033.png",
+            "equip": true,
+            "acquired": true
+          },
+          {
+            "id": 18240000,
+            "name": "Impeding Authority",
+            "category": "Dp",
+            "level": 0,
+            "icon": "https://assets.playnccdn.com/static-aion2-gamedata/resources/ICON_CH_SKILL_024.png",
+            "equip": false,
+            "acquired": false
+          },
+          {
+            "id": 18230000,
+            "name": "Ensnaring Mark",
+            "category": "Dp",
+            "level": 0,
+            "icon": "https://assets.playnccdn.com/static-aion2-gamedata/resources/ICON_CH_SKILL_023.png",
+            "equip": false,
+            "acquired": false
+          },
+          {
+            "id": 18170000,
+            "name": "Healing Touch",
+            "category": "Dp",
+            "level": 0,
+            "icon": "https://assets.playnccdn.com/static-aion2-gamedata/resources/ICON_CH_SKILL_017.png",
+            "equip": false,
+            "acquired": false
+          },
+          {
+            "id": 18250000,
+            "name": "Power of the Storm",
+            "category": "Dp",
+            "level": 10,
+            "icon": "https://assets.playnccdn.com/static-aion2-gamedata/resources/ICON_CH_SKILL_025.png",
+            "equip": true,
+            "acquired": true
+          },
+          {
+            "id": 18420000,
+            "name": "Guardian Blessing",
+            "category": "Dp",
+            "level": 0,
+            "icon": "https://assets.playnccdn.com/static-aion2-gamedata/resources/ICON_CH_SKILL_042.png",
+            "equip": false,
+            "acquired": false
+          },
+          {
+            "id": 18700000,
+            "name": "Assault Shock",
+            "category": "Dp",
+            "level": 0,
+            "icon": "https://assets.playnccdn.com/static-aion2-gamedata/resources/ICON_CO_SKILL_003.png",
+            "equip": false,
+            "acquired": false
+          },
+          {
+            "id": 18440000,
+            "name": "Barrier Spell",
+            "category": "Dp",
+            "level": 0,
+            "icon": "https://assets.playnccdn.com/static-aion2-gamedata/resources/ICON_CH_SKILL_044.png",
+            "equip": false,
+            "acquired": false
+          }
+        ],
+        "pet": {
+          "name": "Lesser Fire Spirit",
+          "level": 3,
+          "icon": "https://assets.playnccdn.com/static-aion2-gamedata/resources/UT_Vehicle_Portrait_FireEle_01.png"
+        },
+        "wing": {
+          "name": "Ultimate Daeva Wings",
+          "grade": "Unique",
+          "enchant": 0,
+          "icon": "https://assets.playnccdn.com/static-aion2-gamedata/resources/Icon_WingB_001A.png"
+        },
+        "wingSkin": {
+          "name": null,
+          "grade": null,
+          "enchant": 0,
+          "icon": null
+        },
+        "updatedAt": "2026-11-14T09:31:05.352Z"
       },
-      "energy": null
+      "energy": null,
+      "ref": {
+        "characterId": "nOesda0HA_kaMIdoYp76sygA9gK6uTY16SCtSJ31wwE=",
+        "serverId": 1301
+      }
     },
     {
       "id": "buffatam",
