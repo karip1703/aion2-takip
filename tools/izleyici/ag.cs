@@ -187,6 +187,8 @@ public static class A2Net {
           int caplen = Marshal.ReadInt32(hdr, 8);
           var pkt = new byte[caplen];
           Marshal.Copy(data, pkt, 0, caplen);
+          // Yakalama anı (Npcap zaman damgası): ping, paketin işlendiği ana değil geldiği ana göre ölçülsün
+          CapMs = (long)Marshal.ReadInt32(hdr) * 1000 + Marshal.ReadInt32(hdr, 4) / 1000;
           try { OnFrame(pkt, link, conns); } catch (Exception ex) { Error = "işleme: " + ex.Message; }
         }
         FlushStale();
@@ -474,6 +476,7 @@ public static class A2Net {
       if (o0 == 0x04 && o1 == 0x38) Damage(b, op + 2, end);
       else if (o0 == 0x05 && o1 == 0x38) Dot(b, op + 2, end);
       else if (o0 == 0x06 && o1 == 0x38) PartyScope(b, op + 2, end);
+      else if (o0 == 0x03 && o1 == 0x36 && op + 12 <= end && b[op + 2] == 0 && b[op + 3] == 0) Ping(BitConverter.ToInt64(b, op + 4));
       else if (((o0 == 0x13 && o1 == 0x92) || (o0 == 0x1D && o1 == 0x97)) && end - op == 4 && b[op + 2] == 0 && b[op + 3] == 0) PartyLeft();
       else if ((o0 == 0x0B || o0 == 0x0C) && o1 == 0x61) Energy(b, op + 2, end, o0 == 0x0B);
       else if (o0 == 0x42 && o1 == 0x36) Death(b, op + 2, end, o0);   // (eski 41 36 artık doğuş: kabul edilmez)
@@ -882,10 +885,33 @@ public static class A2Net {
   }
   public static void ResetFight() { lock (Lock) { if (fight != null && fight.Total > 0) { history.Insert(0, fight); if (history.Count > 6) history.RemoveAt(6); } fight = null; } }
 
+  // ---- Ping: sunucu, oyunun ping isteğindeki zamanı geri yollar: 03 36 00 00 <istemci zamanı i64>
+  // Yeni istemci: Windows performans sayacı (ms, açılıştan beri) + Unreal'ın sabit 16.777.216 sn'si → bu bilgisayarın sayacıyla doğrudan karşılaştırılır.
+  // Eski biçim: .NET duvar saati (ms, 0001-01-01'den beri).
+  public static long CapMs;                       // son yakalanan paketin zamanı (Unix ms)
+  public static int PingMs = -1; public static long PingAt;
+  static readonly List<int> pings = new List<int>();
+  static void Ping(long clientSent) {
+    long now = NowMs(), arrival = CapMs > 0 && Math.Abs(now - CapMs) < 60000 ? CapMs : now;
+    long rtt = -1;
+    long sentCounter = clientSent - 16777216000L;
+    if (sentCounter > 0) {
+      long qpcMs = Stopwatch.GetTimestamp() * 1000 / Stopwatch.Frequency;
+      if (sentCounter <= qpcMs) rtt = arrival - (sentCounter + (now - qpcMs));
+    }
+    if (rtt < 1 || rtt > 9999) { long wall = clientSent - 62135596800000L; rtt = arrival - wall; }
+    if (rtt < 1 || rtt > 9999) return;
+    lock (Lock) {
+      pings.Add((int)rtt); if (pings.Count > 5) pings.RemoveAt(0);
+      var sorted = new List<int>(pings); sorted.Sort();
+      PingMs = sorted[sorted.Count / 2]; PingAt = now;      // son 5 ölçümün ortancası (ani sıçramalar yumuşasın)
+    }
+  }
+
   // ---- Parti listesi: 02 97 <parti anahtarı u32> <ad> <boyut> <zindan u32> <2> <lider dbid u64> <3> <sayı varint> <üyeler…> ----
   // Üye: <bayrak> <slot> <dbid u64 (üst 16 bit sunucu)> <ad uzunluğu> <ad> <sınıf u32> <seviye u32> <GS u32> … <sunucu u16> <u16> <etiket> <CP u64>
   // GS ile CP arası değişken genişlikte → CP, üyenin sunucu numarasından çapalanarak bulunur; sonraki üye başlığından yeniden yakalanır.
-  class Member { public int Slot, Cls, Level, Gs, Server; public long Cp; public ulong Dbid; public string Name; public bool Leader; }
+  class Member { public int Slot, Cls, Level, Gs, Server, Flag; public long Cp; public ulong Dbid; public string Name; public bool Leader; }
   static List<Member> roster = new List<Member>();
   static uint rosterKey; static int rosterDungeon; static long rosterAt; static string rosterName = "";
 
@@ -941,7 +967,7 @@ public static class A2Net {
     var list = new List<Member>();
     for (int k = 0; k < count; k++) {
       if (o + 20 > end) break;
-      int slot = d[o + 1]; o += 2;
+      int flag = d[o], slot = d[o + 1]; o += 2;   // bayrak: 0x02 = hazır (canlı listeyle uyumlu, hazırlık kontrolünde doğrulanmalı)
       ulong dbid = BitConverter.ToUInt64(d, o); o += 8;
       int server = (int)(dbid >> 48);
       int len = d[o++];
@@ -967,7 +993,7 @@ public static class A2Net {
       if (o + 8 > end) break;
       ulong cp = BitConverter.ToUInt64(d, o); o += 8;
       if (cp > 100000000) break;
-      var m = new Member(); m.Slot = slot; m.Dbid = dbid; m.Server = server; m.Name = name; m.Cls = cls; m.Level = level; m.Gs = gs; m.Cp = (long)cp; m.Leader = dbid == leader;
+      var m = new Member(); m.Slot = slot; m.Dbid = dbid; m.Server = server; m.Name = name; m.Cls = cls; m.Level = level; m.Gs = gs; m.Cp = (long)cp; m.Leader = dbid == leader; m.Flag = flag;
       list.Add(m);
       if (slot >= count) break;
       int nx2 = FindMemberWithin(d, o, end, 32, slot + 1);
@@ -994,7 +1020,7 @@ public static class A2Net {
       var m = list[i];
       if (i > 0) sb.Append(',');
       sb.Append("{\"name\":").Append(J(m.Name)).Append(",\"cls\":").Append(m.Cls).Append(",\"level\":").Append(m.Level).Append(",\"gs\":").Append(m.Gs)
-        .Append(",\"cp\":").Append(m.Cp).Append(",\"server\":").Append(m.Server).Append(",\"leader\":").Append(m.Leader ? "true" : "false")
+        .Append(",\"cp\":").Append(m.Cp).Append(",\"server\":").Append(m.Server).Append(",\"leader\":").Append(m.Leader ? "true" : "false").Append(",\"ready\":").Append((m.Flag & 0x02) != 0 ? "true" : "false").Append(",\"flag\":").Append(m.Flag)
         .Append(",\"self\":").Append(m.Name == (SelfName.Length > 0 ? SelfName : SelfHint) ? "true" : "false").Append('}');
     }
     return sb.Append("]}").ToString();
@@ -1107,6 +1133,7 @@ public static class A2Net {
         .Append(",\"known\":{\"players\":").Append(names.Count).Append(",\"npcs\":").Append(mobCode.Count).Append("}")
         .Append(",\"energy\":").Append(EnergyNatural >= 0 ? "{\"natural\":" + EnergyNatural + ",\"bonus\":" + EnergyBonus + ",\"at\":" + EnergyAt + "}" : "null")
         .Append(",\"party\":").Append(party.Count)
+        .Append(",\"ping\":").Append(PingMs > 0 && NowMs() - PingAt < 30000 ? PingMs.ToString() : "null")
         .Append(",\"roster\":").Append(RosterJson())
         .Append(",\"fight\":").Append(FightJson(fight, now))
         .Append(",\"history\":[");
@@ -1143,7 +1170,7 @@ public static class A2Net {
   public static void TestSegment(uint seq, byte[] d) { lock (Lock) { Segment("seg", seq, d); } }
   public static void TestSkipGaps() { lock (Lock) { foreach (var s in streams.Values) SkipGap(s); } }
   public static void ResetAll() {
-    lock (Lock) { streams.Clear(); names.Clear(); mobCode.Clear(); hpCur.Clear(); hpMax.Clear(); lastBossKill.Clear(); fight = null; history.Clear(); scalar.Clear(); playerClass.Clear(); party.Clear(); roster = new List<Member>(); rosterKey = 0; }
+    lock (Lock) { streams.Clear(); names.Clear(); mobCode.Clear(); hpCur.Clear(); hpMax.Clear(); lastBossKill.Clear(); fight = null; history.Clear(); scalar.Clear(); playerClass.Clear(); party.Clear(); pings.Clear(); PingMs = -1; roster = new List<Member>(); rosterKey = 0; }
     SelfId = 0; SelfName = ""; EnergyNatural = -1; EnergyBonus = -1; string e; while (Events.TryDequeue(out e)) { }
     Packets = Bytes = Frames = Bundles = Resyncs = Gaps = 0;
   }

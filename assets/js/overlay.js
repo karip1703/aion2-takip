@@ -58,6 +58,7 @@ const DEFAULTS = {
   dpsEnergy: true,    // altta oyundaki karakterin enerjisi
   partyCols: 'both',  // parti görünümü: both | cp | gs
   partyAuto: true,    // savaş yokken partiyi göster
+  partyLevel: false,  // parti satırında seviye
   fixed: {},          // { bileşen: true } → yükseklik elle ayarlandı (içeriğe oturtma kapalı)
 };
 const prefKey = () => `kt.overlay.v2.${st.user || 'misafir'}`;
@@ -97,6 +98,12 @@ const dpsView = { fight: 0, detail: null, tab: 'auto', lastNo: 0 };
 // EU sunucuları (parti listesinde kısaltma: Siel → SIE)
 const SERVERS = {"1301":"Siel","1302":"Nezekan","1303":"Vaizel","1304":"Kaisinel","1305":"Yustiel","1306":"Ariel","1307":"Fregion","1308":"Meslamtaeda","1309":"Hithanya","1310":"Nania","1311":"Tahabata","1312":"Luteros","1313":"Phernos","1314":"Daminu","1315":"Kasika","1316":"Bakarma","1317":"Tsenka","1318":"Kochi","1319":"Ishtar","1320":"Tiamat","1321":"Poeta","1322":"Verteron","1323":"Nathara","1324":"Talisra","1325":"Zumion","1326":"Nahid","1327":"Asahr","1328":"Caelid","1329":"Laveis","1330":"Perion","1331":"Dramata","1332":"Reda","1333":"Auldor","1334":"Vakron","1335":"Narun","1336":"Gartua","1337":"Chloris","1338":"Ione","1339":"Teina","1340":"Dymones","1341":"Bargott","1342":"Atheron","1343":"Ruthilis","1344":"Siliator","1345":"Idris","1346":"Satia","1347":"Estian","1348":"Rahu","1349":"Rhanman","1350":"Hebran","2301":"Israphel","2302":"Zikel","2303":"Triniel","2304":"Lumiel","2305":"Marchutan","2306":"Azphel","2307":"Ereshkigal","2308":"Beritra","2309":"Nemon","2310":"Hadala","2311":"Ludra","2312":"Ulgorn","2313":"Munin","2314":"Odar","2315":"Zemurru","2316":"Kromede","2317":"Quai","2318":"Baba","2319":"Fafnir","2320":"Indnath","2321":"Ishalgen","2322":"Altgard","2323":"Agnita","2324":"Atiel","2325":"Valdemar","2326":"Lagta","2327":"Gerod","2328":"Urd","2329":"Ecco","2330":"Giselle","2331":"Kashapa","2332":"Stof","2333":"Berk","2334":"Nuakum","2335":"Grisilla","2336":"Santras","2337":"Reuben","2338":"Hugo","2339":"Kraki","2340":"Hystan","2341":"Rathman","2342":"Sigebert","2343":"Nazmun","2344":"Gelcos","2345":"Paton","2346":"Pelleir","2347":"Elvida","2348":"Ketu","2349":"Pydeon","2350":"Notun"};
 const srvTag = (id) => (SERVERS[id] ? SERVERS[id].slice(0, 3).toUpperCase() : id ? String(id) : '');
+function pingTag() {
+  const p = net?.ping;
+  if (p == null) return '';
+  const cls = p < 80 ? 'good' : p < 150 ? 'mid' : 'bad';
+  return `<span class="ping ${cls}" title="Sunucuya gecikme (oyunun kendi ping ölçümünden)"><i></i><i></i><i></i><i></i>${p} ms</span>`;
+}
 function viewSwitch(cur) {
   if (!net?.roster) return '';
   const b = (k, label) => `<button type="button" role="radio" data-dpstab="${k}" aria-checked="${cur === k}">${label}</button>`;
@@ -111,29 +118,30 @@ function partyView(rs) {
   const big = cols === 'gs' ? `<b>${nf.format(Math.round(avg('gs')))}</b> <span>ort. GS</span>` : `<b>${kfmt(avg('cp'))}</b> <span>ort. CP</span>`;
   const topKey = cols === 'gs' ? 'gs' : 'cp';
   const top = Math.max(1, ...ms.map((m) => m[topKey] || 0));
-  const head = `<div class="pc-cols"><span></span><span></span>${cols !== 'cp' ? '<span>GS</span>' : ''}${cols !== 'gs' ? '<span>CP</span>' : ''}</div>`;
+  const head = `<div class="pc-cols ${cols === 'both' ? '' : 'one'}"><span></span><span></span>${cols !== 'cp' ? '<span>GS</span>' : ''}${cols !== 'gs' ? '<span>CP</span>' : ''}<span></span></div>`;
   const rows = ms.map((m) => {
     const col = CLASSES[m.cls]?.[2] || '#6f8fb3';
     const me = m.self || (selfName && m.name === selfName);
     return `
       <div class="dq pm ${me ? 'me' : ''} ${cols === 'both' ? '' : 'one'}" style="--c:${col};--w:${((m[topKey] || 0) / top * 100).toFixed(1)}%">
         <span class="dq-ic">${CLASSES[m.cls]?.[0] || '?'}</span>
-        <span class="dq-n">${m.leader ? '<span class="crown" title="Parti lideri">♛</span> ' : ''}${esc(m.name)} <small>${esc(srvTag(m.server))}</small>${m.level ? ` <small>Lv${m.level}</small>` : ''}</span>
+        <span class="dq-n">${m.leader ? '<span class="crown" title="Parti lideri">♛</span> ' : ''}${esc(m.name)} <small>${esc(srvTag(m.server))}</small>${m.level && prefs.partyLevel ? ` <small>Lv${m.level}</small>` : ''}</span>
         ${cols !== 'cp' ? `<span class="dq-p">${nf.format(m.gs)}</span>` : ''}
         ${cols !== 'gs' ? `<span class="dq-d">${kfmt(m.cp)}</span>` : ''}
+        <span class="pm-st ${m.leader ? 'lead' : m.ready ? 'ok' : 'no'}" title="${m.leader ? 'Parti lideri' : m.ready ? 'Hazır' : 'Hazır değil'}">${m.leader ? 'Lider' : m.ready ? '✓' : '✗'}</span>
       </div>`;
   }).join('');
   return `<div class="dh">
-      <div class="dh-top"><span class="dh-time">Parti · ${ms.length} kişi${rs.name && rs.name !== selfName ? ` · ${esc(rs.name)}` : ''}</span>${viewSwitch('party')}</div>
+      <div class="dh-top"><span class="dh-time">Parti · <b class="rdy">${ms.filter((m) => m.ready || m.leader).length}/${ms.length} hazır</b>${rs.name && rs.name !== selfName ? ` · ${esc(rs.name)}` : ''}</span>${viewSwitch('party')}</div>
       <div class="dh-dps">${big}<span class="dh-who">${cols === 'both' ? `ort. GS ${nf.format(Math.round(avg('gs')))}` : ''}</span></div>
-      ${cols === 'both' ? head : ''}
+      ${head}
     </div>${rows}` + energyFoot();
 }
 
 const CLASSES = {
-  11: ['GL', 'Gladiator', '#e0803a'], 12: ['TE', 'Templar', '#c9b24a'], 13: ['AS', 'Assassin', '#b462e0'],
-  14: ['RA', 'Ranger', '#4fbf6a'], 15: ['SO', 'Sorcerer', '#4f8fe8'], 16: ['EL', 'Elementalist', '#3ec6c6'],
-  17: ['CL', 'Cleric', '#e8e2c6'], 18: ['CH', 'Chanter', '#e0a64f'], 19: ['FI', 'Fighter', '#e05a5a'],
+  11: ['GL', 'Gladiator', '#c94a3d'], 12: ['TE', 'Templar (Guardian)', '#3a7de0'], 13: ['AS', 'Assassin', '#7ddc84'],
+  14: ['RA', 'Ranger', '#2e9e4c'], 15: ['SO', 'Sorcerer', '#9b5bd8'], 16: ['EL', 'Elementalist', '#32b8c4'],
+  17: ['CL', 'Cleric', '#d6bf5a'], 18: ['CH', 'Chanter', '#ee8a2c'], 19: ['FI', 'Fighter', '#d6577f'],
 };
 const clsBadge = (cls) => (CLASSES[cls] ? `<span class="cls" style="border-color:${CLASSES[cls][2]};color:${CLASSES[cls][2]}" title="${CLASSES[cls][1]}">${CLASSES[cls][0]}</span>` : '');
 const clsColor = (cls) => (CLASSES[cls] ? `background:${CLASSES[cls][2]}` : '');
@@ -149,7 +157,7 @@ function partySel() {
   return `<select data-partycols>${o('both', 'GS + CP')}${o('cp', 'sadece CP')}${o('gs', 'sadece GS')}</select>`;
 }
 function energyFoot() {
-  if (!prefs.dpsEnergy) return '';
+  if (!prefs.dpsEnergy) return net?.ping != null ? `<div class="dp-foot">${pingTag()}</div>` : '';
   const e = net?.energy, nm = net?.self?.name || net?.self?.hint;
   if (!e) {
     // Oyundan henüz okunmadı: sitedeki kayda göre (zamanla dolan kısım hesaplanır); oyundan gelince kesin değer
@@ -157,9 +165,9 @@ function energyFoot() {
     if (!ch) return '<div class="dp-foot muted">⚡ enerji henüz okunmadı</div>';
     const es = energyState(effEnergy(ch, {}), energyCfg(st.data, ch), Date.now());
     if (!es.known && !es.bonus) return '<div class="dp-foot muted">⚡ enerji girilmemiş</div>';
-    return `<div class="dp-foot" title="Sitedeki kayda göre; oyundan okununca kesin değer gelir"><span class="ef-ic">⚡</span><b>${es.known ? nf.format(es.current) : '?'}</b> <span class="bonus">+${nf.format(es.bonus)}</span> <span class="muted">· ${esc(ch.name)} · site</span></div>`;
+    return `<div class="dp-foot" title="Sitedeki kayda göre; oyundan okununca kesin değer gelir"><span class="ef-ic">⚡</span><b>${es.known ? nf.format(es.current) : '?'}</b> <span class="bonus">+${nf.format(es.bonus)}</span> <span class="muted">· ${esc(ch.name)} · site</span>${pingTag()}</div>`;
   }
-  return `<div class="dp-foot" title="Odyle enerjisi (oyundaki karakter): doğal + ek"><span class="ef-ic">⚡</span><b>${nf.format(e.natural)}</b> <span class="bonus">+${nf.format(e.bonus)}</span>${nm ? ` <span class="muted">· ${esc(nm)}</span>` : ''}</div>`;
+  return `<div class="dp-foot" title="Odyle enerjisi (oyundaki karakter): doğal + ek"><span class="ef-ic">⚡</span><b>${nf.format(e.natural)}</b> <span class="bonus">+${nf.format(e.bonus)}</span>${nm ? ` <span class="muted">· ${esc(nm)}</span>` : ''}${pingTag()}</div>`;
 }
 function dpsModes() {
   const m = prefs.dpsMode;
@@ -251,6 +259,7 @@ const WIDGETS = {
       return `<h4>Sütunlar</h4><div class="row">${chk('dmg', 'Toplam hasar')}${chk('crit', 'Kritik %')}${chk('max', 'En büyük vuruş')}${chk('taken', 'Alınan hasar')}</div>
         <div class="row"><label>Satır ${sel('dpsRows', [4, 6, 8, 12, 16, 24], prefs.dpsRows)}</label>
         <label>Parti: ${partySel()}</label>
+        <label class="chk"><input type="checkbox" data-bool="partyLevel" ${prefs.partyLevel ? 'checked' : ''}> Seviye</label>
         <label class="chk"><input type="checkbox" data-bool="partyAuto" ${prefs.partyAuto ? 'checked' : ''}> Savaş yokken partiyi göster</label>
         <label class="chk"><input type="checkbox" data-bool="dpsEnergy" ${prefs.dpsEnergy ? 'checked' : ''}> Altta enerji</label>
         <label class="chk"><input type="checkbox" data-bool="dpsNamedOnly" ${prefs.dpsNamedOnly ? 'checked' : ''}> Sadece adı bilinenler</label>
