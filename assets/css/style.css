@@ -428,9 +428,9 @@ legend { padding: 0 6px; color: var(--muted); font-size: .85rem; }
 .side-brand { display: flex; gap: 10px; align-items: center; padding: 2px 6px 8px; }
 .side-brand b { display: block; font-size: 1rem; letter-spacing: .2px; }
 .side-brand .muted { display: block; }
-.logo { width: 38px; height: 38px; flex: none; filter: drop-shadow(0 0 6px color-mix(in srgb, var(--accent) 45%, transparent)); }
+.logo { width: 40px; height: auto; flex: none; }
 .side-brand b em { font-style: normal; color: var(--accent); }
-.login-logo { display: block; margin: 0 auto 6px; filter: drop-shadow(0 0 10px color-mix(in srgb, var(--accent) 45%, transparent)); }
+.login-logo { display: block; margin: 0 auto 6px; border-radius: 10px; }
 .nav { display: grid; gap: 2px; }
 .nav .tab {
   display: flex; align-items: center; gap: 11px; width: 100%; text-align: left;
@@ -539,7 +539,7 @@ main { width: 100%; }
 
 /* ---------- Karip Traker teması (logo ile uyumlu) ---------- */
 .login-card h1 { text-align: center; }
-.side { background: linear-gradient(180deg, var(--surface), color-mix(in srgb, var(--surface) 70%, var(--bg))); }
+.side { background: #011831; } /* logonun zemin rengi: logo menüyle kaynaşsın */
 .nav .tab[aria-selected="true"] { background: color-mix(in srgb, var(--accent) 14%, var(--surface-2)); }
 .nav .tab[aria-selected="true"] svg { color: var(--accent); }
 .btn.primary { background: linear-gradient(180deg, var(--accent), var(--accent-2)); }

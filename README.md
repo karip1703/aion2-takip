@@ -1,6 +1,6 @@
 # Karip Traker
 
-<img src="assets/img/logo.svg" width="96" alt="Karip Traker logosu">
+<img src="assets/img/logo.png" width="96" alt="Karip Traker logosu">
 
 AION 2 karakter takip sitesi ve masaüstü uygulaması.
 
