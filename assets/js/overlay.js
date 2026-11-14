@@ -72,6 +72,8 @@ function loadPrefs() {
   try { p = JSON.parse(localStorage.getItem(prefKey()) || 'null'); } catch { /* yoksay */ }
   prefs = { ...structuredClone(DEFAULTS), ...(p || {}) };
   prefs.fixed ||= {};
+  // Sade görünüme geçiş (bir kere): elle verilen sabit yükseklikler sıfırlanır, pencereler içeriğe oturur
+  if (!prefs.slimV1) { prefs.fixed = {}; prefs.slimV1 = true; try { localStorage.setItem(prefKey(), JSON.stringify(prefs)); } catch { /* yoksay */ } }
   prefs.dpsCols = { ...DEFAULTS.dpsCols, ...(prefs.dpsCols || {}) };
   document.documentElement.style.setProperty('--scale', String(prefs.scale / 100));
 }
@@ -197,6 +199,9 @@ function pingTag() {
   const cls = p < 80 ? 'good' : p < 150 ? 'mid' : 'bad';
   return `<span class="ping ${cls}" title="Sunucuya gecikme (oyunun kendi ping ölçümünden)"><i></i><i></i><i></i><i></i>${p} ms</span>`;
 }
+function dhCtl() {
+  return '<span class="dh-ctl"><button type="button" class="icon-btn" data-w="set" title="Ayarlar">⚙</button><button type="button" class="icon-btn" data-w="close" title="Ekrandan kaldır">✕</button></span>';
+}
 function viewSwitch(cur) {
   if (!net?.roster) return '';
   const b = (k, label) => `<button type="button" role="radio" data-dpstab="${k}" aria-checked="${cur === k}">${label}</button>`;
@@ -221,12 +226,12 @@ function partyView(rs) {
         <span class="dq-n">${m.leader ? '<span class="crown" title="Parti lideri">♛</span> ' : ''}${esc(m.name)} <small>${esc(srvTag(m.server))}</small>${m.level && prefs.partyLevel ? ` <small>Lv${m.level}</small>` : ''}</span>
         ${cols !== 'cp' ? `<span class="dq-p">${nf.format(m.gs)}</span>` : ''}
         ${cols !== 'gs' ? `<span class="dq-d">${kfmt(m.cp)}</span>` : ''}
-        <span class="pm-st ${m.leader ? 'lead' : m.ready ? 'ok' : 'no'}" title="${m.leader ? 'Parti lideri' : m.ready ? 'Hazır' : 'Hazır değil'}">${m.leader ? 'Lider' : m.ready ? '✓' : '✗'}</span>
+        <span class="pm-st ${m.leader ? 'lead' : m.ready ? 'ok' : 'no'}" title="${m.leader ? 'Parti lideri' : m.ready ? 'Hazır' : 'Hazır değil'}">${m.leader ? 'Lider' : m.ready ? '● Hazır' : '● Hazır değil'}</span>
       </div>`;
   }).join('');
-  return `<div class="dh">
-      <div class="dh-top"><span class="dh-time">Parti · <b class="rdy">${ms.filter((m) => m.ready || m.leader).length}/${ms.length} hazır</b>${rs.name && rs.name !== selfName ? ` · ${esc(rs.name)}` : ''}</span>${viewSwitch('party')}</div>
-      <div class="dh-dps">${big}<span class="dh-who">${cols === 'both' ? `ort. GS ${nf.format(Math.round(avg('gs')))}` : ''}</span></div>
+  return `<div class="dh" data-drag>
+      <div class="dh-top"><span class="dh-time">Parti · <b class="rdy">${ms.filter((m) => m.ready || m.leader).length}/${ms.length} hazır</b>${rs.name && rs.name !== selfName ? ` · ${esc(rs.name)}` : ''}</span><span class="dh-sw">${viewSwitch('party')}${dhCtl()}</span></div>
+      <div class="dh-dps">${big}${cols === 'both' ? `<span class="dh-who">ort. GS ${nf.format(Math.round(avg('gs')))}</span>` : ''}${pingTag()}</div>
       ${head}
     </div>${rows}` + energyFoot();
 }
@@ -350,8 +355,8 @@ const WIDGETS = {
       }).join('');
       return {
         right: '',
-        html: `<div class="dh">
-            <div class="dh-top"><span class="dh-time">${right}</span><span class="dh-sw">${viewSwitch('dmg')}${dpsModes()}</span></div>
+        html: `<div class="dh" data-drag>
+            <div class="dh-top"><span class="dh-time">${right}</span><span class="dh-sw">${viewSwitch('dmg')}${dpsModes()}${dhCtl()}</span></div>
             <div class="dh-dps"><b>${kfmt(sumRows * 1000 / f.dur)}</b> <span>DPS</span><span class="dh-who">${mode === 'all' ? 'herkes' : mode === 'party' ? 'parti' : 'sen'}${mode !== 'all' ? ` · toplam ${kfmt(f.total * 1000 / f.dur)}` : ''}</span></div>
             ${tname ? `<div class="dh-t"><span>${esc(tname)}</span><span>${hp != null ? `%${(hp * 100).toFixed(1)}` : ''}</span>${hp != null ? `<span class="bar hp"><i style="width:${(hp * 100).toFixed(1)}%"></i></span>` : ''}</div>` : ''}
           </div>`
