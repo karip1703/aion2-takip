@@ -26,7 +26,7 @@
     },
     "nearFullHours": 3
   },
-  "lastFetch": "2026-11-14T17:25:01.572Z",
+  "lastFetch": "2026-11-14T23:28:38.222Z",
   "characters": [
     {
       "id": "kyrakia",
@@ -35,8 +35,8 @@
       "game": {
         "class": "Sorcerer",
         "level": 45,
-        "itemLevel": 3236,
-        "combatPower": 217082,
+        "itemLevel": 3243,
+        "combatPower": 217509,
         "race": "Elyos",
         "title": "Divine Skill",
         "profileImage": "https://profileimg.plaync.com/game_profile_images/aion2global/images?gameServerKey=1301&charKey=366198944700801654",
@@ -266,7 +266,7 @@
               "equipLevel": 45,
               "maxEnchant": 15,
               "maxExceed": 5,
-              "soulBind": "42.9",
+              "soulBind": "71.9",
               "main": [
                 {
                   "name": "Defense",
@@ -283,8 +283,8 @@
               ],
               "sub": [
                 {
-                  "name": "Natural HP Regen",
-                  "value": "39",
+                  "name": "Critical Hit Resist",
+                  "value": "52",
                   "added": false
                 },
                 {
@@ -293,8 +293,8 @@
                   "added": false
                 },
                 {
-                  "name": "MP",
-                  "value": "87",
+                  "name": "Status Effect Resist",
+                  "value": "6%",
                   "added": false
                 },
                 {
@@ -2009,7 +2009,7 @@
             "id": 810430002,
             "name": "Bell of Magic",
             "grade": "Unique",
-            "enchant": 4,
+            "enchant": 5,
             "exceed": 0,
             "itemLevel": 80,
             "icon": "https://assets.playnccdn.com/static-aion2-gamedata/resources/Icon_Arcana_Card_Bell_u_DefenceSet2.png",
@@ -2023,7 +2023,7 @@
                 {
                   "name": "Destruction [Zikel]",
                   "value": "20",
-                  "extra": "4",
+                  "extra": "5",
                   "min": null
                 }
               ],
@@ -2049,7 +2049,7 @@
                 },
                 {
                   "name": "Robe of Cold",
-                  "level": 1,
+                  "level": 2,
                   "icon": "https://assets.playnccdn.com/static-aion2-gamedata/resources/ICON_SO_SKILL_Passive_005.png",
                   "added": false
                 }
@@ -2369,7 +2369,7 @@
             "id": 15750000,
             "name": "Robe of Cold",
             "category": "Passive",
-            "level": 16,
+            "level": 17,
             "icon": "https://assets.playnccdn.com/static-aion2-gamedata/resources/ICON_SO_SKILL_Passive_005.png",
             "equip": false,
             "acquired": true
@@ -2531,12 +2531,12 @@
           "icon": "https://assets.playnccdn.com/static-aion2-gamedata/resources/Icon_WingA_011.png"
         },
         "wingSkin": {
-          "name": "Springflower Butterfly Wings",
-          "grade": "Unique",
+          "name": "Fairy's Dream Wings",
+          "grade": "Rare",
           "enchant": 0,
-          "icon": "https://assets.playnccdn.com/static-aion2-gamedata/resources/Icon_WingD_005.png"
+          "icon": "https://assets.playnccdn.com/static-aion2-gamedata/resources/Icon_WingF_001.png"
         },
-        "updatedAt": "2026-11-14T17:24:14.689Z"
+        "updatedAt": "2026-11-14T23:27:52.102Z"
       },
       "energy": {
         "value": 30,
