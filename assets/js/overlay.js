@@ -54,7 +54,8 @@ const DEFAULTS = {
   dpsRows: 8,
   dpsNamedOnly: false,
   dpsMode: 'party',   // me | party | all
-  dpsCols: { dmg: true, crit: true, max: false, taken: false },
+  dpsCols: { dmg: true, crit: false, max: false, taken: false },
+  dpsEnergy: true,    // altta oyundaki karakterin enerjisi
   fixed: {},          // { bileşen: true } → yükseklik elle ayarlandı (içeriğe oturtma kapalı)
 };
 const prefKey = () => `kt.overlay.v2.${st.user || 'misafir'}`;
@@ -105,6 +106,12 @@ async function loadSkillNames() {
   try { skillNames = await (await fetch('assets/data/skills.json')).json(); } catch { skillNames = {}; }
 }
 const skillName = (code) => skillNames?.[code] || (code >= 10000000 ? `Yetenek ${code}` : code < 1000 ? 'Temel saldırı' : `#${code}`);
+function energyFoot() {
+  if (!prefs.dpsEnergy) return '';
+  const e = net?.energy, nm = net?.self?.name;
+  if (!e) return '<div class="dp-foot muted">⚡ enerji henüz okunmadı</div>';
+  return `<div class="dp-foot" title="Odyle enerjisi (oyundaki karakter): doğal + ek"><span class="ef-ic">⚡</span><b>${nf.format(e.natural)}</b> <span class="bonus">+${nf.format(e.bonus)}</span>${nm ? ` <span class="muted">· ${esc(nm)}</span>` : ''}</div>`;
+}
 function dpsModes() {
   const m = prefs.dpsMode;
   const b = (k, label) => `<button type="button" role="radio" data-dpsmode="${k}" aria-checked="${m === k}">${label}</button>`;
@@ -137,7 +144,7 @@ const WIDGETS = {
       const fights = [net.fight, ...(net.history || [])].filter(Boolean);
       if (!fights.length) {
         const st = net.status === 'dinleniyor' ? (net.self?.name ? `${net.self.name} · savaş bekleniyor` : 'savaş bekleniyor') : (net.status || '');
-        return { html: dpsModes() + empty(st) };
+        return { html: dpsModes() + empty(st) + energyFoot() };
       }
       if (dpsView.fight >= fights.length) dpsView.fight = 0;
       const f = fights[dpsView.fight];
@@ -161,19 +168,28 @@ const WIDGETS = {
       const tname = t.boss || (t.id ? `Hedef #${t.id}` : '');
       const top = rows[0]?.dmg || 1;
       const c = prefs.dpsCols;
-      const body = rows.slice(0, prefs.dpsRows).map((r, i) => `
-        <button type="button" class="dp ${r.self ? 'me' : ''}" data-dpsd="${r.id}" title="Yetenekleri gör">
-          <span class="dp-n">${i + 1}. ${clsBadge(r.cls)}${esc(r.name || `#${r.id}`)}${r.pets ? ' <span class="muted">+pet</span>' : ''}</span>
-          <span class="dp-v"><b>${kfmt(r.dps)}</b>/sn${c.dmg ? ` <span class="muted">${kfmt(r.dmg)}</span>` : ''} <span class="muted">%${(r.dmg / f.total * 100).toFixed(0)}</span>${c.crit ? ` <span class="muted">K%${pct(r.crits, r.hits)}</span>` : ''}${c.max ? ` <span class="muted">↑${kfmt(r.max)}</span>` : ''}${c.taken && r.taken ? ` <span class="muted">⬇${kfmt(r.taken)}</span>` : ''}</span>
-          <span class="bar"><i style="width:${(r.dmg / top * 100).toFixed(1)}%;${clsColor(r.cls)}"></i></span>
-        </button>`).join('');
-      const sumRows = rows.reduce((a, r) => a + r.dmg, 0);
+      const sumRows = rows.reduce((x, r) => x + r.dmg, 0);
+      const body = rows.slice(0, prefs.dpsRows).map((r) => {
+        const col = CLASSES[r.cls]?.[2] || '#6f8fb3';
+        const extra = [c.crit ? `K%${pct(r.crits, r.hits)}` : '', c.max ? `↑${kfmt(r.max)}` : '', c.taken && r.taken ? `⬇${kfmt(r.taken)}` : ''].filter(Boolean).join(' ');
+        return `
+        <button type="button" class="dq ${r.self ? 'me' : ''}" style="--c:${col};--w:${(r.dmg / top * 100).toFixed(1)}%" data-dpsd="${r.id}" title="Yetenekleri gör">
+          <span class="dq-ic">${CLASSES[r.cls]?.[0] || '?'}</span>
+          <span class="dq-n">${esc(r.name || `#${r.id}`)}${r.pets ? ' <small>+pet</small>' : ''}${extra ? ` <small class="dq-x">${extra}</small>` : ''}</span>
+          <span class="dq-d">${kfmt(r.dps)}</span>
+          <span class="dq-p">${(r.dmg / f.total * 100).toFixed(1)}%</span>
+          ${c.dmg ? `<span class="dq-t">${kfmt(r.dmg)}</span>` : ''}
+        </button>`;
+      }).join('');
       return {
-        right,
-        html: dpsModes()
-          + (tname ? `<div class="dp-t"><span>${esc(tname)}</span><span class="muted">${hp != null ? `%${(hp * 100).toFixed(1)}` : ''}</span>${hp != null ? `<span class="bar hp"><i style="width:${(hp * 100).toFixed(1)}%"></i></span>` : ''}</div>` : '')
-          + (body || empty(mode === 'me' ? 'Bu savaşta hasarın yok.' : 'Gösterilecek oyuncu yok.'))
-          + `<p class="dp-sum muted">${mode === 'all' ? 'Toplam' : mode === 'party' ? 'Parti' : 'Sen'} ${kfmt(sumRows)} · ${kfmt(sumRows * 1000 / f.dur)}/sn${mode !== 'all' ? ` · herkes ${kfmt(f.total)}` : ''}</p>`,
+        right: '',
+        html: `<div class="dh">
+            <div class="dh-top"><span class="dh-time">${right}</span>${dpsModes()}</div>
+            <div class="dh-dps"><b>${kfmt(sumRows * 1000 / f.dur)}</b> <span>DPS</span><span class="dh-who">${mode === 'all' ? 'herkes' : mode === 'party' ? 'parti' : 'sen'}${mode !== 'all' ? ` · toplam ${kfmt(f.total * 1000 / f.dur)}` : ''}</span></div>
+            ${tname ? `<div class="dh-t"><span>${esc(tname)}</span><span>${hp != null ? `%${(hp * 100).toFixed(1)}` : ''}</span>${hp != null ? `<span class="bar hp"><i style="width:${(hp * 100).toFixed(1)}%"></i></span>` : ''}</div>` : ''}
+          </div>`
+          + (body || empty(mode === 'me' ? 'Bu savaşta hasarın yok (adın henüz gelmemiş olabilir).' : 'Gösterilecek oyuncu yok.'))
+          + energyFoot(),
       };
     },
     settings() {
@@ -181,6 +197,7 @@ const WIDGETS = {
       const chk = (k, label) => `<label class="chk"><input type="checkbox" data-dpscol="${k}" ${c[k] ? 'checked' : ''}> ${label}</label>`;
       return `<h4>Sütunlar</h4><div class="row">${chk('dmg', 'Toplam hasar')}${chk('crit', 'Kritik %')}${chk('max', 'En büyük vuruş')}${chk('taken', 'Alınan hasar')}</div>
         <div class="row"><label>Satır ${sel('dpsRows', [4, 6, 8, 12, 16, 24], prefs.dpsRows)}</label>
+        <label class="chk"><input type="checkbox" data-bool="dpsEnergy" ${prefs.dpsEnergy ? 'checked' : ''}> Altta enerji</label>
         <label class="chk"><input type="checkbox" data-bool="dpsNamedOnly" ${prefs.dpsNamedOnly ? 'checked' : ''}> Sadece adı bilinenler</label>
         <button type="button" class="btn" data-net="reset">Savaşı bitir</button></div>
         <p class="empty">Veri, oyunun bu bilgisayara gelen trafiğinden okunur (Npcap). Parti: sunucunun sana ve partine gönderdiği kayıtlardan.
@@ -559,6 +576,7 @@ function renderAll(force) {
     return;
   }
   if (W !== 'hub' && !def) { $('#root').innerHTML = '<p class="ov-err">Bilinmeyen bileşen.</p>'; return; }
+  document.body.dataset.w = W;
   st.user = getSession()?.user || null;
   loadPrefs();
   if (W === 'hub') hubEvents(); else { widgetShell(); widgetEvents(); }

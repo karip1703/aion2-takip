@@ -152,3 +152,35 @@ ul.l li > span:last-child { white-space: nowrap; }
 .dp-kv dt { color: var(--muted); } .dp-kv dd { margin: 0; }
 .dp-h { margin: 4px 0 3px; font-size: .72rem; text-transform: uppercase; letter-spacing: .4px; color: var(--muted); }
 .dp-sk li { font-size: .88rem; }
+
+/* Hasar: başlık kutusu, sınıf renginde dolan satırlar, enerji şeridi */
+body[data-w="dps"] .wbody { padding: 4px 6px 6px; }
+.dh { background: #06101e; border: 1px solid var(--border); border-radius: 8px; padding: 6px 9px 7px; margin-bottom: 4px; }
+.dh-top { display: flex; justify-content: flex-end; }
+.dh-top .dp-modes { margin: 0; }
+.dh-top .seg button { padding: 0 7px; font-size: .74rem; }
+.dh-dps { display: flex; align-items: baseline; gap: 6px; line-height: 1.1; }
+.dh-dps b { font-size: 1.7rem; font-weight: 800; color: #4fd8ea; font-variant-numeric: tabular-nums; }
+.dh-dps > span:first-of-type { font-weight: 800; color: #4fd8ea; }
+.dh-who { margin-left: auto; font-size: .76rem; color: var(--muted); }
+.dh-t { display: grid; grid-template-columns: minmax(0, 1fr) auto; gap: 1px 8px; margin-top: 4px; font-size: .82rem; font-weight: 600; }
+.dh-t span:first-child { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.dq { position: relative; display: grid; grid-template-columns: auto minmax(0, 1fr) auto auto auto; align-items: center; gap: 8px;
+  width: 100%; margin-top: 3px; padding: 5px 9px 5px 6px; border: 0; border-radius: 6px; overflow: hidden; cursor: pointer; text-align: left;
+  background: color-mix(in srgb, var(--c) 16%, #08121f); color: #fff; font-weight: 700; font-variant-numeric: tabular-nums; }
+.dq::before { content: ''; position: absolute; inset: 0 auto 0 0; width: var(--w);
+  background: linear-gradient(90deg, color-mix(in srgb, var(--c) 78%, #000), color-mix(in srgb, var(--c) 58%, #000)); }
+.dq > * { position: relative; text-shadow: 0 1px 2px rgba(0, 0, 0, .7); }
+.dq:hover { filter: brightness(1.12); }
+.dq.me { box-shadow: inset 0 0 0 1.5px #fff; }
+.dq-ic { width: 1.7em; height: 1.7em; border-radius: 50%; display: grid; place-items: center; font-size: .7rem; font-weight: 800;
+  background: rgba(0, 0, 0, .35); border: 1.5px solid var(--c); color: #fff; }
+.dq-n { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; font-size: 1rem; }
+.dq-n small { font-size: .72rem; opacity: .85; font-weight: 600; }
+.dq-d { font-size: 1rem; }
+.dq-p, .dq-t { font-size: .86rem; opacity: .92; min-width: 3.2em; text-align: right; }
+.dp-foot { display: flex; align-items: baseline; gap: 5px; margin-top: 4px; padding: 4px 9px; border-radius: 6px; background: #06101e;
+  border: 1px solid var(--border); font-size: .9rem; font-variant-numeric: tabular-nums; }
+.ef-ic { color: var(--gold); }
+.dh-top { justify-content: space-between; align-items: center; }
+.dh-time { font-size: .8rem; font-weight: 700; color: var(--muted); display: inline-flex; gap: 6px; align-items: center; }
