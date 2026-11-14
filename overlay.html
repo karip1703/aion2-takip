@@ -15,6 +15,7 @@
       var T = { hub: 'Menü', dps: 'Hasar', remind: 'Hatırlatıcı', energy: 'Enerji', bosses: 'Bosslar', gear: 'Gear', todos: 'Yapılacaklar', dungeons: 'Zindanlar', lastbox: 'Son kutu', clock: 'Saat', status: 'Uygulama durumu' };
       var w = new URLSearchParams(location.search).get('w') || 'hub';
       document.title = 'Karip Traker · ' + (T[w] || 'Menü');
+      if (w !== 'hub') document.documentElement.classList.add('keyed');   // bileşen: arka plan saydam (uygulama renk anahtarıyla gizler)
     })();
     // Sayfa hata verirse boş pencere yerine hatayı göster; hiç çizilemediyse birkaç kez kendini yenile
     // (ör. güncelleme sırasında yarım kalmış bir dosya yüklendiyse).

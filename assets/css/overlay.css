@@ -238,3 +238,16 @@ body[data-w="dps"] .wbody { padding: 4px 6px 6px; }
 .rm-txt small { color: var(--muted); font-size: .76rem; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
 .rm-t { font-size: 1.25rem; font-weight: 800; color: #4fd8ea; font-variant-numeric: tabular-nums; }
 .rm-card.hot .rm-t { color: var(--warn); }
+
+/* Çerçevesiz bileşenler: arka plan rengi (#010203) uygulama tarafından görünmez yapılır; sadece kartlar görünür.
+   (Bu renk başka hiçbir yerde kullanılmamalı.) */
+html.keyed, html.keyed body { background: #010203; }
+html.keyed .w-head { visibility: hidden; }
+html.keyed .wbar { border-radius: 8px; border: 1px solid var(--border); }
+html.keyed .wbody { background: var(--bg); border: 1px solid var(--border); border-radius: 10px; margin: 0 2px 2px; padding: 6px 9px 8px; }
+html.keyed body[data-w="dps"] .wbody, html.keyed body[data-w="remind"] .wbody { background: none; border: 0; padding: 0 2px 2px; margin: 0; }
+html.keyed body[data-w="remind"] .rm-hint, html.keyed body[data-w="remind"] .rm-foot { background: var(--bg); border-radius: 8px; padding: 5px 8px; border: 1px solid var(--border); }
+html.keyed body[data-w="remind"] .rm-sec .rm-list { background: var(--bg); border-radius: 0 0 8px 8px; padding: 2px 4px; }
+html.keyed body[data-w="remind"] .empty { background: var(--bg); border: 1px solid var(--border); border-radius: 8px; padding: 6px 9px; }
+html.keyed .wset { background: var(--surface); }
+html.keyed .ov-err { background: var(--bg); }

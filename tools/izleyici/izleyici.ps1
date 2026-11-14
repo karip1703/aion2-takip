@@ -920,6 +920,9 @@ public static class A2Win {
   [DllImport("user32.dll")] static extern int GetWindowLong(IntPtr h, int i);
   [DllImport("user32.dll")] static extern int SetWindowLong(IntPtr h, int i, int v);
   [DllImport("user32.dll")] static extern bool SetLayeredWindowAttributes(IntPtr h, uint key, byte a, uint f);
+  [DllImport("dwmapi.dll")] static extern int DwmSetWindowAttribute(IntPtr h, int attr, ref int val, int size);
+  // Bileşen sayfalarının arka plan rengi (#010203): bu renkteki pikseller görünmez ve tıklama geçirgen olur → sadece kartlar görünür
+  const uint KEY_COLOR = 0x030201;
   [DllImport("user32.dll")] static extern bool SetWindowPos(IntPtr h, IntPtr after, int x, int y, int w, int hh, uint f);
   [DllImport("user32.dll")] static extern bool ShowWindow(IntPtr h, int c);
   [DllImport("user32.dll")] static extern bool IsIconic(IntPtr h);
@@ -951,13 +954,18 @@ public static class A2Win {
     return found;
   }
   // Üstte tut + saydamlık + tıklama geçirgenliği; odak almasın (klavye oyunda kalsın)
-  public static void Apply(IntPtr h, byte alpha, bool clickThrough) {
+  public static void Apply(IntPtr h, byte alpha, bool clickThrough) { Apply(h, alpha, clickThrough, false); }
+  public static void Apply(IntPtr h, byte alpha, bool clickThrough, bool keyed) {
     int ex = GetWindowLong(h, GWL_EXSTYLE);
     int n = ex | WS_EX_LAYERED | WS_EX_NOACTIVATE;
     if (clickThrough) n |= WS_EX_TRANSPARENT; else n &= ~WS_EX_TRANSPARENT;
     if (n != ex) SetWindowLong(h, GWL_EXSTYLE, n);
-    SetLayeredWindowAttributes(h, 0, alpha, 2);
+    SetLayeredWindowAttributes(h, keyed ? KEY_COLOR : 0, alpha, keyed ? 3u : 2u);   // 2: saydamlık, 1: renk anahtarı
     SetWindowPos(h, TOPMOST, 0, 0, 0, 0, 0x1 | 0x2 | 0x10);   // NOSIZE | NOMOVE | NOACTIVATE
+  }
+  // Windows 11'in pencere kenarlığı ve köşe yuvarlaması olmasın (bileşenler çerçevesiz dursun)
+  public static void NoFrame(IntPtr h) {
+    try { int v = 1; DwmSetWindowAttribute(h, 33, ref v, 4); v = unchecked((int)0xFFFFFFFE); DwmSetWindowAttribute(h, 34, ref v, 4); } catch { }
   }
   public static int[] Rect(IntPtr h) {
     RECT r;
@@ -1081,9 +1089,10 @@ function Ov-Apply($w, [bool]$force) {
   if (-not (Ov-Alive $w) -or $w.hidden) { return }
   $mode = $(if (Ov-Interactive $w) { 'i' } else { 'g' })
   if (-not $force -and $mode -eq $w.mode) { return }
-  if ($mode -eq 'i') { [A2Win]::Apply($w.h, [byte]255, $false) }
-  elseif ($w.id -eq 'remind') { [A2Win]::Apply($w.h, [byte]245, $true) }
-  else { [A2Win]::Apply($w.h, (Ov-Alpha), $true) }
+  $keyed = $w.id -ne 'hub'                              # bileşenler: arka plan görünmez, sadece kartlar
+  if ($mode -eq 'i') { [A2Win]::Apply($w.h, [byte]255, $false, $keyed) }
+  elseif ($w.id -eq 'remind') { [A2Win]::Apply($w.h, [byte]245, $true, $keyed) }
+  else { [A2Win]::Apply($w.h, (Ov-Alpha), $true, $keyed) }
   $w.mode = $mode; $w.lastApply = Get-Date
 }
 function Ov-Clip($w, [bool]$force) {
@@ -1101,7 +1110,7 @@ function Ov-Launch([string]$id, [string]$title) {
     $r = [A2Win]::Rect($ex)
     $script:OvW[$id] = @{ id = $id; title = $title; h = $ex; seekUntil = $Min; placeUntil = $Min; target = $r
       hidden = $false; inset = $null; hover = $false; outAt = $Min; lastApply = $Min; mode = ''; rect = ($r -join ',') }
-    Ov-Apply $script:OvW[$id] $true; Ov-Clip $script:OvW[$id] $true
+    [A2Win]::NoFrame($ex); Ov-Apply $script:OvW[$id] $true; Ov-Clip $script:OvW[$id] $true
     return
   }
   $edge = Edge-Path
@@ -1194,7 +1203,7 @@ function Overlay-Tick {
       $h = [A2Win]::FindExact($OvPrefix + $w.title)
       if ($h -ne [IntPtr]::Zero) {
         $w.h = $h; $w.seekUntil = $Min; $t = $w.target
-        [A2Win]::Place($h, $t[0], $t[1], $t[2], $t[3]); $w.placeUntil = $now.AddSeconds(5)
+        [A2Win]::Place($h, $t[0], $t[1], $t[2], $t[3]); $w.placeUntil = $now.AddSeconds(5); [A2Win]::NoFrame($h)
         Ov-Apply $w $true; Update-Tray
       }
       continue
