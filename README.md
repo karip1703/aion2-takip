@@ -215,6 +215,7 @@ kendi küçük penceresinde ekrana gelir; tekrar basınca kalkar.
 - **Menüdeki ayarlar:** oyun modundaki görünürlük, yazı boyutu, imleçle etkinleştirme, düzenleme modu, hepsini gizle, konumları sıfırla.
   Her bileşenin kendi ⚙ ayarları da var (ör. enerjide hangi karakterler, kaç boss). Ayarlar kullanıcıya özeldir.
 - **Kısayollar:** **Alt+Shift+O** menü · **Alt+Shift+H** hepsini gizle/göster · **Alt+Shift+T** düzenleme modu (bütün bileşenler kullanılabilir).
+- **Oyun ön planda değilken** (masaüstü, tarayıcı, Discord…) bütün bileşenler gizlenir, oyuna dönünce geri gelir. Menüden kapatılabilir; hatırlatıcı bildirimleri için "oyun arkadayken de görünsün" seçeneği var.
 - Oyun **çerçevesiz pencere** modunda olmalı (özel tam ekranda hiçbir pencere oyunun üstünde görünemez).
 - Bileşenler ayrı pencerelerdir: oyuna hiçbir şey eklenmez, oyunun belleği okunmaz.
 

@@ -549,7 +549,7 @@ document.addEventListener('mousedown', (e) => {
 let hubSig = '';
 function renderHub(force) {
   const o = ov?.overlay || {};
-  const sig = JSON.stringify([online, o.openIds, o.edit, o.hover, o.hoverAny, o.allHidden, Math.round((o.alpha || 0) * 100), prefs.scale, st.err]);
+  const sig = JSON.stringify([online, o.openIds, o.edit, o.hover, o.hoverAny, o.autoHide, o.remindAlways, o.allHidden, Math.round((o.alpha || 0) * 100), prefs.scale, st.err]);
   if (!force && sig === hubSig) return;
   hubSig = sig;
   const open = new Set(o.openIds || []);
@@ -575,6 +575,8 @@ function renderHub(force) {
       <div class="range"><span>Yazı boyutu</span><input type="range" min="80" max="150" step="5" data-scale value="${prefs.scale}"><output>%${prefs.scale}</output></div>
       <label class="chk"><input type="checkbox" data-opt="hover" ${o.hover ? 'checked' : ''}> İmleç bileşenin üstüne gelince kullanım moduna geç</label>
       <label class="chk"><input type="checkbox" data-opt="hoverAny" ${o.hoverAny ? 'checked' : ''}> Oyun imleci algılanmazsa da çalışsın <span class="muted">(imleç gizliyken de)</span></label>
+      <label class="chk"><input type="checkbox" data-opt="autoHide" ${o.autoHide !== false ? 'checked' : ''}> Oyun ön planda değilken gizle <span class="muted">(masaüstü, tarayıcı, Discord…)</span></label>
+      <label class="chk"><input type="checkbox" data-opt="remindAlways" ${o.remindAlways ? 'checked' : ''}> Hatırlatıcı bildirimleri oyun arkadayken de görünsün</label>
       <div class="row">
         <button type="button" class="btn ${o.edit ? 'on' : ''}" data-hub="edit" title="Bütün bileşenler tam görünür ve tıklanabilir olur (Alt+Shift+T)">${o.edit ? '✓ Düzenleme modu açık' : 'Düzenleme modu'}</button>
         <button type="button" class="btn" data-hub="hideAll" title="Alt+Shift+H">Hepsini gizle</button>

@@ -1006,6 +1006,15 @@ public static class A2Win {
     return new int[] { ci.pt.X, ci.pt.Y, ci.flags };
   }
   public static bool LButton() { return (GetAsyncKeyState(0x01) & 0x8000) != 0; }
+  [DllImport("user32.dll")] public static extern IntPtr GetForegroundWindow();
+  [DllImport("user32.dll")] static extern IntPtr GetAncestor(IntPtr h, uint flags);
+  [DllImport("user32.dll")] static extern uint GetWindowThreadProcessId(IntPtr h, out uint pid);
+  public static IntPtr RootOwner(IntPtr h) { return h == IntPtr.Zero ? h : GetAncestor(h, 3); }
+  // Ön plandaki pencerenin işlem adı (ör. "AION2")
+  public static string ProcessOf(IntPtr h) {
+    try { uint pid; GetWindowThreadProcessId(h, out pid); using (var p = System.Diagnostics.Process.GetProcessById((int)pid)) return p.ProcessName; }
+    catch { return ""; }
+  }
 }
 
 // Genel kısayol tuşları: basılanlar kuyruğa girer, zamanlayıcı okur.
@@ -1085,8 +1094,13 @@ function Ov-RectFor([string]$id) {
 }
 function Ov-Alive($w) { $w -and $w.h -ne [IntPtr]::Zero -and [A2Win]::IsWindow($w.h) }
 function Ov-Interactive($w) { $w.id -eq 'hub' -or $script:OvEdit -or $w.hover -or ($script:Drag -and $script:Drag.w -eq $w) }
+function Ov-Away($w) { $script:OvAway -and -not ($w.id -eq 'remind' -and [bool]$script:Settings.overlayRemindAlways) }
 function Ov-Apply($w, [bool]$force) {
   if (-not (Ov-Alive $w) -or $w.hidden) { return }
+  if (Ov-Away $w) {
+    if ($force -or $w.mode -ne 'away') { [A2Win]::Apply($w.h, [byte]0, $true, $false); $w.mode = 'away'; $w.lastApply = Get-Date; $w.hover = $false }
+    return
+  }
   $mode = $(if (Ov-Interactive $w) { 'i' } else { 'g' })
   if (-not $force -and $mode -eq $w.mode) { return }
   $keyed = $w.id -ne 'hub'                              # bileşenler: arka plan görünmez, sadece kartlar
@@ -1149,7 +1163,7 @@ function Overlay-Object {
   $wins = [ordered]@{}
   foreach ($x in @($script:OvW.Values)) { $wins[$x.id] = [ordered]@{ open = [bool](Ov-Alive $x); hidden = [bool]$x.hidden; active = [bool](Ov-Interactive $x) } }
   [ordered]@{ edit = [bool]$script:OvEdit; allHidden = [bool]$script:OvAllHidden; alpha = [double]((Ov-Alpha) / 255)
-    hover = [bool](Ov-HoverOn); hoverAny = [bool]$script:Settings.overlayHoverAny; hotkeys = $script:OvHotkeys
+    hover = [bool](Ov-HoverOn); hoverAny = [bool]$script:Settings.overlayHoverAny; autoHide = ($script:Settings.overlayAutoHide -ne $false); remindAlways = [bool]$script:Settings.overlayRemindAlways; away = [bool]$script:OvAway; hotkeys = $script:OvHotkeys
     remind = [ordered]@{ setup = [bool]$script:RemSetup; due = @(Remind-Due); count = @($script:RemItems).Count }
     wins = $wins; openIds = @(Ov-OpenList | ForEach-Object { [string]$_.id }) }
 }
@@ -1186,6 +1200,33 @@ function Remind-Window {
   elseif (-not $want -and -not $w.hidden) { Ov-HideWin $w }
 }
 
+# ---------------------------------------------------------------- Oyun ön planda değilken gizle
+# Ön planda AION2 yoksa (masaüstü, tarayıcı, Discord…) bütün bileşenler görünmez olur; oyuna dönünce geri gelir.
+# Bizim pencerelerimiz odak almaz; yine de ön plana gelirlerse (ör. açılır liste) "oyun" sayılır.
+# Alt+Tab gibi anlık geçişlerde titremesin diye gizleme ~0,3 sn gecikmeli, gösterme anında.
+$script:OvAway = $false
+$script:OvFrontHwnd = [IntPtr]::Zero; $script:OvFrontGame = $true; $script:OvAwaySince = [datetime]::MinValue
+function Ov-CheckFront {
+  $on = $script:Settings.overlayAutoHide -ne $false
+  $fg = [A2Win]::GetForegroundWindow()
+  if ($fg -ne $script:OvFrontHwnd) {
+    $script:OvFrontHwnd = $fg
+    $root = [A2Win]::RootOwner($fg)
+    $ours = @($script:OvW.Values | Where-Object { $_.h -ne [IntPtr]::Zero -and ($_.h -eq $fg -or $_.h -eq $root) }).Count -gt 0
+    $name = [A2Win]::ProcessOf($fg)
+    $script:OvFrontGame = $(if ($ours -or $fg -eq [IntPtr]::Zero) { $script:OvFrontGame } else { $name -eq 'AION2' })
+  }
+  $away = $on -and -not $script:OvFrontGame
+  if ($away) {
+    if ($script:OvAwaySince -eq [datetime]::MinValue) { $script:OvAwaySince = Get-Date }
+    if (((Get-Date) - $script:OvAwaySince).TotalMilliseconds -lt 300) { $away = $false }
+  } else { $script:OvAwaySince = [datetime]::MinValue }
+  if ($away -ne $script:OvAway) {
+    $script:OvAway = $away
+    foreach ($x in @($script:OvW.Values)) { if ((Ov-Alive $x) -and -not $x.hidden) { $x.mode = ''; Ov-Apply $x $true } }
+  }
+}
+
 # Her 100 ms: kısayollar, yeni açılan pencereleri bulma, imleç takibi, konum kaydı.
 function Overlay-Tick {
   for ($k = [A2Hot]::Next(); $k -ne 0; $k = [A2Hot]::Next()) {
@@ -1193,6 +1234,7 @@ function Overlay-Tick {
   }
   if ($script:OvW.Count -eq 0) { return }
   if ((++$script:RemTick % 3) -eq 0) { Remind-Window }
+  Ov-CheckFront
   $now = Get-Date
   $cur = [A2Win]::Cursor(); $lb = [A2Win]::LButton()
   $curOk = $cur -and ((($cur[2] -band 1) -ne 0) -or [bool]$script:Settings.overlayHoverAny)   # imleç görünür mü
@@ -1223,6 +1265,7 @@ function Overlay-Tick {
       Ov-Clip $w $true
       $r = [A2Win]::Rect($w.h); if ($r) { $w.rect = ($r -join ',') }
     }
+    if (Ov-Away $w) { continue }
     # İmleç bileşenin üstünde mi? (menü her zaman kullanılabilir)
     if ($w.id -ne 'hub') {
       $inside = $false
@@ -1489,6 +1532,8 @@ function Handle-Request($ctx) {
         }
         'hover' { Ov-Set 'overlayHover' ([bool]$b.on) }
         'hoverAny' { Ov-Set 'overlayHoverAny' ([bool]$b.on) }
+        'autoHide' { Ov-Set 'overlayAutoHide' ([bool]$b.on); $script:OvFrontHwnd = [IntPtr]::Zero }
+        'remindAlways' { Ov-Set 'overlayRemindAlways' ([bool]$b.on); foreach ($x in @($script:OvW.Values)) { $x.mode = ''; Ov-Apply $x $true } }
         'reset' {
           $script:Settings.PSObject.Properties.Remove('overlayRects'); Save-Settings $script:Settings
           # Hepsini önce ekran dışına al, sonra sırayla boş yere diz (birbirinin altına)
