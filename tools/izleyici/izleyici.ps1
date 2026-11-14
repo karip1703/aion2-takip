@@ -848,6 +848,7 @@ function Net-Active { $script:NetOk -and ((Get-Date) - $script:NetEnergyAt).Tota
 
 function Net-Tick {
   if (-not $script:NetOk) { return }
+  [A2Net]::SelfHint = $(if ($script:Session -and (Char-Id)) { [string](Char-Name) } else { '' })
   $e = $null
   for ($k = 0; $k -lt 50 -and [A2Net]::Events.TryDequeue([ref]$e); $k++) {
     try {

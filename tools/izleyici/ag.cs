@@ -474,11 +474,13 @@ public static class A2Net {
       if (o0 == 0x04 && o1 == 0x38) Damage(b, op + 2, end);
       else if (o0 == 0x05 && o1 == 0x38) Dot(b, op + 2, end);
       else if (o0 == 0x06 && o1 == 0x38) PartyScope(b, op + 2, end);
+      else if (((o0 == 0x13 && o1 == 0x92) || (o0 == 0x1D && o1 == 0x97)) && end - op == 4 && b[op + 2] == 0 && b[op + 3] == 0) PartyLeft();
       else if ((o0 == 0x0B || o0 == 0x0C) && o1 == 0x61) Energy(b, op + 2, end, o0 == 0x0B);
       else if (o0 == 0x42 && o1 == 0x36) Death(b, op + 2, end, o0);   // (eski 41 36 artık doğuş: kabul edilmez)
       else if (o0 == 0x1B && o1 == 0x92) HpUpdate(b, op + 2, end);
     }
     ScanSpawns(b, start, end);
+    ScanRoster(b, start, end);
     ScanIdentity(b, start, end);
     ScanEntityHp(b, start, end);
   }
@@ -556,6 +558,7 @@ public static class A2Net {
 
   // ---- Varlıklar: isimler, NPC kodları, HP ----
   public static int SelfId; public static string SelfName = "";
+  public static string SelfHint = "";   // kendi kaydı gelene kadar: sitedeki aktif karakterin adı (izleyici verir)
   static readonly Dictionary<int, string> names = new Dictionary<int, string>();
   static readonly Dictionary<int, int> mobCode = new Dictionary<int, int>();
   static readonly Dictionary<int, long> hpCur = new Dictionary<int, long>(), hpMax = new Dictionary<int, long>();
@@ -879,6 +882,124 @@ public static class A2Net {
   }
   public static void ResetFight() { lock (Lock) { if (fight != null && fight.Total > 0) { history.Insert(0, fight); if (history.Count > 6) history.RemoveAt(6); } fight = null; } }
 
+  // ---- Parti listesi: 02 97 <parti anahtarı u32> <ad> <boyut> <zindan u32> <2> <lider dbid u64> <3> <sayı varint> <üyeler…> ----
+  // Üye: <bayrak> <slot> <dbid u64 (üst 16 bit sunucu)> <ad uzunluğu> <ad> <sınıf u32> <seviye u32> <GS u32> … <sunucu u16> <u16> <etiket> <CP u64>
+  // GS ile CP arası değişken genişlikte → CP, üyenin sunucu numarasından çapalanarak bulunur; sonraki üye başlığından yeniden yakalanır.
+  class Member { public int Slot, Cls, Level, Gs, Server; public long Cp; public ulong Dbid; public string Name; public bool Leader; }
+  static List<Member> roster = new List<Member>();
+  static uint rosterKey; static int rosterDungeon; static long rosterAt; static string rosterName = "";
+
+  static int RosterClass(uint v) {
+    if (v >= 5 && v <= 8) return 11; if (v >= 9 && v <= 12) return 12; if (v >= 13 && v <= 16) return 14; if (v >= 17 && v <= 20) return 13;
+    if (v >= 21 && v <= 24) return 16; if (v >= 25 && v <= 28) return 15; if (v >= 29 && v <= 32) return 17; if (v >= 33 && v <= 36) return 18;
+    return 0;
+  }
+  static bool Utf8Ok(byte[] d, int at, int len) { try { new UTF8Encoding(false, true).GetString(d, at, len); return true; } catch { return false; } }
+  static int FindMemberWithin(byte[] d, int from, int end, int span, int slot) {
+    int last = Math.Min(from + span, end - 12);
+    for (int i = from; i <= last; i++) {
+      if (d[i + 1] != slot) continue;
+      int server = d[i + 8] | (d[i + 9] << 8);
+      if (server == 0 || server > 9999) continue;
+      int nl = d[i + 10];
+      if (nl == 0 || nl > 40 || i + 11 + nl > end || !Utf8Ok(d, i + 11, nl)) continue;
+      return i;
+    }
+    return -1;
+  }
+  static int FindLaterMember(byte[] d, int from, int end, int slot, int count) {
+    for (int next = slot + 1; next <= count; next++) { int r = FindMemberWithin(d, from, end, 48 * (next - slot), next); if (r >= 0) return r; }
+    return -1;
+  }
+  static int FindVacant(byte[] d, int from, int end, int slot) {
+    int last = Math.Min(from + 32, end - 11);
+    for (int i = from; i <= last; i++) {
+      if (d[i] != 0 || d[i + 1] != slot) continue;
+      bool zero = true; for (int k = i + 2; k < i + 11; k++) if (d[k] != 0) { zero = false; break; }
+      if (zero) return i;
+    }
+    return -1;
+  }
+  static void ScanRoster(byte[] b, int start, int end) {
+    for (int i = start; i + 24 < end; i++) if (b[i] == 0x02 && b[i + 1] == 0x97 && ParseRoster(b, i + 2, end)) return;
+  }
+  static bool ParseRoster(byte[] d, int at, int end) {
+    if (at + 6 > end) return false;
+    uint key = BitConverter.ToUInt32(d, at); int o = at + 4;
+    int nl = d[o++];
+    if (nl < 1 || nl > 40 || o + nl > end || !Utf8Ok(d, o, nl)) return false;
+    string pname = Encoding.UTF8.GetString(d, o, nl); o += nl;
+    if (o >= end) return false;
+    int size = d[o++]; if (size < 1 || size > 12) return false;
+    if (o + 17 > end) return false;
+    int dungeon = BitConverter.ToInt32(d, o);
+    ulong leader = BitConverter.ToUInt64(d, o + 6);
+    o += 4 + 2 + 8 + 3;
+    var ci = ReadVarint(d, o, end);
+    if (ci.Length <= 0 || ci.Value < 1 || ci.Value > 12) return false;
+    o += ci.Length; int count = ci.Value;
+    var list = new List<Member>();
+    for (int k = 0; k < count; k++) {
+      if (o + 20 > end) break;
+      int slot = d[o + 1]; o += 2;
+      ulong dbid = BitConverter.ToUInt64(d, o); o += 8;
+      int server = (int)(dbid >> 48);
+      int len = d[o++];
+      if (len == 0) { int nx = FindLaterMember(d, o, end, slot, count); if (nx < 0) break; o = nx; continue; }   // boş slot
+      if (len > 40 || o + len > end || !Utf8Ok(d, o, len)) break;
+      var sbn = new StringBuilder();
+      foreach (char ch in Encoding.UTF8.GetString(d, o, len)) if (char.IsLetterOrDigit(ch)) sbn.Append(ch);
+      string name = sbn.ToString(); if (name.Length == 0) break;
+      o += len;
+      if (o + 12 > end) break;
+      int cls = RosterClass(BitConverter.ToUInt32(d, o)); o += 4;
+      int level = BitConverter.ToInt32(d, o); o += 4; if (level < 1 || level > 200) break;
+      int gs = BitConverter.ToInt32(d, o); o += 4; if (gs < 0 || gs > 1000000) break;
+      int anchor = -1;
+      for (int i = o; i <= Math.Min(o + 10, end - 2); i++) if ((d[i] | (d[i + 1] << 8)) == server) { anchor = i; break; }
+      if (anchor < 0)
+        for (int i = o; i < o + 10 && i + 13 <= end; i++) {
+          int w = d[i] | (d[i + 1] << 8); int tag = d[i + 4]; ulong pw = BitConverter.ToUInt64(d, i + 5);
+          if (w >= 1000 && w <= 2999 && tag >= 1 && tag <= 4 && pw >= 1 && pw <= 100000000) { anchor = i; break; }
+        }
+      if (anchor < 0) break;
+      o = anchor + 5;
+      if (o + 8 > end) break;
+      ulong cp = BitConverter.ToUInt64(d, o); o += 8;
+      if (cp > 100000000) break;
+      var m = new Member(); m.Slot = slot; m.Dbid = dbid; m.Server = server; m.Name = name; m.Cls = cls; m.Level = level; m.Gs = gs; m.Cp = (long)cp; m.Leader = dbid == leader;
+      list.Add(m);
+      if (slot >= count) break;
+      int nx2 = FindMemberWithin(d, o, end, 32, slot + 1);
+      if (nx2 < 0) nx2 = FindVacant(d, o, end, slot + 1);
+      if (nx2 < 0) break;
+      o = nx2;
+    }
+    if (list.Count == 0) return false;
+    lock (Lock) {
+      // Başka bir partinin listesi (adın biliniyor, listede yoksun ve parti anahtarı farklı) → yok say
+      if (SelfName.Length > 0 && !list.Exists(x => x.Name == SelfName) && rosterKey != 0 && key != rosterKey) return true;
+      roster = list; rosterKey = key; rosterDungeon = dungeon; rosterAt = NowMs(); rosterName = pname;
+    }
+    return true;
+  }
+  // 13 92 00 00 (açık dünya) / 1D 97 00 00 (zindan): partiden ayrıldın
+  static void PartyLeft() { lock (Lock) { roster = new List<Member>(); rosterKey = 0; rosterName = ""; party.Clear(); } }
+  static bool InRoster(string name) { if (name == null) return false; foreach (var m in roster) if (m.Name == name) return true; return false; }
+  static string RosterJson() {
+    if (roster.Count == 0) return "null";
+    var sb = new StringBuilder("{\"name\":").Append(J(rosterName)).Append(",\"dungeon\":").Append(rosterDungeon).Append(",\"at\":").Append(rosterAt).Append(",\"members\":[");
+    var list = new List<Member>(roster); list.Sort((a, c) => a.Slot.CompareTo(c.Slot));
+    for (int i = 0; i < list.Count; i++) {
+      var m = list[i];
+      if (i > 0) sb.Append(',');
+      sb.Append("{\"name\":").Append(J(m.Name)).Append(",\"cls\":").Append(m.Cls).Append(",\"level\":").Append(m.Level).Append(",\"gs\":").Append(m.Gs)
+        .Append(",\"cp\":").Append(m.Cp).Append(",\"server\":").Append(m.Server).Append(",\"leader\":").Append(m.Leader ? "true" : "false")
+        .Append(",\"self\":").Append(m.Name == (SelfName.Length > 0 ? SelfName : SelfHint) ? "true" : "false").Append('}');
+    }
+    return sb.Append("]}").ToString();
+  }
+
   // ------------------------------------------------------------------ Saha bossları: NPC kodu → sitedeki boss kimliği
   public static readonly Dictionary<int, string> BossIds = new Dictionary<int, string>();
   public static readonly Dictionary<int, string> BossNames = new Dictionary<int, string>();
@@ -929,6 +1050,13 @@ public static class A2Net {
       }
     }
 
+    // Kendi kaydın (33 36) henüz gelmediyse: partide olan, adı bilinmeyen tek oyuncu sensin
+    int guess = 0;
+    if (SelfId == 0 && SelfHint.Length > 0) {
+      int c = 0;
+      foreach (var kv in merged) if (!names.ContainsKey(kv.Key) && party.ContainsKey(kv.Key) && playerClass.ContainsKey(kv.Key)) { guess = kv.Key; c++; }
+      if (c != 1) guess = 0;
+    }
     sb.Append("{\"no\":").Append(f.No).Append(",\"start\":").Append(f.Start).Append(",\"last\":").Append(f.Last).Append(",\"dur\":").Append(dur)
       .Append(",\"total\":").Append(f.Total).Append(",\"active\":").Append(now - f.Last <= FightIdleMs ? "true" : "false")
       .Append(",\"target\":{\"id\":").Append(tgt).Append(",\"code\":").Append(code).Append(",\"boss\":").Append(J(bn))
@@ -941,12 +1069,13 @@ public static class A2Net {
     foreach (var r in rows) {
       if (r.Value.Dmg <= 0 || shown >= 40) continue;
       string nm; names.TryGetValue(r.Key, out nm);
+      if (nm == null && r.Key == guess) nm = SelfHint;
       int cls; playerClass.TryGetValue(r.Key, out cls);
       int np; pets.TryGetValue(r.Key, out np);
       if (shown++ > 0) sb.Append(',');
       var a = r.Value;
       sb.Append("{\"id\":").Append(r.Key).Append(",\"name\":").Append(J(nm)).Append(",\"cls\":").Append(cls)
-        .Append(",\"self\":").Append(r.Key == SelfId ? "true" : "false").Append(",\"party\":").Append(r.Key == SelfId || party.ContainsKey(r.Key) ? "true" : "false")
+        .Append(",\"self\":").Append(r.Key == SelfId || r.Key == guess ? "true" : "false").Append(",\"party\":").Append(r.Key == SelfId || party.ContainsKey(r.Key) || InRoster(nm) ? "true" : "false")
         .Append(",\"dmg\":").Append(a.Dmg).Append(",\"dps\":").Append(a.Dmg * 1000 / dur).Append(",\"dot\":").Append(a.Dot)
         .Append(",\"hits\":").Append(a.Hits).Append(",\"crits\":").Append(a.Crits).Append(",\"max\":").Append(a.Max)
         .Append(",\"taken\":").Append(a.Taken).Append(",\"pets\":").Append(np).Append(",\"skills\":[");
@@ -974,10 +1103,11 @@ public static class A2Net {
         .Append(",\"bundles\":").Append(Bundles).Append(",\"resyncs\":").Append(Resyncs).Append(",\"gaps\":").Append(Gaps)
         .Append(",\"lastDataAgo\":").Append(LastDataMs > 0 ? (now - LastDataMs).ToString() : "null")
         .Append(",\"recording\":").Append(RecordPath != null ? "true" : "false")
-        .Append(",\"self\":{\"id\":").Append(SelfId).Append(",\"name\":").Append(J(SelfName)).Append("}")
+        .Append(",\"self\":{\"id\":").Append(SelfId).Append(",\"name\":").Append(J(SelfName)).Append(",\"hint\":").Append(J(SelfHint)).Append("}")
         .Append(",\"known\":{\"players\":").Append(names.Count).Append(",\"npcs\":").Append(mobCode.Count).Append("}")
         .Append(",\"energy\":").Append(EnergyNatural >= 0 ? "{\"natural\":" + EnergyNatural + ",\"bonus\":" + EnergyBonus + ",\"at\":" + EnergyAt + "}" : "null")
         .Append(",\"party\":").Append(party.Count)
+        .Append(",\"roster\":").Append(RosterJson())
         .Append(",\"fight\":").Append(FightJson(fight, now))
         .Append(",\"history\":[");
       bool first = true;
@@ -1013,7 +1143,7 @@ public static class A2Net {
   public static void TestSegment(uint seq, byte[] d) { lock (Lock) { Segment("seg", seq, d); } }
   public static void TestSkipGaps() { lock (Lock) { foreach (var s in streams.Values) SkipGap(s); } }
   public static void ResetAll() {
-    lock (Lock) { streams.Clear(); names.Clear(); mobCode.Clear(); hpCur.Clear(); hpMax.Clear(); lastBossKill.Clear(); fight = null; history.Clear(); scalar.Clear(); playerClass.Clear(); party.Clear(); }
+    lock (Lock) { streams.Clear(); names.Clear(); mobCode.Clear(); hpCur.Clear(); hpMax.Clear(); lastBossKill.Clear(); fight = null; history.Clear(); scalar.Clear(); playerClass.Clear(); party.Clear(); roster = new List<Member>(); rosterKey = 0; }
     SelfId = 0; SelfName = ""; EnergyNatural = -1; EnergyBonus = -1; string e; while (Events.TryDequeue(out e)) { }
     Packets = Bytes = Frames = Bundles = Resyncs = Gaps = 0;
   }

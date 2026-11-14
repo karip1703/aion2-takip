@@ -184,3 +184,17 @@ body[data-w="dps"] .wbody { padding: 4px 6px 6px; }
 .ef-ic { color: var(--gold); }
 .dh-top { justify-content: space-between; align-items: center; }
 .dh-time { font-size: .8rem; font-weight: 700; color: var(--muted); display: inline-flex; gap: 6px; align-items: center; }
+
+/* Parti görünümü */
+.dh-sw { display: inline-flex; gap: 4px; }
+.dq.pm { cursor: default; grid-template-columns: auto minmax(0, 1fr) 3.6em 4.2em; }
+.dq.pm.one { grid-template-columns: auto minmax(0, 1fr) 4.2em; }
+.dq.pm:hover { filter: none; }
+.dq.pm .dq-p { opacity: .9; }
+.dq.pm .dq-d { text-align: right; }
+.dq .crown { color: #ffd34d; }
+.pc-cols { display: grid; grid-template-columns: 1.7em minmax(0, 1fr) 3.6em 4.2em; gap: 8px; padding: 2px 9px 0 6px; font-size: .7rem; color: var(--muted); font-weight: 700; }
+.pc-cols span:nth-child(n+3) { text-align: right; }
+.dh-time { min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.dh-top { gap: 6px; }
+.dh-sw { flex: none; }
