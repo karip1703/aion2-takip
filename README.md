@@ -99,6 +99,7 @@ Bilmen gerekenler:
 
 ## 5. Kullanım
 
+- **Düzen:** soldaki menüde (telefonda altta) **Genel bakış** (karakterlerin enerjisi, yaklaşan bosslar, açık yapılacaklar), **Karakterler**, **Bosslar**, **Yapılacaklar**, **Karşılaştırma** ve **Uygulama** (ekran izleyicinin paneli) var.
 - **Enerji girme:** Odyle Energy iki ayrı satırda tutulur:
   - **Zamanla:** kendiliğinden dolan kısım (max 840). "Full'e kalan süre" ve kırmızı/turuncu vurgular sadece bu kısma göre hesaplanır.
   - **Ek (+):** sizin eklediğiniz kısım. Zamanla değişmez, max'a sayılmaz.
@@ -106,7 +107,7 @@ Bilmen gerekenler:
   Kutuya oyundaki değeri yaz ve Enter'a bas, ya da −/+ butonlarını kullan. Harcadığında oyunda hangi kısım düştüyse o satırdan düş. Altta **Toplam** görünür. Değişen kartta "● kaydedilmedi" yazar.
 - **Kaydet (N):** bekleyen tüm değişiklikleri tek commit olarak `data.json`'a yazar. O sırada arkadaşın ya da Actions dosyayı değiştirmişse site güncel dosyayı çeker, sadece senin değiştirdiğin enerji değerlerini üstüne uygular ve tekrar dener. Aynı karakteri arkadaşın senden *sonra* düzenlediyse onun değeri kalır.
 - Kaydetmeden sayfayı kapatırsan değişiklikler o tarayıcıda saklı kalır. Tarayıcı ayrıca uyarı da verir.
-- **Şimdi güncelle:** gear çekme işini (workflow) tetikler ve durumunu gösterir (Sırada → Çalışıyor → bitti). Bitince veriyi kendiliğinden yeniden yükler.
+- **Gear güncelle:** gear çekme işini (workflow) tetikler ve durumunu gösterir (Sırada → Çalışıyor → bitti). Bitince veriyi kendiliğinden yeniden yükler.
 - **Karakter penceresi:** kartın üst kısmına ya da **Detay ›** butonuna tıkla. Üç sekme var:
   - **Gear:** silah ve zırh, rün, aksesuar, kanat ve pet
   - **Arcana:** 5 arcana, statları ve ek skilleri
@@ -160,19 +161,24 @@ node scripts/fetch-characters.mjs                           # "fetch": false olm
 
 - **Pencere açılınca:** sağ üstteki enerjiyi (ör. `0(+845)/840`) ve zindanın garanti sayacını (ör. `20/28`) okuyup sitedekiyle **eşitler**.
 - **Pencere kapanınca:** Open'a basıldığını varsayar. Enerjiden maliyeti düşer (önce zamanla dolan, sonra ek kısım) ve garanti sayacını kutu sayısı kadar ilerletir.
-- **Cancel'a basıldıysa:** bir sonraki açılışta ekrandan okunan değerlerle kendiliğinden düzelir. Yanlış bir kayıt olursa programdaki **Geri al** butonu da var.
+- **Cancel'a basıldıysa:** bir sonraki açılışta ekrandan okunan değerlerle kendiliğinden düzelir. Yanlış bir kayıt olursa uygulama panelindeki **Son kaydı geri al** butonu da var.
 - Oyuna, oyun dosyalarına ve ağ trafiğine **dokunmaz**, klavye ve fare dinlemez. Sadece ekran görüntüsü alır ve Windows'un yerleşik yazı tanımasını kullanır.
 - **Performans:** normalde sadece "Open" butonunun olduğu küçük bir alana bakar, bu da neredeyse sıfır yük demek. Yazı tanıma sadece pencere açıkken çalışır.
 
 **Kurulum (ikiniz de, kurulum gerektirmez):**
 
-1. GitHub'da repo sayfası → **Code → Download ZIP**. ZIP'i aç ve `tools/izleyici` klasörünü istediğin bir yere kopyala.
+1. GitHub'da repo sayfası → **Code → Download ZIP**. ZIP'i aç ve `tools/izleyici` klasörünü istediğin bir yere kopyala (`Baslat.bat` ve `izleyici.ps1` yeterli).
 2. `Baslat.bat` dosyasına çift tıkla. Windows "bilinmeyen yayıncı" uyarısı verirse: dosyaya sağ tık → **Özellikler** → alttaki **Engellemeyi kaldır** → Tamam.
-3. Programda **site kullanıcı adın ve şifrenle** giriş yap. "Beni hatırla" işaretliyse bir dahaki sefere sormaz.
-4. **Aktif karakter** listesinden o an oynadığın karakteri seç. Karakter değiştirince burayı da değiştir.
-5. Oyunu **çerçevesiz pencere** modunda, **ana ekranda** oyna.
+3. **Uygulama penceresi** açılır: sitenin kendisi, sekmesiz kendi penceresinde. Saat yanında da **A2** simgesi belirir.
+4. Pencerede **site kullanıcı adın ve şifrenle** bir kez giriş yap. Ekran izleyici de aynı hesapla bağlanır; sonraki açılışlarda giriş sormaz.
+5. **Uygulama** bölümünden o an oynadığın **aktif karakteri** seç. Karakter değiştirince burayı da değiştir.
+6. Oyunu **çerçevesiz pencere** modunda, **ana ekranda** oyna. Pencereyi kapatsan da izleyici arka planda çalışmaya devam eder; tekrar açmak için simgeye çift tıkla. Tamamen kapatmak için simge → sağ tık → **Çıkış**.
 
-**İlk kullanımda kontrol:** ödül penceresi açıkken programdaki **"Ekranı şimdi oku (test)"** butonuna bas. Günlükte zindan, maliyet, kutu, garanti ve enerji değerleri doğru görünmeli. Yanlışsa programın kaydettiği ekran görüntüsünü bana gönder. Konum günlükte yazar: `%APPDATA%\aion2-izleyici`.
+**Uygulama bölümü:** izleyicinin durumu (İzliyor / Duraklatıldı), aktif karakter, son okunan kutu, kayıt listesi ve **Duraklat**, **Son kaydı geri al**, **Ekranı şimdi oku** butonları. Discord'da arkadaşının yayınını tam ekran izlerken **Duraklat**'a bas; aksi halde yayındaki kutular senin karakterine yazılabilir.
+
+**Güvenlik:** uygulama yalnızca bu bilgisayarın içinden (`127.0.0.1:47321`) erişilebilir. Komutlar sadece uygulama penceresinden kabul edilir; başka bir site tarayıcı üzerinden izleyiciye komut gönderemez ya da oturumu okuyamaz. Oturum Windows'un kullanıcıya özel şifrelemesiyle (`%APPDATA%\aion2-izleyici\oturum.dat`) saklanır.
+
+**İlk kullanımda kontrol:** ödül penceresi açıkken simge → sağ tık → **Ekranı şimdi oku** (ya da Uygulama bölümündeki buton). Kayıtlarda zindan, maliyet, kutu, garanti ve enerji değerleri doğru görünmeli. Yanlışsa kaydedilen ekran görüntüsünü bana gönder (konum kayıtta yazar: `%APPDATA%\aion2-izleyici`).
 
 **Kayıtlar siteye nasıl gelir?** Program her olayı repodaki `data/inbox/` klasörüne küçük bir dosya olarak gönderir. **Izleyici kayıtlarını uygula** workflow'u (`.github/workflows/inbox.yml`) bunları sitenin kullandığı kurallarla (`assets/js/ops.js`) `data.json`'a uygular. Siteye yansıması yaklaşık yarım dakika sürer, canlı yenileme sayesinde F5 gerekmez.
 

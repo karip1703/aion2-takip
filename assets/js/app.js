@@ -10,12 +10,17 @@ import {
   renderCards, updateEnergyLive, renderCompare, effEnergy, fmtAgo, fmtDate, esc, itemDetailHtml, charDialogHtml, CHAR_TABS,
 } from './render.js';
 import { renderBosses, fireNotifications, bossById, parseKillInput } from './bosses.js';
+import { renderHome } from './home.js';
+import { LOCAL, bridge, refreshBridge, appApi, appChip, renderAppView } from './izleyici.js';
 
 const $ = (s) => document.querySelector(s);
 const LS_EDITS = 'aion2.edits';
 const LS_VIEW = 'aion2.view';
 const LS_SORT = 'aion2.sort';
 const LS_BOSS = 'aion2.bossPrefs';
+
+const VIEWS = ['home', 'cards', 'bosses', 'todos', 'compare', 'app'];
+const VIEW_TITLES = { home: 'Genel bakış', cards: 'Karakterler', bosses: 'Bosslar', todos: 'Yapılacaklar', compare: 'Karşılaştırma', app: 'Uygulama' };
 
 const state = {
   data: null,       // uzaktaki (kaydedilmiş) veri — bekleyen düzenlemeler HARİÇ
@@ -24,7 +29,7 @@ const state = {
   source: null,     // 'api' | 'pages'
   edits: loadEdits(), // { [charId]: { value, setAt, setBy } } — kaydedilmemiş enerji girişleri
   login: getSession()?.user || null, // giriş yapan site kullanıcısı (commit mesajlarında görünür)
-  view: ['cards', 'compare', 'bosses'].includes(location.hash.slice(1)) ? location.hash.slice(1) : (lsGet(LS_VIEW) || 'cards'),
+  view: VIEWS.includes(location.hash.slice(1)) ? location.hash.slice(1) : (VIEWS.includes(lsGet(LS_VIEW)) ? lsGet(LS_VIEW) : 'home'),
   sortKey: lsGet(LS_SORT) || 'itemLevel',
   busy: false,
   boss: { filter: 'all', onlyWatched: false, lead: 5, ...(() => { try { return JSON.parse(localStorage.getItem(LS_BOSS) || '{}'); } catch { return {}; } })() },
@@ -117,7 +122,10 @@ $('#login-form').addEventListener('submit', async (e) => {
   $('#login-err').textContent = '';
   try {
     const s = await unlock(state.data.auth, $('#login-user').value, $('#login-pass').value);
-    setSession({ user: s.user, token: s.token, owner: s.owner, repo: s.repo, branch: s.branch || 'main' }, $('#login-remember').checked);
+    const sess = { user: s.user, token: s.token, owner: s.owner, repo: s.repo, branch: s.branch || 'main' };
+    setSession(sess, LOCAL || $('#login-remember').checked);
+    // Uygulama penceresindeyse: ekran izleyici de aynı hesapla bağlansın (tek giriş).
+    if (LOCAL) appApi.session(sess).then(refreshApp).catch((er) => status(`Uygulamaya bağlanılamadı: ${esc(er.message)}`, 'error'));
     state.login = s.user;
     $('#login-pass').value = '';
     await load(); // artık API'den (güncel) okunur
@@ -146,6 +154,7 @@ function renderAll() {
   const cfg = d.config || {};
   $('#subtitle').textContent = [cfg.region, cfg.server, `veri: ${fmtAgo(d.lastFetch)}`].filter(Boolean).join(' · ');
   $('#subtitle').title = `Son gear değişikliği: ${fmtDate(d.lastFetch)}`;
+  $('#side-sub').textContent = [cfg.server, (cfg.regionCode || '').toUpperCase()].filter(Boolean).join(' · ');
   $('#sample-banner').hidden = !(d.sample || (d.characters || []).some((c) => c.sample));
 
   renderTodosNow();
@@ -154,6 +163,8 @@ function renderAll() {
   if (state.view === 'compare') renderCompare($('#rank-table'), $('#gear-matrix'), d, state.sortKey, ctx());
   renderChrome();
   renderBossesNow();
+  renderHomeNow();
+  renderAppNow();
 }
 
 function renderChrome() {
@@ -171,9 +182,9 @@ function renderChrome() {
   $('#btn-save').textContent = n ? `Kaydet (${n})` : 'Kaydet';
 
   for (const t of document.querySelectorAll('.tab')) t.setAttribute('aria-selected', String(t.dataset.view === state.view));
-  $('#view-cards').hidden = state.view !== 'cards';
-  $('#view-compare').hidden = state.view !== 'compare';
-  $('#view-bosses').hidden = state.view !== 'bosses';
+  for (const v of VIEWS) $(`#view-${v}`).hidden = state.view !== v;
+  $('#page-title').textContent = VIEW_TITLES[state.view] || '';
+  document.title = `${VIEW_TITLES[state.view] || ''} · AION 2 Takip`;
   $('#sort-key').value = state.sortKey;
 
   const r = gh.getRepo();
@@ -186,6 +197,7 @@ function renderChrome() {
 function tick() {
   if (!state.data) return;
   updateEnergyLive($('#view-cards'), state.data, ctx());
+  renderHomeNow();
   if (state.view === 'compare') renderCompare($('#rank-table'), $('#gear-matrix'), state.data, state.sortKey, ctx());
   renderBossesNow();
 }
@@ -500,6 +512,7 @@ $('#btn-settings').addEventListener('click', () => {
 
 $('#btn-logout').addEventListener('click', () => {
   clearSession();
+  if (LOCAL) appApi.logout().then(refreshApp).catch(() => {});
   state.login = null;
   loginError = '';
   dlg.close();
@@ -719,6 +732,66 @@ itemDlg.addEventListener('keydown', (e) => {
 // Pencerenin dışına (arka plana) tıklayınca kapat.
 itemDlg.addEventListener('click', (e) => { if (e.target === itemDlg) itemDlg.close(); });
 
+// ---------------- Genel bakış ve Uygulama ----------------
+function goView(v) {
+  if (!VIEWS.includes(v)) return;
+  state.view = v;
+  lsSet(LS_VIEW, v);
+  renderAll();
+  window.scrollTo(0, 0);
+  if (v === 'app') refreshApp();
+}
+
+function renderHomeNow() {
+  if (!state.data || state.view !== 'home') return;
+  renderHome($('#view-home'), state.data, { edits: state.edits, user: state.login, bridge });
+}
+
+let appSig = '';
+function renderAppNow(force = true) {
+  const sig = JSON.stringify([bridge.online, bridge.s]);
+  if (!force && sig === appSig) return; // değişiklik yoksa yeniden çizme (fare üstündeki buton titremesin)
+  appSig = sig;
+  $('#app-chip').innerHTML = appChip(bridge);
+  if (state.view === 'app') renderAppView($('#view-app'), bridge, { repo: gh.getRepo() });
+  if (state.view === 'home') renderHomeNow();
+}
+
+async function refreshApp() {
+  if (!LOCAL) return;
+  await refreshBridge();
+  renderAppNow(false);
+}
+if (LOCAL) setInterval(() => { if (!document.hidden) refreshApp(); }, 2000);
+
+$('#view-home').addEventListener('click', (e) => {
+  const g = e.target.closest('[data-go]');
+  if (g) { goView(g.dataset.go); return; }
+  const c = e.target.closest('[data-char]');
+  if (c) showChar(c.dataset.char, 'gear');
+});
+
+$('#view-app').addEventListener('click', async (e) => {
+  const b = e.target.closest('[data-app], [data-app-char]');
+  if (!b || b.disabled) return;
+  b.disabled = true;
+  try {
+    if (b.dataset.appChar) await appApi.char(b.dataset.appChar);
+    else if (b.dataset.app === 'pause') await appApi.pause(!bridge.s?.paused);
+    else if (b.dataset.app === 'undo') {
+      if (confirm('Son kutu kaydı geri alınsın mı? (Enerji ve garanti sayacı kutudan önceki haline döner.)')) await appApi.undo();
+    } else if (b.dataset.app === 'test') {
+      await appApi.test();
+      status('Ekran okundu; sonuç Kayıtlar listesinde.', 'ok');
+    }
+  } catch (err) {
+    status(`Uygulama: ${esc(err.message)}`, 'error');
+  } finally {
+    await refreshApp();
+    renderAppNow(true);
+  }
+});
+
 // ---------------- Bosslar ----------------
 const notifState = () => (typeof Notification === 'undefined' ? 'unsupported' : Notification.permission);
 const saveBossPrefs = () => lsSet(LS_BOSS, JSON.stringify(state.boss));
@@ -780,9 +853,7 @@ setInterval(() => { renderBossesNow(); checkBossNotifications(); }, 20_000);
 // ---------------- Diğer olaylar ----------------
 for (const t of document.querySelectorAll('.tab')) {
   t.addEventListener('click', () => {
-    state.view = t.dataset.view;
-    lsSet(LS_VIEW, state.view);
-    renderAll();
+    goView(t.dataset.view);
   });
 }
 $('#sort-key').addEventListener('change', (e) => {
@@ -802,6 +873,16 @@ setInterval(tick, 30_000);
 
 // ---------------- Başlat ----------------
 (async () => {
+  // Uygulama penceresinde: izleyicinin kayıtlı oturumu varsa site de onunla açılır (tek giriş).
+  if (LOCAL) {
+    await refreshBridge();
+    if (!getSession()) {
+      try {
+        const s = await appApi.getSession();
+        if (s?.token) { setSession(s, true); state.login = s.user; }
+      } catch { /* oturum yok → giriş ekranı */ }
+    }
+  }
   await load();
   // Doğrudan bağlantılar:
   //   #char/<karakterId>/<sekme>  (ör. #char/kyrakia/skills)

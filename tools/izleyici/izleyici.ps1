@@ -7,6 +7,9 @@
 #
 # Kayıtlar data/inbox/ klasörüne küçük dosyalar olarak gönderilir; GitHub Actions bunları data.json'a uygular.
 #
+# Arayüz: uygulama siteyi http://127.0.0.1:47321 adresinden sunar ve kendi penceresinde açar (Edge uygulama modu);
+# izleyicinin durumu ve komutları sitenin "Uygulama" bölümündedir. Saat yanındaki simgeden de yönetilir.
+#
 # Test modu:  powershell -ExecutionPolicy Bypass -File izleyici.ps1 -TestImage ekran.png
 
 param([string]$TestImage)
@@ -523,76 +526,77 @@ if ($env:A2_SEND_TEST) {
   return
 }
 
-# ---------------------------------------------------------------- Arayüz
-$form = New-Object Windows.Forms.Form
-$form.Text = 'AION 2 Takip — Ekran izleyici'; $form.Width = 520; $form.Height = 560
-$form.StartPosition = 'CenterScreen'; $form.TopMost = $false
-$form.Font = New-Object Drawing.Font('Segoe UI', 9.5)
-$form.BackColor = [Drawing.Color]::FromArgb(22, 27, 34); $form.ForeColor = [Drawing.Color]::FromArgb(230, 237, 243)
-
-function New-Ctl($type, $x, $y, $w, $h, $text) { $c = New-Object $type; $c.Left = $x; $c.Top = $y; $c.Width = $w; if ($h) { $c.Height = $h }; if ($text) { $c.Text = $text }; $form.Controls.Add($c); $c }
-
-$lblUser = New-Ctl Windows.Forms.Label 14 16 90 22 'Kullanıcı adı'
-$txtUser = New-Ctl Windows.Forms.TextBox 110 13 140 24
-$lblPass = New-Ctl Windows.Forms.Label 260 16 40 22 'Şifre'
-$txtPass = New-Ctl Windows.Forms.TextBox 300 13 110 24; $txtPass.UseSystemPasswordChar = $true
-$btnLogin = New-Ctl Windows.Forms.Button 418 11 80 28 'Giriş'
-$chkRemember = New-Ctl Windows.Forms.CheckBox 110 40 300 22 'Beni bu bilgisayarda hatırla'; $chkRemember.Checked = $true
-
-$lblChar = New-Ctl Windows.Forms.Label 14 78 90 22 'Aktif karakter'
-$cmbChar = New-Ctl Windows.Forms.ComboBox 110 75 200 24; $cmbChar.DropDownStyle = 'DropDownList'
-$btnPause = New-Ctl Windows.Forms.Button 318 73 85 28 'Duraklat'
-$btnUndo = New-Ctl Windows.Forms.Button 408 73 90 28 'Geri al'
-
-$lblStatus = New-Ctl Windows.Forms.Label 14 112 484 44 'Giriş yap ve aktif karakteri seç.'
-$lblStatus.ForeColor = [Drawing.Color]::FromArgb(139, 150, 163)
-
-$lstLog = New-Ctl Windows.Forms.ListBox 14 160 484 300
-$lstLog.BackColor = [Drawing.Color]::FromArgb(14, 17, 22); $lstLog.ForeColor = $form.ForeColor; $lstLog.BorderStyle = 'FixedSingle'
-$btnTest = New-Ctl Windows.Forms.Button 14 470 160 30 'Ekranı şimdi oku (test)'
-$lblHint = New-Ctl Windows.Forms.Label 182 474 316 40 'Oyun çerçevesiz pencere modunda, ana ekranda olmalı.'
-$lblHint.ForeColor = [Drawing.Color]::FromArgb(139, 150, 163)
-foreach ($b in $btnLogin, $btnPause, $btnUndo, $btnTest) { $b.FlatStyle = 'Flat'; $b.BackColor = [Drawing.Color]::FromArgb(29, 36, 46) }
-$cmbChar.Enabled = $false; $btnPause.Enabled = $false; $btnUndo.Enabled = $false
-
-function Log([string]$msg) {
-  $lstLog.Items.Insert(0, ('{0:HH:mm:ss}  {1}' -f (Get-Date), $msg))
-  while ($lstLog.Items.Count -gt 200) { $lstLog.Items.RemoveAt($lstLog.Items.Count - 1) }
-  Add-Content (Join-Path $AppDir 'kayit.log') ('{0:yyyy-MM-dd HH:mm:ss}  {1}' -f (Get-Date), $msg) -Encoding UTF8
-}
+# ---------------------------------------------------------------- Uygulama durumu
+# Arayüz artık sitenin kendisi: uygulama siteyi http://127.0.0.1:47321 adresinden sunar ve Edge'in uygulama
+# penceresinde açar. Site "Uygulama" bölümünde bu durumu /api/status ile okur; komutlar /api/* ile gelir.
+# Saat yanındaki simge: paneli aç, duraklat, ekranı oku, çıkış.
+$Version = '2.0'
+$Port = 47321
+$AppUrl = "http://127.0.0.1:$Port/"
+$AppOrigin = "http://127.0.0.1:$Port"
 
 $script:Session = $null
 $script:Chars = @()
 $script:Settings = Load-Settings
+$script:CharId = $script:Settings.charId
+$script:StatusText = 'Giriş bekleniyor — panelde giriş yap.'
+$script:LogLines = New-Object System.Collections.ArrayList
+$script:LastRead = $null
+$script:LoginRetryAt = [datetime]::MaxValue
+
+function Log([string]$msg) {
+  $script:LogLines.Insert(0, [ordered]@{ t = (Get-Date).ToString('o'); m = $msg })
+  while ($script:LogLines.Count -gt 200) { $script:LogLines.RemoveAt($script:LogLines.Count - 1) }
+  try { Add-Content (Join-Path $AppDir 'kayit.log') ('{0:yyyy-MM-dd HH:mm:ss}  {1}' -f (Get-Date), $msg) -Encoding UTF8 } catch {}
+}
+function Set-Status([string]$t) { $script:StatusText = $t }
+function Update-Tray {}   # simge oluşturulunca gerçeği tanımlanır
+
+function Char-Ids { @($script:Chars | ForEach-Object { $_.id }) }
+function Char-Id { if ($script:CharId -and ((Char-Ids) -contains $script:CharId)) { $script:CharId } else { $null } }
+function Char-Name { $id = Char-Id; $c = $script:Chars | Where-Object { $_.id -eq $id } | Select-Object -First 1; if ($c) { $c.name } else { '?' } }
+function Set-Char([string]$id) {
+  if (-not ((Char-Ids) -contains $id)) { throw 'Bilinmeyen karakter' }
+  if ($script:CharId -eq $id) { return }
+  $script:CharId = $id
+  $script:Settings | Add-Member -NotePropertyName charId -NotePropertyValue $id -Force
+  Save-Settings $script:Settings
+  $script:Synced = $null   # yeni karakter → bir sonraki açılışta mutlaka eşitle
+  Log "Aktif karakter: $(Char-Name)"
+  Update-Tray
+}
 
 function After-Login {
   $data = Get-Data $script:Session.token
   $script:Chars = @($data.characters | ForEach-Object { [pscustomobject]@{ id = $_.id; name = $_.name } })
   foreach ($ch in $data.characters) { foreach ($d in @($ch.dungeons)) { if ($d.name -and $d.name.Length -ge 6 -and -not $script:KnownDungeons.Contains($d.name)) { $script:KnownDungeons.Add($d.name) } } }
-  $cmbChar.Items.Clear(); foreach ($c in $script:Chars) { [void]$cmbChar.Items.Add($c.name) }
-  $idx = [Array]::IndexOf(@($script:Chars.id), $script:Settings.charId); $cmbChar.SelectedIndex = [Math]::Max(0, $idx)
-  foreach ($c in $txtUser, $txtPass, $btnLogin) { $c.Enabled = $false }
-  $btnLogin.Text = 'Bağlı'
-  $cmbChar.Enabled = $true; $btnPause.Enabled = $true
-  Log "Giriş yapıldı: $($script:Session.user). İzleme başladı."
+  if (-not (Char-Id) -and $script:Chars.Count) { $script:CharId = $script:Chars[0].id }
+  $script:LoginRetryAt = [datetime]::MaxValue
   $script:Paused = $false
+  Set-Status 'İzleniyor — ödül kutusu penceresi bekleniyor.'
+  Log "Giriş yapıldı: $($script:Session.user). İzleme başladı. Aktif karakter: $(Char-Name)"
+  Update-Tray
 }
-
-$btnLogin.Add_Click({
-  try {
-    $btnLogin.Enabled = $false; $btnLogin.Text = '…'
-    $data = Get-Data $null
-    $s = Unlock-Account $data.auth $txtUser.Text $txtPass.Text
-    $script:Session = $s; $txtPass.Text = ''
-    if ($chkRemember.Checked) { Save-Session $s } elseif (Test-Path $SessionFile) { Remove-Item $SessionFile }
-    After-Login
-  } catch { $btnLogin.Enabled = $true; $btnLogin.Text = 'Giriş'; Log "✖ $($_.Exception.Message)" }
-})
-
-$cmbChar.Add_SelectedIndexChanged({
-  if ($cmbChar.SelectedIndex -ge 0) { $script:Settings.charId = $script:Chars[$cmbChar.SelectedIndex].id; Save-Settings $script:Settings; Log "Aktif karakter: $($cmbChar.SelectedItem)" }
-})
-$btnPause.Add_Click({ $script:Paused = -not $script:Paused; $btnPause.Text = $(if ($script:Paused) { 'Devam' } else { 'Duraklat' }); Log $(if ($script:Paused) { 'Duraklatıldı.' } else { 'İzleme devam ediyor.' }) })
+# strict: token/bağlantı doğrulanamazsa oturumu kabul etme (panelden giriş). Değilse (kayıtlı oturum) sonra tekrar dene.
+function Set-Session($s, [bool]$save, [bool]$strict) {
+  $prev = $script:Session
+  $script:Session = $s
+  try { After-Login }
+  catch {
+    if ($strict) { $script:Session = $prev; throw }
+    $script:Paused = $true; $script:LoginRetryAt = (Get-Date).AddSeconds(30)
+    Set-Status "Bağlanılamadı, tekrar denenecek: $($_.Exception.Message)"
+    Log "… GitHub'a bağlanılamadı, 30 sn sonra tekrar denenecek: $($_.Exception.Message)"
+  }
+  if ($save) { Save-Session $s }
+}
+function Clear-Session {
+  $script:Session = $null; $script:Chars = @(); $script:Paused = $true
+  if (Test-Path $SessionFile) { Remove-Item $SessionFile -Force }
+  Set-Status 'Giriş bekleniyor — panelde giriş yap.'
+  Log 'Oturum kapatıldı.'
+  Update-Tray
+}
 
 # ---------------------------------------------------------------- İzleme döngüsü
 # Her 150 ms'de sadece altın "Open" butonu bölgesine bakılır (çok ucuz: küçük bir alanın rengi).
@@ -609,9 +613,6 @@ $script:RetryAt = [datetime]::MinValue              # başka bir altın buton (b
 $script:Pending = $null      # @{ due; read }
 $script:LastSent = $null     # geri alma için: @{ before = read; charId }
 
-function Char-Id { if ($cmbChar.SelectedIndex -ge 0) { $script:Chars[$cmbChar.SelectedIndex].id } else { $null } }
-function Char-Name { if ($cmbChar.SelectedIndex -ge 0) { $script:Chars[$cmbChar.SelectedIndex].name } else { '?' } }
-
 function Capture-Screen { [A2Img]::Capture(0, 0, [A2Img]::ScreenW(), [A2Img]::ScreenH()) }
 function Open-Button-Visible {
   $W = [A2Img]::ScreenW(); $H = [A2Img]::ScreenH(); $o = Rect-Of $Regions.open $W $H
@@ -624,15 +625,17 @@ function Commit-Pending {
   if (-not $p) { return }
   $r = $p.read; $cid = $p.charId
   $op = @{ type = 'dungeonOpen'; charId = $cid; name = $r.dungeon; boxes = $r.boxes; cost = $r.cost; max = $r.max; seen = $r.seen }
-  $script:LastSent = @{ before = $r; charId = $cid }
+  $script:LastSent = @{ before = $r; charId = $cid; charName = $p.charName }
   $script:Synced = $null   # harcama sonrası değerler değişti → bir sonraki açılışta mutlaka yeniden eşitle (Cancel düzeltmesi)
-  $btnUndo.Enabled = $true
+  Set-Status ("Kaydedildi: {0} {1} kutu, -{2} enerji" -f $r.dungeon, $r.boxes, $r.cost)
   Send-Ops @($op) ("{0}: {1} {2} kutu, -{3} enerji" -f $p.charName, $r.dungeon, $r.boxes, $r.cost)
 }
 
 function On-Read($r) {
-  $lblStatus.Text = "Pencere açık: $($r.dungeon) · maliyet $($r.cost) · kutu $($r.boxes)/$($r.boxesMax) · garanti $($r.seen)/$($r.max)" +
-    $(if ($null -ne $r.natural) { " · enerji $($r.natural)(+$($r.bonus))/$($r.energyMax)" } else { '' })
+  Set-Status ("Pencere açık: $($r.dungeon) · maliyet $($r.cost) · kutu $($r.boxes)/$($r.boxesMax) · garanti $($r.seen)/$($r.max)" +
+    $(if ($null -ne $r.natural) { " · enerji $($r.natural)(+$($r.bonus))/$($r.energyMax)" } else { '' }))
+  $script:LastRead = [ordered]@{ at = (Get-Date).ToString('o'); dungeon = $r.dungeon; seen = $r.seen; max = $r.max; boxes = $r.boxes; cost = $r.cost
+    natural = $r.natural; bonus = $r.bonus; energyMax = $r.energyMax; char = (Char-Name) }
   # Bekleyen kapanış varsa ve pencere AYNI zindan + AYNI sayaçla geri açıldıysa → kapanış değildi (ör. kısa süre gizlendi)
   if ($script:Pending -and $script:Pending.read.dungeon -eq $r.dungeon -and $script:Pending.read.seen -eq $r.seen) {
     $script:Pending = $null; Log "Pencere tekrar açıldı (sayaç değişmemiş) — önceki kapanış sayılmadı."
@@ -661,21 +664,15 @@ function Save-Debug([System.Drawing.Bitmap]$bmp, [string]$tag, $r) {
 }
 function Drop-Snap { if ($script:Snap) { $script:Snap.Dispose(); $script:Snap = $null }; $script:SnapFresh = $false }
 
-# Sadece oyun ön plandayken okunur: Discord'da arkadaşın yayınını tam ekran izlerken kayıt gönderilmesin,
-# Alt+Tab ile oyundan çıkınca da "pencere kapandı" sanılmasın.
-$script:GameProcPattern = 'aion'   # oyunun işlem adında geçen kelime (ör. Aion2.exe)
-$script:FgName = ''
-# Not: Türkçe Windows'ta -match büyük/küçük harf eşlemesinde "I" → "ı" yapar ("AION2" ≠ "aion") → kültürden bağımsız karşılaştır.
-function Game-Foreground { $script:FgName = [A2Img]::ForegroundProcess(); return $script:FgName.ToLowerInvariant().Contains($script:GameProcPattern) }
-
 function Invoke-Tick {
   try {
     if ($script:Queue.Count -gt 0 -and ($script:Tick % 20) -eq 0) { Flush-Queue }   # ~3 sn'de bir tekrar dene
     $script:Tick++
+    if ($script:Session -and -not $script:Chars.Count -and (Get-Date) -ge $script:LoginRetryAt) { Set-Session $script:Session $false $false }
     if ($script:Paused -or -not $script:Session -or -not (Char-Id)) { return }
     if ($script:Pending -and (Get-Date) -ge $script:Pending.due) { Commit-Pending }
 
-    # Not: ön plan kontrolü kaldırıldı — ekran, hangi pencere üstte olursa olsun sürekli okunur.
+    # Not: ön plan kontrolü yok — ekran, hangi pencere üstte olursa olsun sürekli okunur.
     $visible = Open-Button-Visible
 
     if ($visible) {
@@ -707,32 +704,32 @@ function Invoke-Tick {
     Drop-Snap
     if ($r) {
       $script:Pending = @{ due = (Get-Date).AddSeconds(4); read = $r; charId = (Char-Id); charName = (Char-Name) }
-      $lblStatus.Text = "Pencere kapandı: $($r.dungeon) $($r.boxes) kutu, -$($r.cost) enerji kaydediliyor…"
-    } else { $lblStatus.Text = 'İzleniyor…' }
+      Set-Status "Pencere kapandı: $($r.dungeon) $($r.boxes) kutu, -$($r.cost) enerji kaydediliyor…"
+    } else { Set-Status 'İzleniyor — ödül kutusu penceresi bekleniyor.' }
   } catch { Log "✖ Hata: $($_.Exception.Message)" }
 }
-$timer = New-Object Windows.Forms.Timer
-$timer.Interval = 150
-$timer.Add_Tick({ Invoke-Tick })
 
-$btnUndo.Add_Click({
-  $u = $script:LastSent; if (-not $u) { return }
+function Do-Undo {
+  $u = $script:LastSent
+  if (-not $u) { throw 'Geri alınacak kayıt yok' }
   $r = $u.before
   $ops = @(@{ type = 'dungeonSet'; charId = $u.charId; name = $r.dungeon; count = $r.seen; max = $r.max })
   if ($null -ne $r.natural) { $ops += @{ type = 'energySync'; charId = $u.charId; natural = $r.natural; bonus = $r.bonus; max = $r.energyMax } }
-  Send-Ops $ops ("GERİ AL: {0} {1}/{2}" -f $r.dungeon, $r.seen, $r.max)
-  $script:LastSent = $null; $btnUndo.Enabled = $false
-})
+  Send-Ops $ops ("GERİ AL: {0}: {1} {2}/{3}" -f $u.charName, $r.dungeon, $r.seen, $r.max)
+  $script:LastSent = $null
+  $script:Synced = $null
+}
 
-$btnTest.Add_Click({
+function Do-Test {
   $full = Capture-Screen
   try {
     $path = Join-Path $AppDir ('ekran-{0:yyyyMMdd-HHmmss}.png' -f (Get-Date)); $full.Save($path)
     $r = Read-Cube $full; $t = Title-Visible $full
     Log ("Test: başlık={0} geçerli={1} zindan={2} maliyet={3} kutu={4}/{5} garanti={6}/{7} enerji={8}(+{9})/{10}" -f $t, $r.valid, $r.dungeon, $r.cost, $r.boxes, $r.boxesMax, $r.seen, $r.max, $r.natural, $r.bonus, $r.energyMax)
     Log "Ekran görüntüsü kaydedildi: $path"
+    return [ordered]@{ title = $t; valid = $r.valid; dungeon = $r.dungeon; seen = $r.seen; max = $r.max; natural = $r.natural; bonus = $r.bonus; energyMax = $r.energyMax; file = $path }
   } finally { $full.Dispose() }
-})
+}
 
 if ($env:A2_LOOP_TEST) {   # geliştirici testi: kare dizisiyle döngüyü sına (gerçek ekran/gönderim yok)
   $cube = [System.Drawing.Bitmap]::FromFile($env:A2_CUBE); $none = [System.Drawing.Bitmap]::FromFile($env:A2_NONE)
@@ -740,10 +737,9 @@ if ($env:A2_LOOP_TEST) {   # geliştirici testi: kare dizisiyle döngüyü sına
   $script:Frame = $none
   function Open-Button-Visible { $o = Rect-Of $Regions.open $script:Frame.Width $script:Frame.Height; $b = [A2Img]::Crop($script:Frame, $o.x, $o.y, $o.w, $o.h); $r = [A2Img]::GoldRatio($b); $b.Dispose(); $r -gt 0.30 }
   function Capture-Screen { $script:Frame.Clone() }
-  function Game-Foreground { $true }
   function Send-Ops([object[]]$ops, [string]$summary) { Write-Host ("  → GÖNDER: {0}   [{1}]" -f $summary, (($ops | ForEach-Object { $_.type }) -join ', ')) }
   function Log([string]$m) { Write-Host "  · $m" }
-  $script:Session = @{ user = 'karip' }; $script:Chars = @([pscustomobject]@{ id = 'kyrakia'; name = 'Kyrakia' }); [void]$cmbChar.Items.Add('Kyrakia'); $cmbChar.SelectedIndex = 0
+  $script:Session = @{ user = 'karip' }; $script:Chars = @([pscustomobject]@{ id = 'kyrakia'; name = 'Kyrakia' }); $script:CharId = 'kyrakia'
   $script:Paused = $false
   function Run([string]$title, [object[]]$frames) {
     Write-Host "=== $title"
@@ -760,17 +756,204 @@ if ($env:A2_LOOP_TEST) {   # geliştirici testi: kare dizisiyle döngüyü sına
   return
 }
 
-$form.Add_Shown({
-  Log "Ekran: $([A2Img]::ScreenW())x$([A2Img]::ScreenH())"
-  if ($env:A2_GUI_TEST) {   # geliştirici testi: pencerenin görüntüsünü kaydet ve kapan
-    $cmbChar.Items.AddRange(@('Kyrakia', 'Karip')); $cmbChar.SelectedIndex = 0; Log 'Test: arayüz oluşturuldu.'
-    $bmp = New-Object Drawing.Bitmap($form.Width, $form.Height); $form.DrawToBitmap($bmp, (New-Object Drawing.Rectangle(0, 0, $form.Width, $form.Height)))
-    $bmp.Save($env:A2_GUI_TEST); $bmp.Dispose(); $form.Close(); return
+# ---------------------------------------------------------------- Uygulama penceresi
+function Open-Panel {
+  $edge = @("${env:ProgramFiles(x86)}\Microsoft\Edge\Application\msedge.exe", "$env:ProgramFiles\Microsoft\Edge\Application\msedge.exe",
+    "$env:LOCALAPPDATA\Microsoft\Edge\Application\msedge.exe") | Where-Object { $_ -and (Test-Path $_) } | Select-Object -First 1
+  if ($edge) { Start-Process $edge -ArgumentList "--app=$AppUrl", '--window-size=1280,860' } else { Start-Process $AppUrl }
+}
+
+# ---------------------------------------------------------------- Yerel sunucu (site + /api)
+# Sadece 127.0.0.1'i dinler (dışarıdan erişilemez). Komutlar (POST) yalnızca bu adresten açılmış sayfadan kabul edilir;
+# başka bir site tarayıcı üzerinden komut gönderemez, durumu ya da oturumu okuyamaz.
+$Http = New-Object System.Net.HttpListener
+$Http.Prefixes.Add($AppUrl)
+try { $Http.Start() }
+catch {
+  # Port dolu → uygulama zaten açık: sadece paneli göster.
+  Open-Panel
+  exit 0
+}
+
+# Site dosyaları: depo klasöründen çalışıyorsa yerel kopya, değilse GitHub Pages'ten (kısa önbellekle).
+$SiteDir = $null
+$cand = [IO.Path]::GetFullPath((Join-Path $PSScriptRoot '..\..'))
+if (Test-Path (Join-Path $cand 'assets\js\app.js')) { $SiteDir = $cand }
+$PagesBase = "https://$($Repo.owner.ToLowerInvariant()).github.io/$($Repo.repo)/"
+$script:ProxyCache = @{}
+$Mime = @{ '.html' = 'text/html; charset=utf-8'; '.js' = 'text/javascript; charset=utf-8'; '.css' = 'text/css; charset=utf-8'
+  '.json' = 'application/json; charset=utf-8'; '.png' = 'image/png'; '.svg' = 'image/svg+xml'; '.ico' = 'image/x-icon'; '.webp' = 'image/webp' }
+
+function Send-Bytes($ctx, [int]$code, [byte[]]$bytes, [string]$type) {
+  $r = $ctx.Response
+  $r.StatusCode = $code; $r.ContentType = $type
+  $r.Headers['Cache-Control'] = 'no-store'; $r.Headers['X-Content-Type-Options'] = 'nosniff'
+  $r.ContentLength64 = $bytes.Length
+  $r.OutputStream.Write($bytes, 0, $bytes.Length); $r.Close()
+}
+function Send-Json($ctx, [int]$code, $obj) { Send-Bytes $ctx $code ([Text.Encoding]::UTF8.GetBytes(($obj | ConvertTo-Json -Depth 6 -Compress))) 'application/json; charset=utf-8' }
+function Read-Body($ctx) {
+  $sr = New-Object IO.StreamReader($ctx.Request.InputStream, [Text.Encoding]::UTF8)
+  $t = $sr.ReadToEnd(); $sr.Close()
+  if ($t) { $t | ConvertFrom-Json } else { [pscustomobject]@{} }
+}
+
+function Status-Object {
+  [ordered]@{
+    app = 'aion2-izleyici'; version = $Version
+    loggedIn = [bool]$script:Session; user = $(if ($script:Session) { $script:Session.user } else { $null })
+    paused = [bool]$script:Paused; charId = (Char-Id)
+    chars = @($script:Chars | ForEach-Object { [ordered]@{ id = $_.id; name = $_.name } })
+    status = $script:StatusText; state = $script:State; canUndo = [bool]$script:LastSent; queue = $script:Queue.Count
+    screen = ('{0}x{1}' -f [A2Img]::ScreenW(), [A2Img]::ScreenH())
+    lastRead = $script:LastRead
+    log = @($script:LogLines | Select-Object -First 60)
   }
-  $s = Load-Session
-  if (-not $s -and $script:SessionError) { Log "Kayıtlı oturum okunamadı, tekrar giriş yap: $($script:SessionError)" }
-  if ($s) { try { $script:Session = $s; $txtUser.Text = $s.user; After-Login } catch { $script:Session = $null; Log "Kayıtlı oturum açılamadı: $($_.Exception.Message)" } }
-  $timer.Start()
+}
+
+function Serve-Static($ctx, [string]$path) {
+  $rel = [Uri]::UnescapeDataString($path.TrimStart('/'))
+  if (-not $rel) { $rel = 'index.html' }
+  if ($rel -match '\.\.' -or $rel -match '[:\\]') { return Send-Json $ctx 400 @{ error = 'Geçersiz yol' } }
+  if (-not ($rel -eq 'index.html' -or $rel -like 'assets/*' -or $rel -eq 'data/data.json')) { return Send-Json $ctx 404 @{ error = 'Bulunamadı' } }
+  $type = $Mime[[IO.Path]::GetExtension($rel).ToLowerInvariant()]
+  if (-not $type) { return Send-Json $ctx 404 @{ error = 'Bulunamadı' } }
+  if ($SiteDir) {
+    $f = Join-Path $SiteDir ($rel -replace '/', '\')
+    if (Test-Path -LiteralPath $f -PathType Leaf) { return Send-Bytes $ctx 200 ([IO.File]::ReadAllBytes($f)) $type }
+    return Send-Json $ctx 404 @{ error = 'Bulunamadı' }
+  }
+  $c = $script:ProxyCache[$rel]
+  if ($c -and $rel -ne 'data/data.json' -and ((Get-Date) - $c.at).TotalSeconds -lt 300) { return Send-Bytes $ctx 200 $c.bytes $type }
+  try {
+    $wc = New-Object Net.WebClient; $wc.Headers['User-Agent'] = 'aion2-izleyici'
+    $bytes = $wc.DownloadData($PagesBase + $rel + $(if ($rel -eq 'data/data.json') { "?t=$([DateTime]::UtcNow.Ticks)" } else { '' }))
+    $script:ProxyCache[$rel] = @{ at = Get-Date; bytes = $bytes }
+    Send-Bytes $ctx 200 $bytes $type
+  } catch {
+    if ($c) { Send-Bytes $ctx 200 $c.bytes $type } else { Send-Json $ctx 502 @{ error = "Site indirilemedi: $($_.Exception.Message)" } }
+  }
+}
+
+function Handle-Request($ctx) {
+  $req = $ctx.Request; $path = $req.Url.AbsolutePath; $m = $req.HttpMethod
+  # DNS rebinding'e karşı: başka bir alan adı 127.0.0.1'e yönlendirilse bile Host başlığı tutmaz → reddet.
+  if (@("127.0.0.1:$Port", "localhost:$Port") -notcontains "$($req.Headers['Host'])".ToLowerInvariant()) {
+    return Send-Json $ctx 403 @{ error = 'İzin yok' }
+  }
+  if (-not $path.StartsWith('/api/')) {
+    if ($m -ne 'GET') { return Send-Json $ctx 405 @{ error = 'İzin verilmeyen yöntem' } }
+    return Serve-Static $ctx $path
+  }
+  if ($m -eq 'POST' -and ($req.Headers['Origin'] -ne $AppOrigin -or -not ("$($req.ContentType)" -like 'application/json*'))) {
+    return Send-Json $ctx 403 @{ error = 'İzin yok' }
+  }
+  switch ("$m $path") {
+    'GET /api/status' { return Send-Json $ctx 200 (Status-Object) }
+    'GET /api/session' {
+      # Oturum yalnızca bu adresten açılmış sayfaya verilir (tarayıcı başka sitelerden gelen isteği "cross-site" diye işaretler).
+      if ($req.Headers['Sec-Fetch-Site'] -ne 'same-origin') { return Send-Json $ctx 403 @{ error = 'İzin yok' } }
+      if (-not $script:Session) { return Send-Json $ctx 404 @{ error = 'Oturum yok' } }
+      return Send-Json $ctx 200 $script:Session
+    }
+    'POST /api/session' {
+      $b = Read-Body $ctx
+      if (-not $b.token -or -not $b.user) { return Send-Json $ctx 400 @{ error = 'Eksik oturum bilgisi' } }
+      $s = @{ user = [string]$b.user; token = [string]$b.token; owner = [string]$b.owner; repo = [string]$b.repo; branch = $(if ($b.branch) { [string]$b.branch } else { 'main' }) }
+      if ($script:Session -and $script:Session.token -eq $s.token -and $script:Session.user -eq $s.user) { return Send-Json $ctx 200 @{ ok = $true } }
+      Set-Session $s $true $true
+      return Send-Json $ctx 200 @{ ok = $true }
+    }
+    'POST /api/logout' { Clear-Session; return Send-Json $ctx 200 @{ ok = $true } }
+    'POST /api/char' { $b = Read-Body $ctx; Set-Char ([string]$b.id); return Send-Json $ctx 200 @{ ok = $true } }
+    'POST /api/pause' {
+      if (-not $script:Session) { return Send-Json $ctx 409 @{ error = 'Önce giriş yap' } }
+      $b = Read-Body $ctx; $p = [bool]$b.paused
+      if ($p -ne [bool]$script:Paused) {
+        $script:Paused = $p
+        Log $(if ($p) { 'Duraklatıldı.' } else { 'İzleme devam ediyor.' })
+        Set-Status $(if ($p) { 'Duraklatıldı — kutular kaydedilmiyor.' } else { 'İzleniyor — ödül kutusu penceresi bekleniyor.' })
+        Update-Tray
+      }
+      return Send-Json $ctx 200 @{ ok = $true }
+    }
+    'POST /api/undo' { Do-Undo; return Send-Json $ctx 200 @{ ok = $true } }
+    'POST /api/test' { return Send-Json $ctx 200 (Do-Test) }
+  }
+  return Send-Json $ctx 404 @{ error = 'Bulunamadı' }
+}
+
+$script:HttpTask = $Http.GetContextAsync()
+function Pump-Http {
+  for ($i = 0; $i -lt 10 -and $Http.IsListening -and $script:HttpTask.IsCompleted; $i++) {
+    $t = $script:HttpTask
+    $ctx = $null; try { $ctx = $t.Result } catch {}
+    $script:HttpTask = $Http.GetContextAsync()
+    if ($ctx) { try { Handle-Request $ctx } catch { try { Send-Json $ctx 500 @{ error = $_.Exception.Message } } catch {} } }
+  }
+}
+
+# ---------------------------------------------------------------- Saat yanındaki simge
+function New-TrayIcon {
+  $bmp = New-Object Drawing.Bitmap 32, 32
+  $g = [Drawing.Graphics]::FromImage($bmp); $g.SmoothingMode = 'AntiAlias'; $g.TextRenderingHint = 'AntiAliasGridFit'
+  $rect = New-Object Drawing.Rectangle 0, 0, 32, 32
+  $br = New-Object Drawing.Drawing2D.LinearGradientBrush($rect, [Drawing.Color]::FromArgb(59, 111, 209), [Drawing.Color]::FromArgb(123, 79, 214), 45)
+  $g.FillEllipse($br, 1, 1, 30, 30)
+  $font = New-Object Drawing.Font('Segoe UI', 12, [Drawing.FontStyle]::Bold, [Drawing.GraphicsUnit]::Pixel)
+  $sf = New-Object Drawing.StringFormat; $sf.Alignment = 'Center'; $sf.LineAlignment = 'Center'
+  $g.DrawString('A2', $font, [Drawing.Brushes]::White, (New-Object Drawing.RectangleF 0, 1, 32, 32), $sf)
+  $g.Dispose(); $br.Dispose(); $font.Dispose()
+  [Drawing.Icon]::FromHandle($bmp.GetHicon())
+}
+$tray = New-Object Windows.Forms.NotifyIcon
+$tray.Icon = New-TrayIcon
+$menu = New-Object Windows.Forms.ContextMenuStrip
+$miOpen = $menu.Items.Add('Paneli aç'); $miOpen.Font = New-Object Drawing.Font($miOpen.Font, [Drawing.FontStyle]::Bold)
+$miPause = $menu.Items.Add('Duraklat')
+$miTest = $menu.Items.Add('Ekranı şimdi oku')
+[void]$menu.Items.Add('-')
+$miQuit = $menu.Items.Add('Çıkış')
+$tray.ContextMenuStrip = $menu
+$tray.Visible = $true
+
+function Update-Tray {
+  $txt = if (-not $script:Session) { 'giriş bekleniyor' } elseif ($script:Paused) { "duraklatıldı · $(Char-Name)" } else { "izliyor · $(Char-Name)" }
+  $t = "AION 2 Takip — $txt"; if ($t.Length -gt 63) { $t = $t.Substring(0, 63) }
+  $tray.Text = $t
+  $miPause.Text = $(if ($script:Paused) { 'Devam et' } else { 'Duraklat' })
+  $miPause.Enabled = [bool]$script:Session
+}
+
+function Quit-App {
+  $timer.Stop(); $httpTimer.Stop()
+  if ($script:Pending) { Commit-Pending }
+  $tray.Visible = $false; $tray.Dispose()
+  try { $Http.Stop() } catch {}
+  [Windows.Forms.Application]::Exit()
+}
+
+$miOpen.add_Click({ Open-Panel })
+$tray.add_MouseDoubleClick({ Open-Panel })
+$miPause.add_Click({
+  if (-not $script:Session) { return }
+  $script:Paused = -not $script:Paused
+  Log $(if ($script:Paused) { 'Duraklatıldı.' } else { 'İzleme devam ediyor.' })
+  Set-Status $(if ($script:Paused) { 'Duraklatıldı — kutular kaydedilmiyor.' } else { 'İzleniyor — ödül kutusu penceresi bekleniyor.' })
+  Update-Tray
 })
-$form.Add_FormClosing({ $timer.Stop(); if ($script:Pending) { Commit-Pending } })
-[void]$form.ShowDialog()
+$miTest.add_Click({ try { [void](Do-Test) } catch { Log "✖ Test: $($_.Exception.Message)" } })
+$miQuit.add_Click({ Quit-App })
+
+# ---------------------------------------------------------------- Başlat
+$timer = New-Object Windows.Forms.Timer; $timer.Interval = 150; $timer.Add_Tick({ Invoke-Tick })
+$httpTimer = New-Object Windows.Forms.Timer; $httpTimer.Interval = 40; $httpTimer.Add_Tick({ Pump-Http })
+
+Log "Uygulama başladı (v$Version). Ekran: $([A2Img]::ScreenW())x$([A2Img]::ScreenH()) · panel: $AppUrl$(if ($SiteDir) { ' (yerel dosyalar)' } else { '' })"
+$s = Load-Session
+if (-not $s -and $script:SessionError) { Log "Kayıtlı oturum okunamadı, panelde tekrar giriş yap: $($script:SessionError)" }
+if ($s) { Set-Session $s $false $false }
+Update-Tray
+$timer.Start(); $httpTimer.Start()
+if (-not $env:A2_NO_PANEL) { Open-Panel }
+[Windows.Forms.Application]::Run()
