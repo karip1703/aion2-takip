@@ -545,3 +545,5 @@ main { width: 100%; }
 .btn.primary { background: linear-gradient(180deg, var(--accent), var(--accent-2)); }
 .content > .topbar { background: color-mix(in srgb, var(--bg) 85%, transparent); }
 .panel, .card { box-shadow: 0 1px 0 color-mix(in srgb, var(--accent) 6%, transparent) inset; }
+
+kbd { font: .78rem/1 ui-monospace, Consolas, monospace; padding: 2px 5px; border: 1px solid var(--border); border-bottom-width: 2px; border-radius: 4px; background: var(--surface-2); color: var(--text); }

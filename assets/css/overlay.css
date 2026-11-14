@@ -1,0 +1,98 @@
+/* Karip Traker — oyun içi panel. Renkler ana sitedekiyle aynı (logo: lacivert + mavi). */
+:root {
+  --bg: #011831;
+  --surface: #0a2340;
+  --surface-2: #10304f;
+  --border: #1b4068;
+  --text: #e4eefa;
+  --muted: #86a0bf;
+  --accent: #2a95ff;
+  --accent-2: #1673e0;
+  --ok: #3fb950;
+  --warn: #f0a33a;
+  --full: #f05d5d;
+  --gold: #e3b341;
+  --scale: 1;
+  color-scheme: dark;
+}
+* { box-sizing: border-box; }
+[hidden] { display: none !important; }
+html { font-size: calc(13px * var(--scale)); }
+html, body { margin: 0; background: var(--bg); color: var(--text); }
+body { font: 1rem/1.35 system-ui, -apple-system, "Segoe UI", Roboto, sans-serif; overflow-x: hidden; user-select: none; }
+button, input, select { font: inherit; color: inherit; }
+b em { font-style: normal; color: var(--accent); }
+.muted { color: var(--muted); }
+
+/* Üst çubuk: sadece düzenleme modunda */
+.ov-bar { display: flex; align-items: center; gap: 6px; padding: 6px 8px; border-bottom: 1px solid var(--border); background: var(--surface); position: sticky; top: 0; z-index: 2; }
+.ov-bar img { border-radius: 4px; }
+.ov-sp { flex: 1; }
+.ov-mode { font-size: .78rem; color: var(--muted); }
+.ov-btn { background: var(--surface-2); border: 1px solid var(--border); border-radius: 6px; padding: 3px 9px; cursor: pointer; font-size: .85rem; }
+.ov-btn:hover { border-color: var(--accent); }
+.ov-btn.primary { background: linear-gradient(180deg, var(--accent), var(--accent-2)); border-color: var(--accent-2); color: #fff; }
+.ov-btn.on { border-color: var(--accent); color: var(--accent); }
+.ov-btn:disabled { opacity: .45; cursor: default; }
+body.ghost .ov-bar, body.ghost .ov-settings, body.ghost .ov-edit { display: none !important; }
+
+/* Bileşenler */
+.ov-widgets { display: grid; gap: 6px; padding: 6px; }
+.w { background: var(--surface); border: 1px solid var(--border); border-radius: 8px; padding: 6px 8px; }
+body.ghost .w { border-color: transparent; }
+.w-head { display: flex; align-items: baseline; gap: 6px; margin: 0 0 4px; font-size: .74rem; letter-spacing: .4px; text-transform: uppercase; color: var(--muted); }
+.w-head .r { margin-left: auto; text-transform: none; letter-spacing: 0; }
+.w ul { list-style: none; margin: 0; padding: 0; display: grid; gap: 3px; }
+.w li { display: flex; justify-content: space-between; gap: 8px; align-items: baseline; }
+.w li > span:first-child { min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.w li > span:last-child { white-space: nowrap; }
+.w .empty { color: var(--muted); font-size: .85rem; margin: 0; }
+
+.en { display: grid; grid-template-columns: minmax(0, 1fr) auto; gap: 0 8px; padding: 3px 0; }
+.en + .en { border-top: 1px solid color-mix(in srgb, var(--border) 60%, transparent); }
+.en .nm { font-weight: 600; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.en.active .nm::before { content: '● '; color: var(--ok); }
+.en .tot { font-weight: 700; font-size: 1.15rem; text-align: right; }
+.en .sub { font-size: .8rem; color: var(--muted); }
+.en .sub.r { text-align: right; }
+.en .bar { grid-column: 1 / -1; height: 4px; border-radius: 99px; background: var(--surface-2); overflow: hidden; margin-top: 3px; }
+.en .bar > i { display: block; height: 100%; background: linear-gradient(90deg, var(--accent-2), var(--accent)); }
+.en.near .bar > i { background: var(--warn); }
+.en.full .bar > i { background: var(--full); }
+.en.full .sub.r { color: var(--full); font-weight: 700; }
+.bonus { color: var(--gold); }
+.ok-txt { color: var(--ok); font-weight: 700; }
+.soon { color: var(--warn); font-weight: 700; }
+
+.dg { display: grid; grid-template-columns: minmax(0, 1fr) auto; gap: 1px 8px; }
+.dg .bar { grid-column: 1 / -1; height: 3px; border-radius: 99px; background: var(--surface-2); overflow: hidden; }
+.dg .bar > i { display: block; height: 100%; background: var(--accent); }
+.dg.close .bar > i { background: var(--gold); }
+
+.seg { display: flex; flex-wrap: wrap; gap: 4px; margin-top: 5px; }
+.seg button { background: var(--surface-2); border: 1px solid var(--border); border-radius: 6px; padding: 2px 8px; cursor: pointer; font-size: .82rem; }
+.seg button[aria-checked="true"] { background: var(--accent-2); border-color: var(--accent-2); color: #fff; }
+.st-line { display: flex; align-items: center; gap: 6px; }
+.dot { width: 8px; height: 8px; border-radius: 50%; background: var(--muted); flex: none; }
+.dot.on { background: var(--ok); } .dot.warn { background: var(--warn); }
+.clock { display: flex; justify-content: space-between; font-variant-numeric: tabular-nums; }
+.clock b { font-size: 1.15rem; }
+
+/* Ayarlar */
+.ov-settings { padding: 8px; border-bottom: 1px solid var(--border); background: var(--surface); display: grid; gap: 8px; font-size: .9rem; }
+.ov-settings h3 { margin: 0; font-size: .78rem; text-transform: uppercase; letter-spacing: .4px; color: var(--muted); }
+.ov-list { list-style: none; margin: 0; padding: 0; display: grid; gap: 3px; }
+.ov-list li { display: flex; align-items: center; gap: 6px; padding: 3px 6px; border: 1px solid var(--border); border-radius: 6px; background: var(--bg); }
+.ov-list li label { flex: 1; display: flex; gap: 6px; align-items: center; cursor: pointer; }
+.ov-list .mv { background: none; border: 1px solid var(--border); border-radius: 5px; width: 24px; height: 22px; cursor: pointer; padding: 0; }
+.ov-list .mv:disabled { opacity: .3; cursor: default; }
+.ov-row { display: grid; grid-template-columns: 9.5em 1fr 3em; align-items: center; gap: 6px; }
+.ov-row output { text-align: right; color: var(--muted); }
+.ov-chips { display: flex; flex-wrap: wrap; gap: 6px; }
+.ov-chips label { display: flex; gap: 4px; align-items: center; }
+.ov-settings select { background: var(--bg); border: 1px solid var(--border); border-radius: 5px; padding: 1px 4px; }
+input[type="range"] { accent-color: var(--accent); width: 100%; }
+input[type="checkbox"] { accent-color: var(--accent); }
+
+.ov-hint { padding: 2px 8px 6px; font-size: .74rem; color: var(--muted); text-align: center; }
+.ov-err { margin: 6px; padding: 6px 8px; border: 1px solid var(--full); border-radius: 6px; color: #ffb4b4; font-size: .85rem; }

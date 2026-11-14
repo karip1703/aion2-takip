@@ -42,6 +42,7 @@ export const appApi = {
   session: (s) => api('/session', s),
   logout: () => api('/logout', {}),
   getSession: () => api('/session'),
+  overlay: (b) => api('/overlay', b),
 };
 
 // Kenar çubuğundaki küçük durum rozeti
@@ -87,6 +88,7 @@ export function renderAppView(root, b, { repo }) {
   const stateTxt = !s.loggedIn ? 'Giriş bekleniyor' : s.paused ? 'Duraklatıldı' : 'İzliyor';
   const stateCls = !s.loggedIn ? 'warn' : s.paused ? 'warn' : 'on';
   const last = s.lastRead;
+  const ov = s.overlay || {};
   root.innerHTML = `
     <div class="app-grid">
       <section class="panel app-state ${stateCls}">
@@ -118,6 +120,16 @@ export function renderAppView(root, b, { repo }) {
           <dt>Kutu · maliyet</dt><dd>${esc(last.boxes)} kutu · ${esc(last.cost)} enerji</dd>
           <dt>Enerji</dt><dd>${last.natural != null ? `${esc(last.natural)} <span class="bonus-tag">+${esc(last.bonus)}</span> / ${esc(last.energyMax)}` : '<span class="muted">okunamadı</span>'}</dd>
         </dl>` : '<p class="hint">Henüz kutu okunmadı. Oyunda ödül kutusunu açtığında burada görünür.</p>'}
+      </section>
+
+      <section class="panel">
+        <header class="panel-head"><h2>Oyun içi panel</h2><span class="muted">${ov.open ? (ov.ghost ? 'açık · oyun modu' : 'açık · düzenleme') : 'kapalı'}</span></header>
+        <p>Oyunun üstünde duran küçük, yarı saydam pencere: enerji, bosslar, zindan sayaçları… Neyin görüneceğini panelin ⚙ düğmesinden kendin seçersin.</p>
+        <div class="row">
+          <button type="button" class="btn primary" data-app="overlay">${!ov.open ? 'Oyun içi paneli aç' : ov.hidden ? 'Göster' : 'Gizle'}</button>
+          ${ov.open ? `<button type="button" class="btn" data-app="ovmode">${ov.ghost ? 'Düzenleme moduna geç' : 'Oyun moduna geç'}</button>` : ''}
+        </div>
+        <p class="hint"><kbd>Alt+Shift+O</kbd> aç / gizle · <kbd>Alt+Shift+T</kbd> oyun modu ↔ düzenleme. Oyun modunda tıklamalar panelin içinden oyuna geçer. Oyun <b>çerçevesiz pencere</b> modunda olmalı.${ov.hotkeys === false ? ' <b class="warn-txt">Kısayol tuşları başka bir programda kullanıldığı için kaydedilemedi.</b>' : ''}</p>
       </section>
 
       <section class="panel span-all">

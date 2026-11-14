@@ -186,6 +186,21 @@ node scripts/fetch-characters.mjs                           # "fetch": false olm
 
 **Kayıtlar siteye nasıl gelir?** Program her olayı repodaki `data/inbox/` klasörüne küçük bir dosya olarak gönderir. **Izleyici kayıtlarını uygula** workflow'u (`.github/workflows/inbox.yml`) bunları sitenin kullandığı kurallarla (`assets/js/ops.js`) `data.json`'a uygular. Siteye yansıması yaklaşık yarım dakika sürer, canlı yenileme sayesinde F5 gerekmez.
 
+### Oyun içi panel (overlay)
+
+Oyunun üstünde duran küçük, yarı saydam bir pencere. Uygulama açıkken **Alt+Shift+O** ile açılır (ya da simge → **Oyun içi paneli aç**, ya da sitede **Uygulama** bölümü).
+
+- **Oyun modu** (**Alt+Shift+T**): pencere yarı saydam olur ve tıklamalar içinden oyuna geçer, oyunu engellemez.
+- **Düzenleme modu** (tekrar **Alt+Shift+T**): tam görünür ve tıklanabilir. Başlığından tutup taşı, kenarından boyutlandır; konum hatırlanır. **⚙** ile:
+  - hangi bileşenlerin görüneceğini ve sırasını (uygulama durumu, enerji, bosslar, aktif karakterin zindan sayaçları, son okunan kutu, yapılacaklar, saat),
+  - oyun modundaki saydamlığı, yazı boyutunu, enerjide hangi karakterlerin görüneceğini seçersin. Ayarlar kullanıcıya özeldir.
+- Düzenleme modunda aktif karakteri değiştirebilir, izlemeyi duraklatabilirsin.
+- **Alt+Shift+O** paneli gizler / gösterir.
+- Oyun **çerçevesiz pencere** modunda olmalı (özel tam ekranda hiçbir pencere oyunun üstünde görünemez).
+- Panel ayrı bir penceredir: oyuna hiçbir şey eklenmez, oyunun belleği okunmaz.
+
+Yeni bileşen eklemek için [assets/js/overlay.js](assets/js/overlay.js) içindeki `WIDGETS` listesine bir giriş eklemek yeterli.
+
 ## 6c. Boss zamanlayıcıları ve bildirimler
 
 **Bosslar** sekmesinde EU sunucusunun saha ve Abyss bossları listelenir:

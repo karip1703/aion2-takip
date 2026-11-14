@@ -1,0 +1,27 @@
+<!doctype html>
+<html lang="tr">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="color-scheme" content="dark">
+  <meta name="robots" content="noindex">
+  <!-- Başlık değişmesin: uygulama bu pencereyi başlığından bulur (bkz. tools/izleyici/izleyici.ps1 → $OvTitle). -->
+  <title>Karip Traker · Oyun içi</title>
+  <link rel="icon" type="image/png" href="assets/img/logo.png">
+  <link rel="stylesheet" href="assets/css/overlay.css">
+</head>
+<body>
+  <header class="ov-bar" id="ov-bar">
+    <img src="assets/img/logo.png" alt="" width="20" height="22">
+    <b><em>Karip</em> Traker</b>
+    <span class="ov-mode" id="ov-mode"></span>
+    <span class="ov-sp"></span>
+    <button type="button" class="ov-btn" id="ov-settings" title="Paneli düzenle">⚙</button>
+    <button type="button" class="ov-btn primary" id="ov-ghost" title="Oyun moduna geç (Alt+Shift+T)">Oyun modu</button>
+  </header>
+  <section class="ov-settings" id="ov-panel" hidden></section>
+  <main class="ov-widgets" id="ov-widgets"></main>
+  <footer class="ov-hint" id="ov-hint"></footer>
+  <script type="module" src="assets/js/overlay.js"></script>
+</body>
+</html>

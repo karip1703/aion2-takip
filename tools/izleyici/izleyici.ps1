@@ -530,7 +530,7 @@ if ($env:A2_SEND_TEST) {
 # Arayüz artık sitenin kendisi: uygulama siteyi http://127.0.0.1:47321 adresinden sunar ve Edge'in uygulama
 # penceresinde açar. Site "Uygulama" bölümünde bu durumu /api/status ile okur; komutlar /api/* ile gelir.
 # Saat yanındaki simge: paneli aç, duraklat, ekranı oku, çıkış.
-$Version = '2.0'
+$Version = '2.1'
 $Port = 47321
 $AppUrl = "http://127.0.0.1:$Port/"
 $AppOrigin = "http://127.0.0.1:$Port"
@@ -756,10 +756,186 @@ if ($env:A2_LOOP_TEST) {   # geliştirici testi: kare dizisiyle döngüyü sına
   return
 }
 
+# ---------------------------------------------------------------- Oyun içi panel (overlay)
+# overlay.html, Edge'in uygulama penceresinde açılır; bu pencere başlığından bulunur ve Windows API ile
+# her zaman üstte tutulur. Oyun modunda yarı saydam yapılır ve tıklamalar içinden geçer (WS_EX_TRANSPARENT);
+# düzenleme modunda tam görünür ve tıklanabilir. Oyuna hiçbir şey enjekte edilmez, oyunun belleği okunmaz:
+# sadece ayrı bir pencere üstte durur.
+# Kısayollar (her yerde çalışır): Alt+Shift+O aç / gizle · Alt+Shift+T oyun modu ↔ düzenleme.
+Add-Type -ReferencedAssemblies System.Windows.Forms -TypeDefinition @'
+using System;
+using System.Text;
+using System.Collections.Generic;
+using System.Runtime.InteropServices;
+using System.Windows.Forms;
+
+public static class A2Win {
+  delegate bool EnumProc(IntPtr h, IntPtr l);
+  [DllImport("user32.dll")] static extern bool EnumWindows(EnumProc f, IntPtr l);
+  [DllImport("user32.dll", CharSet = CharSet.Unicode)] static extern int GetWindowText(IntPtr h, StringBuilder s, int n);
+  [DllImport("user32.dll", CharSet = CharSet.Unicode)] static extern int GetClassName(IntPtr h, StringBuilder s, int n);
+  [DllImport("user32.dll")] public static extern bool IsWindow(IntPtr h);
+  [DllImport("user32.dll")] static extern bool IsWindowVisible(IntPtr h);
+  [DllImport("user32.dll")] static extern int GetWindowLong(IntPtr h, int i);
+  [DllImport("user32.dll")] static extern int SetWindowLong(IntPtr h, int i, int v);
+  [DllImport("user32.dll")] static extern bool SetLayeredWindowAttributes(IntPtr h, uint key, byte a, uint f);
+  [DllImport("user32.dll")] static extern bool SetWindowPos(IntPtr h, IntPtr after, int x, int y, int w, int hh, uint f);
+  [DllImport("user32.dll")] static extern bool ShowWindow(IntPtr h, int c);
+  [DllImport("user32.dll")] static extern bool IsIconic(IntPtr h);
+  [DllImport("user32.dll")] static extern bool GetWindowRect(IntPtr h, out RECT r);
+  [DllImport("user32.dll")] static extern bool PostMessage(IntPtr h, uint m, IntPtr w, IntPtr l);
+  [DllImport("user32.dll")] static extern bool SetForegroundWindow(IntPtr h);
+  struct RECT { public int L, T, R, B; }
+  const int GWL_EXSTYLE = -20, WS_EX_LAYERED = 0x80000, WS_EX_TRANSPARENT = 0x20;
+  static readonly IntPtr TOPMOST = new IntPtr(-1);
+
+  // Başlığı `prefix` ile başlayan görünür Edge/Chromium penceresi
+  public static IntPtr Find(string prefix) {
+    IntPtr found = IntPtr.Zero;
+    var sb = new StringBuilder(512); var cb = new StringBuilder(256);
+    EnumWindows((h, l) => {
+      if (!IsWindowVisible(h)) return true;
+      sb.Length = 0; GetWindowText(h, sb, 512);
+      if (!sb.ToString().StartsWith(prefix)) return true;
+      cb.Length = 0; GetClassName(h, cb, 256);
+      if (cb.ToString() != "Chrome_WidgetWin_1") return true;
+      found = h; return false;
+    }, IntPtr.Zero);
+    return found;
+  }
+  // Üstte tut + saydamlık + tıklama geçirgenliği
+  public static void Apply(IntPtr h, byte alpha, bool clickThrough) {
+    int ex = GetWindowLong(h, GWL_EXSTYLE);
+    int n = ex | WS_EX_LAYERED;
+    if (clickThrough) n |= WS_EX_TRANSPARENT; else n &= ~WS_EX_TRANSPARENT;
+    if (n != ex) SetWindowLong(h, GWL_EXSTYLE, n);
+    SetLayeredWindowAttributes(h, 0, alpha, 2);
+    SetWindowPos(h, TOPMOST, 0, 0, 0, 0, 0x1 | 0x2 | 0x10);   // NOSIZE | NOMOVE | NOACTIVATE
+  }
+  public static int[] Rect(IntPtr h) {
+    RECT r;
+    if (IsIconic(h) || !GetWindowRect(h, out r)) return null;
+    return new int[] { r.L, r.T, r.R - r.L, r.B - r.T };
+  }
+  public static void Place(IntPtr h, int x, int y, int w, int hh) { SetWindowPos(h, TOPMOST, x, y, w, hh, 0x10); }
+  public static void Hide(IntPtr h) { ShowWindow(h, 0); }
+  public static void Show(IntPtr h) { ShowWindow(h, 4); }          // SW_SHOWNOACTIVATE
+  public static void Front(IntPtr h) { SetForegroundWindow(h); }
+  public static void Close(IntPtr h) { PostMessage(h, 0x10, IntPtr.Zero, IntPtr.Zero); }
+}
+
+// Genel kısayol tuşları: basılanlar kuyruğa girer, zamanlayıcı okur.
+public class A2Hot : NativeWindow {
+  [DllImport("user32.dll")] static extern bool RegisterHotKey(IntPtr h, int id, uint mod, uint vk);
+  [DllImport("user32.dll")] static extern bool UnregisterHotKey(IntPtr h, int id);
+  static readonly Queue<int> pressed = new Queue<int>();
+  public A2Hot() { CreateHandle(new CreateParams()); }
+  public bool Add(int id, uint mod, uint vk) { return RegisterHotKey(Handle, id, mod | 0x4000, vk); }   // 0x4000: basılı tutunca tekrarlama
+  public void Clear() { for (int i = 1; i <= 8; i++) UnregisterHotKey(Handle, i); }
+  protected override void WndProc(ref Message m) {
+    if (m.Msg == 0x312) lock (pressed) pressed.Enqueue(m.WParam.ToInt32());
+    base.WndProc(ref m);
+  }
+  public static int Next() { lock (pressed) return pressed.Count > 0 ? pressed.Dequeue() : 0; }
+}
+'@
+
+$OvTitle = 'Karip Traker · Oyun içi'      # overlay.html <title> ile aynı olmalı
+$OvUrl = "${AppUrl}overlay.html"
+$script:Ov = @{ h = [IntPtr]::Zero; seekUntil = [datetime]::MinValue; placeAt = [datetime]::MinValue; target = $null; ghost = $false; hidden = $false; applyAt = [datetime]::MinValue; rect = ''; hotkeys = $null }
+
+function Edge-Path {
+  @("${env:ProgramFiles(x86)}\Microsoft\Edge\Application\msedge.exe", "$env:ProgramFiles\Microsoft\Edge\Application\msedge.exe",
+    "$env:LOCALAPPDATA\Microsoft\Edge\Application\msedge.exe") | Where-Object { $_ -and (Test-Path $_) } | Select-Object -First 1
+}
+function Ov-IsOpen { $script:Ov.h -ne [IntPtr]::Zero -and [A2Win]::IsWindow($script:Ov.h) }
+function Ov-Alpha {
+  $a = 0.7; if ($script:Settings.overlayAlpha) { $a = [double]$script:Settings.overlayAlpha }
+  [byte][Math]::Round(255 * [Math]::Min(1.0, [Math]::Max(0.2, $a)))
+}
+function Ov-Rect {
+  # Not: PowerShell değişken adları büyük/küçük harfe duyarsız ($W ile $w aynı) → ayrı adlar.
+  $scrW = [A2Img]::ScreenW(); $scrH = [A2Img]::ScreenH()
+  $r = @($script:Settings.overlayRect)
+  if ($r.Count -eq 4 -and $r[2] -ge 200 -and $r[3] -ge 150 -and $r[0] -ge -50 -and $r[1] -ge -50 -and ($r[0] + 80) -le $scrW -and ($r[1] + 60) -le $scrH) { return [int[]]$r }
+  $winW = [int]([Math]::Max(330, $scrW * 0.19)); $winH = [int]([Math]::Max(480, $scrH * 0.55))
+  return [int[]]@(($scrW - $winW - 24), [int]($scrH * 0.30), $winW, $winH)   # sağda, mini haritanın altında
+}
+function Ov-Apply {
+  if (-not (Ov-IsOpen) -or $script:Ov.hidden) { return }
+  if ($script:Ov.ghost) { [A2Win]::Apply($script:Ov.h, (Ov-Alpha), $true) } else { [A2Win]::Apply($script:Ov.h, [byte]255, $false) }
+  $script:Ov.applyAt = Get-Date
+}
+function Open-Overlay {
+  if (Ov-IsOpen) { if ($script:Ov.hidden) { $script:Ov.hidden = $false; [A2Win]::Show($script:Ov.h); Ov-Apply }; return }
+  $edge = Edge-Path
+  if (-not $edge) { Log '✖ Oyun içi panel için Microsoft Edge bulunamadı.'; return }
+  $r = Ov-Rect
+  Start-Process $edge -ArgumentList "--app=$OvUrl", "--window-size=$($r[2]),$($r[3])", "--window-position=$($r[0]),$($r[1])"
+  $script:Ov.seekUntil = (Get-Date).AddSeconds(20); $script:Ov.ghost = $false; $script:Ov.hidden = $false
+}
+function Toggle-Overlay {
+  if (-not (Ov-IsOpen)) { Open-Overlay; return }
+  if ($script:Ov.hidden) { $script:Ov.hidden = $false; [A2Win]::Show($script:Ov.h); Ov-Apply }
+  else { $script:Ov.hidden = $true; [A2Win]::Hide($script:Ov.h) }
+  Update-Tray
+}
+function Set-Ghost([bool]$on) {
+  if (-not (Ov-IsOpen)) { Open-Overlay; return }
+  $script:Ov.ghost = $on
+  if ($script:Ov.hidden) { $script:Ov.hidden = $false; [A2Win]::Show($script:Ov.h) }
+  Ov-Apply
+  if (-not $on) { [A2Win]::Front($script:Ov.h) }
+  Update-Tray
+}
+function Overlay-Object {
+  [ordered]@{ open = [bool](Ov-IsOpen); ghost = [bool]$script:Ov.ghost; hidden = [bool]$script:Ov.hidden
+    alpha = [double]((Ov-Alpha) / 255); hotkeys = $script:Ov.hotkeys }
+}
+function Overlay-Tick {
+  for ($k = [A2Hot]::Next(); $k -ne 0; $k = [A2Hot]::Next()) {
+    try { if ($k -eq 1) { Toggle-Overlay } elseif ($k -eq 2) { Set-Ghost (-not $script:Ov.ghost) } } catch { Log "✖ Oyun içi panel: $($_.Exception.Message)" }
+  }
+  if ($script:Ov.h -eq [IntPtr]::Zero) {
+    if ((Get-Date) -lt $script:Ov.seekUntil) {
+      $h = [A2Win]::Find($OvTitle)
+      if ($h -ne [IntPtr]::Zero) {
+        $script:Ov.h = $h; $script:Ov.seekUntil = [datetime]::MinValue
+        $r = Ov-Rect; [A2Win]::Place($h, $r[0], $r[1], $r[2], $r[3]); $script:Ov.rect = ($r -join ',')
+        $script:Ov.placeAt = (Get-Date).AddSeconds(6); $script:Ov.target = $r
+        Ov-Apply; Update-Tray
+        Log 'Oyun içi panel açıldı (Alt+Shift+T: oyun modu ↔ düzenleme, Alt+Shift+O: gizle/göster).'
+      }
+    }
+    return
+  }
+  if (-not [A2Win]::IsWindow($script:Ov.h)) {
+    $script:Ov.h = [IntPtr]::Zero; $script:Ov.ghost = $false; $script:Ov.hidden = $false
+    Update-Tray; return
+  }
+  # Edge açılıştan birkaç saniye sonra pencereyi kendi hatırladığı yere taşıyabiliyor → bu sürede konumu koru.
+  if ($script:Ov.placeAt -ne [datetime]::MinValue) {
+    $t = $script:Ov.target; $r = [A2Win]::Rect($script:Ov.h)
+    if ($r -and ($r[0] -ne $t[0] -or $r[1] -ne $t[1] -or $r[2] -ne $t[2])) { [A2Win]::Place($script:Ov.h, $t[0], $t[1], $t[2], $r[3]) }
+    if ((Get-Date) -lt $script:Ov.placeAt) { return }
+    $script:Ov.placeAt = [datetime]::MinValue
+    $r = [A2Win]::Rect($script:Ov.h); if ($r) { $script:Ov.rect = ($r -join ',') }
+  }
+  if ($script:Ov.hidden -or ((Get-Date) - $script:Ov.applyAt).TotalSeconds -lt 2) { return }
+  Ov-Apply   # Edge stilleri sıfırlarsa geri getir; tam ekran pencerelerin üstünde kalsın
+  if (-not $script:Ov.ghost) {
+    $r = [A2Win]::Rect($script:Ov.h)
+    if ($r -and $r[0] -gt -10000 -and ($r -join ',') -ne $script:Ov.rect) {
+      $script:Ov.rect = ($r -join ',')
+      $script:Settings | Add-Member -NotePropertyName overlayRect -NotePropertyValue @($r) -Force
+      Save-Settings $script:Settings
+    }
+  }
+}
+
 # ---------------------------------------------------------------- Uygulama penceresi
 function Open-Panel {
-  $edge = @("${env:ProgramFiles(x86)}\Microsoft\Edge\Application\msedge.exe", "$env:ProgramFiles\Microsoft\Edge\Application\msedge.exe",
-    "$env:LOCALAPPDATA\Microsoft\Edge\Application\msedge.exe") | Where-Object { $_ -and (Test-Path $_) } | Select-Object -First 1
+  $edge = Edge-Path
   if ($edge) { Start-Process $edge -ArgumentList "--app=$AppUrl", '--window-size=1280,860' } else { Start-Process $AppUrl }
 }
 
@@ -807,6 +983,7 @@ function Status-Object {
     status = $script:StatusText; state = $script:State; canUndo = [bool]$script:LastSent; queue = $script:Queue.Count
     screen = ('{0}x{1}' -f [A2Img]::ScreenW(), [A2Img]::ScreenH())
     lastRead = $script:LastRead
+    overlay = (Overlay-Object)
     log = @($script:LogLines | Select-Object -First 60)
   }
 }
@@ -815,7 +992,7 @@ function Serve-Static($ctx, [string]$path) {
   $rel = [Uri]::UnescapeDataString($path.TrimStart('/'))
   if (-not $rel) { $rel = 'index.html' }
   if ($rel -match '\.\.' -or $rel -match '[:\\]') { return Send-Json $ctx 400 @{ error = 'Geçersiz yol' } }
-  if (-not ($rel -eq 'index.html' -or $rel -like 'assets/*' -or $rel -eq 'data/data.json')) { return Send-Json $ctx 404 @{ error = 'Bulunamadı' } }
+  if (-not ($rel -eq 'index.html' -or $rel -eq 'overlay.html' -or $rel -like 'assets/*' -or $rel -eq 'data/data.json')) { return Send-Json $ctx 404 @{ error = 'Bulunamadı' } }
   $type = $Mime[[IO.Path]::GetExtension($rel).ToLowerInvariant()]
   if (-not $type) { return Send-Json $ctx 404 @{ error = 'Bulunamadı' } }
   if ($SiteDir) {
@@ -877,6 +1054,35 @@ function Handle-Request($ctx) {
       }
       return Send-Json $ctx 200 @{ ok = $true }
     }
+    'POST /api/overlay' {
+      $b = Read-Body $ctx
+      switch ([string]$b.action) {
+        'toggle' { Toggle-Overlay }
+        'open' { Open-Overlay }
+        'ghost' { Set-Ghost (-not $script:Ov.ghost) }
+        'close' { if (Ov-IsOpen) { [A2Win]::Close($script:Ov.h) } }
+        'fit' {
+          # Sayfa içeriğinin yüksekliğine otur (piksel). Konum ve genişlik aynı kalır.
+          if (Ov-IsOpen) {
+            $r = [A2Win]::Rect($script:Ov.h)
+            if ($script:Ov.placeAt -ne [datetime]::MinValue) { $t = $script:Ov.target; $r = @($t[0], $t[1], $t[2], $(if ($r) { $r[3] } else { $t[3] })) }
+            $hh = [int][Math]::Min([A2Img]::ScreenH() * 0.92, [Math]::Max(120, [double]$b.height))
+            if ($r -and [Math]::Abs($r[3] - $hh) -gt 3) { [A2Win]::Place($script:Ov.h, $r[0], $r[1], $r[2], $hh) }
+          }
+        }
+        'alpha' {
+          $a = [double]$b.alpha
+          if (-not ($a -ge 0.2 -and $a -le 1)) { return Send-Json $ctx 400 @{ error = 'Geçersiz saydamlık' } }
+          if ([double]$script:Settings.overlayAlpha -ne $a) {
+            $script:Settings | Add-Member -NotePropertyName overlayAlpha -NotePropertyValue $a -Force
+            Save-Settings $script:Settings
+          }
+          if ($script:Ov.ghost) { Ov-Apply }
+        }
+        default { return Send-Json $ctx 400 @{ error = 'Bilinmeyen işlem' } }
+      }
+      return Send-Json $ctx 200 @{ ok = $true; overlay = (Overlay-Object) }
+    }
     'POST /api/undo' { Do-Undo; return Send-Json $ctx 200 @{ ok = $true } }
     'POST /api/test' { return Send-Json $ctx 200 (Do-Test) }
   }
@@ -912,6 +1118,9 @@ $miOpen = $menu.Items.Add('Paneli aç'); $miOpen.Font = New-Object Drawing.Font(
 $miPause = $menu.Items.Add('Duraklat')
 $miTest = $menu.Items.Add('Ekranı şimdi oku')
 [void]$menu.Items.Add('-')
+$miOv = $menu.Items.Add('Oyun içi panel   (Alt+Shift+O)')
+$miGhost = $menu.Items.Add('Oyun modu   (Alt+Shift+T)')
+[void]$menu.Items.Add('-')
 $miQuit = $menu.Items.Add('Çıkış')
 $tray.ContextMenuStrip = $menu
 $tray.Visible = $true
@@ -922,10 +1131,16 @@ function Update-Tray {
   $tray.Text = $t
   $miPause.Text = $(if ($script:Paused) { 'Devam et' } else { 'Duraklat' })
   $miPause.Enabled = [bool]$script:Session
+  $open = Ov-IsOpen
+  $miOv.Text = $(if (-not $open) { 'Oyun içi paneli aç   (Alt+Shift+O)' } elseif ($script:Ov.hidden) { 'Oyun içi paneli göster   (Alt+Shift+O)' } else { 'Oyun içi paneli gizle   (Alt+Shift+O)' })
+  $miGhost.Text = $(if ($script:Ov.ghost) { 'Düzenleme modu   (Alt+Shift+T)' } else { 'Oyun modu   (Alt+Shift+T)' })
+  $miGhost.Enabled = $open
 }
 
 function Quit-App {
-  $timer.Stop(); $httpTimer.Stop()
+  $timer.Stop(); $httpTimer.Stop(); $ovTimer.Stop()
+  try { $hot.Clear() } catch {}
+  if (Ov-IsOpen) { [A2Win]::Close($script:Ov.h) }
   if ($script:Pending) { Commit-Pending }
   $tray.Visible = $false; $tray.Dispose()
   try { $Http.Stop() } catch {}
@@ -943,16 +1158,22 @@ $miPause.add_Click({
 })
 $miTest.add_Click({ try { [void](Do-Test) } catch { Log "✖ Test: $($_.Exception.Message)" } })
 $miQuit.add_Click({ Quit-App })
+$miOv.add_Click({ Toggle-Overlay })
+$miGhost.add_Click({ Set-Ghost (-not $script:Ov.ghost) })
 
 # ---------------------------------------------------------------- Başlat
 $timer = New-Object Windows.Forms.Timer; $timer.Interval = 150; $timer.Add_Tick({ Invoke-Tick })
 $httpTimer = New-Object Windows.Forms.Timer; $httpTimer.Interval = 40; $httpTimer.Add_Tick({ Pump-Http })
+$ovTimer = New-Object Windows.Forms.Timer; $ovTimer.Interval = 200; $ovTimer.Add_Tick({ Overlay-Tick })
+$hot = New-Object A2Hot
+$script:Ov.hotkeys = [bool]($hot.Add(1, 5, 0x4F) -and $hot.Add(2, 5, 0x54))   # Alt+Shift (5) + O / T
+if (-not $script:Ov.hotkeys) { Log '… Alt+Shift+O / Alt+Shift+T kısayolları başka bir program tarafından kullanılıyor; oyun içi paneli simgeden aç.' }
 
 Log "Uygulama başladı (v$Version). Ekran: $([A2Img]::ScreenW())x$([A2Img]::ScreenH()) · panel: $AppUrl$(if ($SiteDir) { ' (yerel dosyalar)' } else { '' })"
 $s = Load-Session
 if (-not $s -and $script:SessionError) { Log "Kayıtlı oturum okunamadı, panelde tekrar giriş yap: $($script:SessionError)" }
 if ($s) { Set-Session $s $false $false }
 Update-Tray
-$timer.Start(); $httpTimer.Start()
+$timer.Start(); $httpTimer.Start(); $ovTimer.Start()
 if (-not $env:A2_NO_PANEL) { Open-Panel }
 [Windows.Forms.Application]::Run()
