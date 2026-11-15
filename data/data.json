@@ -26,7 +26,7 @@
     },
     "nearFullHours": 3
   },
-  "lastFetch": "2026-11-15T18:05:52.471Z",
+  "lastFetch": "2026-11-15T23:38:17.574Z",
   "characters": [
     {
       "id": "kyrakia",
@@ -36,7 +36,7 @@
         "class": "Sorcerer",
         "level": 45,
         "itemLevel": 3243,
-        "combatPower": 217601,
+        "combatPower": 218604,
         "race": "Elyos",
         "title": "Divine Skill",
         "profileImage": "https://profileimg.plaync.com/game_profile_images/aion2global/images?gameServerKey=1301&charKey=366198944700801654",
@@ -266,7 +266,7 @@
               "equipLevel": 45,
               "maxEnchant": 15,
               "maxExceed": 5,
-              "soulBind": "71.9",
+              "soulBind": "41.4",
               "main": [
                 {
                   "name": "Defense",
@@ -283,27 +283,29 @@
               ],
               "sub": [
                 {
-                  "name": "Critical Hit Resist",
-                  "value": "52",
+                  "name": "Attack",
+                  "value": "18",
                   "added": false
                 },
                 {
-                  "name": "Evasion",
-                  "value": "31",
+                  "name": "Accuracy",
+                  "value": "38",
                   "added": false
                 },
                 {
                   "name": "Status Effect Resist",
                   "value": "6%",
                   "added": false
-                },
+                }
+              ],
+              "subSkills": [
                 {
-                  "name": "Block",
-                  "value": "26",
+                  "name": "Robe of Cold",
+                  "level": 1,
+                  "icon": "https://assets.playnccdn.com/static-aion2-gamedata/resources/ICON_SO_SKILL_Passive_005.png",
                   "added": false
                 }
               ],
-              "subSkills": [],
               "subSkillMax": 4,
               "desc": null,
               "set": null,
@@ -353,7 +355,7 @@
               "equipLevel": 45,
               "maxEnchant": 15,
               "maxExceed": 5,
-              "soulBind": "68.9",
+              "soulBind": "81.8",
               "main": [
                 {
                   "name": "Defense",
@@ -370,11 +372,6 @@
               ],
               "sub": [
                 {
-                  "name": "Back Defense",
-                  "value": "195",
-                  "added": false
-                },
-                {
                   "name": "Critical Hit",
                   "value": "24",
                   "added": false
@@ -388,9 +385,15 @@
                   "added": false
                 },
                 {
-                  "name": "Robe of Earth",
+                  "name": "Revitalization Contract",
                   "level": 1,
-                  "icon": "https://assets.playnccdn.com/static-aion2-gamedata/resources/ICON_SO_SKILL_Passive_006.png",
+                  "icon": "https://assets.playnccdn.com/static-aion2-gamedata/resources/ICON_AS_SKILL_Passive_009.png",
+                  "added": false
+                },
+                {
+                  "name": "Fire Mark",
+                  "level": 1,
+                  "icon": "https://assets.playnccdn.com/static-aion2-gamedata/resources/ICON_SO_SKILL_Passive_002.png",
                   "added": false
                 }
               ],
@@ -2315,7 +2318,7 @@
             "id": 15710000,
             "name": "Fire Mark",
             "category": "Passive",
-            "level": 17,
+            "level": 18,
             "icon": "https://assets.playnccdn.com/static-aion2-gamedata/resources/ICON_SO_SKILL_Passive_002.png",
             "equip": false,
             "acquired": true
@@ -2324,7 +2327,7 @@
             "id": 15720000,
             "name": "Robe of Earth",
             "category": "Passive",
-            "level": 18,
+            "level": 17,
             "icon": "https://assets.playnccdn.com/static-aion2-gamedata/resources/ICON_SO_SKILL_Passive_006.png",
             "equip": false,
             "acquired": true
@@ -2369,7 +2372,7 @@
             "id": 15750000,
             "name": "Robe of Cold",
             "category": "Passive",
-            "level": 17,
+            "level": 18,
             "icon": "https://assets.playnccdn.com/static-aion2-gamedata/resources/ICON_SO_SKILL_Passive_005.png",
             "equip": false,
             "acquired": true
@@ -2387,7 +2390,7 @@
             "id": 15790000,
             "name": "Revitalization Contract",
             "category": "Passive",
-            "level": 17,
+            "level": 18,
             "icon": "https://assets.playnccdn.com/static-aion2-gamedata/resources/ICON_AS_SKILL_Passive_009.png",
             "equip": false,
             "acquired": true
@@ -2536,7 +2539,7 @@
           "enchant": 0,
           "icon": "https://assets.playnccdn.com/static-aion2-gamedata/resources/Icon_WingF_001.png"
         },
-        "updatedAt": "2026-11-15T18:05:07.696Z"
+        "updatedAt": "2026-11-15T23:37:32.367Z"
       },
       "energy": {
         "value": 30,
@@ -2567,7 +2570,7 @@
         "class": "Gladiator",
         "level": 45,
         "itemLevel": 1990,
-        "combatPower": 93688,
+        "combatPower": 93757,
         "race": "Elyos",
         "title": "Unbound by Genus",
         "profileImage": "https://profileimg.plaync.com/game_profile_images/aion2global/images?gameServerKey=1301&charKey=366198944700849139",
@@ -2688,7 +2691,7 @@
               "equipLevel": 45,
               "maxEnchant": 15,
               "maxExceed": 3,
-              "soulBind": "18.9",
+              "soulBind": "17.4",
               "main": [
                 {
                   "name": "Attack",
@@ -2727,7 +2730,7 @@
                 },
                 {
                   "name": "Accuracy",
-                  "value": "57",
+                  "value": "56",
                   "added": false
                 }
               ],
@@ -4961,7 +4964,7 @@
           "enchant": 0,
           "icon": null
         },
-        "updatedAt": "2026-11-14T09:29:22.801Z"
+        "updatedAt": "2026-11-15T23:37:47.519Z"
       },
       "energy": null,
       "ref": {
@@ -4977,7 +4980,7 @@
         "class": "Chanter",
         "level": 45,
         "itemLevel": 1769,
-        "combatPower": 92452,
+        "combatPower": 92541,
         "race": "Elyos",
         "title": "Unbound by Genus",
         "profileImage": "https://profileimg.plaync.com/game_profile_images/aion2global/images?gameServerKey=1301&charKey=366198944700864403",
@@ -7262,7 +7265,7 @@
           "enchant": 0,
           "icon": null
         },
-        "updatedAt": "2026-11-14T11:02:27.171Z"
+        "updatedAt": "2026-11-15T23:38:02.623Z"
       },
       "energy": {
         "value": 280,
