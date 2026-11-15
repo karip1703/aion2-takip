@@ -202,6 +202,10 @@ function pingTag() {
 function dhCtl() {
   return '<span class="dh-ctl"><button type="button" class="icon-btn" data-w="set" title="Ayarlar">⚙</button><button type="button" class="icon-btn" data-w="close" title="Ekrandan kaldır">✕</button></span>';
 }
+// Savaş yokken de başlık: taşınabilir (data-drag), ayarlar ve kapatma düğmeleri görünür
+function idleHead(text, extra = '') {
+  return { html: `<div class="dh" data-drag><div class="dh-top"><span class="dh-time">${esc(text)}</span><span class="dh-sw">${extra}${dhCtl()}</span></div></div>` + energyFoot() };
+}
 function viewSwitch(cur) {
   if (!net?.roster) return '';
   const b = (k, label) => `<button type="button" role="radio" data-dpstab="${k}" aria-checked="${cur === k}">${label}</button>`;
@@ -307,8 +311,8 @@ const WIDGETS = {
 
     title: 'Hasar', hint: 'DPS, parti, yetenekler (oyun trafiğinden)',
     render() {
-      if (!net) return empty('Uygulama yanıt vermiyor.');
-      if (net.npcap === false) return empty(`Ağ okuma kapalı: ${net.status || ''}`);
+      if (!net) return idleHead('Uygulama yanıt vermiyor.');
+      if (net.npcap === false) return idleHead(`Ağ okuma kapalı: ${net.status || ''}`);
       const fights = [net.fight, ...(net.history || [])].filter(Boolean);
       const live = !!(net.fight && net.fight.active);
       if (net.fight && net.fight.no !== dpsView.lastNo) { if (live && dpsView.tab === 'party') dpsView.tab = 'auto'; dpsView.lastNo = net.fight.no; }
@@ -316,7 +320,7 @@ const WIDGETS = {
       if (showParty) return { right: '', html: partyView(net.roster) };
       if (!fights.length) {
         const st = net.status === 'dinleniyor' ? (net.self?.name ? `${net.self.name} · savaş bekleniyor` : 'savaş bekleniyor') : (net.status || '');
-        return { html: dpsModes() + empty(st) + energyFoot() };
+        return idleHead(st, dpsModes());
       }
       if (dpsView.fight >= fights.length) dpsView.fight = 0;
       const f = fights[dpsView.fight];
@@ -514,7 +518,8 @@ const WIDGETS = {
     },
   },
 };
-const ORDER = ['dps', 'remind', 'energy', 'bosses', 'gear', 'todos', 'dungeons', 'lastbox', 'clock', 'status'];
+// Masaüstü uygulamasında ekran okuma yok: 'Son kutu' bileşeni sadece eski izleyicide
+const ORDER = ['dps', 'remind', 'energy', 'bosses', 'gear', 'todos', 'dungeons', 'lastbox', 'clock', 'status'].filter((id) => !(location.hostname === 'app.karip' && id === 'lastbox'));
 
 // ---------------------------------------------------------------- Pencereyi içeriğe oturt
 let fitSent = 0, fitTimer = 0;

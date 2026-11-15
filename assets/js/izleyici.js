@@ -8,6 +8,7 @@
 import { esc } from './render.js';
 
 export const APP_PORT = '47321';
+export const DESKTOP = location.hostname === 'app.karip';   // Karip Traker masaüstü uygulaması (ekran okuma yok, her şey oyun trafiğinden)
 export const LOCAL = (['127.0.0.1', 'localhost'].includes(location.hostname) && location.port === APP_PORT) || location.hostname === 'app.karip';
 
 async function api(path, body) {
@@ -54,8 +55,8 @@ export function appChip(b) {
   if (!s.loggedIn) return '<span class="chip warn">● Giriş bekleniyor</span>';
   const name = s.chars?.find((c) => c.id === s.charId)?.name || '?';
   return s.paused
-    ? `<span class="chip warn" title="Ekran izleme duraklatıldı">❚❚ Duraklatıldı · ${esc(name)}</span>`
-    : `<span class="chip on" title="Ödül kutusu penceresi izleniyor">● İzliyor · ${esc(name)}</span>`;
+    ? `<span class="chip warn" title="İzleme duraklatıldı">❚❚ Duraklatıldı · ${esc(name)}</span>`
+    : `<span class="chip on" title="${DESKTOP ? 'Oyun trafiği okunuyor' : 'Ödül kutusu penceresi izleniyor'}">● İzliyor · ${esc(name)}</span>`;
 }
 
 const fmtTime = (iso) => (iso ? new Date(iso).toLocaleTimeString('tr-TR', { hour: '2-digit', minute: '2-digit', second: '2-digit' }) : '');
@@ -95,13 +96,13 @@ export function renderAppView(root, b, { repo }) {
       <section class="panel app-state ${stateCls}">
         <header class="panel-head">
           <h2><span class="dot"></span>${stateTxt}</h2>
-          <span class="muted">v${esc(s.version || '?')} · ekran ${esc(s.screen || '?')}${s.queue ? ` · <b class="warn-txt">${s.queue} kayıt gönderilmeyi bekliyor</b>` : ''}</span>
+          <span class="muted">v${esc(s.version || '?')}${DESKTOP ? '' : ` · ekran ${esc(s.screen || '?')}`}${s.queue ? ` · <b class="warn-txt">${s.queue} kayıt gönderilmeyi bekliyor</b>` : ''}</span>
         </header>
         <p class="app-status">${esc(s.status || '')}</p>
         <div class="row">
           <button type="button" class="btn ${s.paused ? 'primary' : ''}" data-app="pause" ${s.loggedIn ? '' : 'disabled'}>${s.paused ? '▶ Devam et' : '❚❚ Duraklat'}</button>
-          <button type="button" class="btn" data-app="undo" ${s.canUndo ? '' : 'disabled'} title="Son kutu kaydını geri al">↶ Son kaydı geri al</button>
-          <button type="button" class="btn" data-app="test" title="Ekranı şimdi oku ve görüntüyü kaydet">⌖ Ekranı şimdi oku</button>
+          ${DESKTOP ? '' : `<button type="button" class="btn" data-app="undo" ${s.canUndo ? '' : 'disabled'} title="Son kutu kaydını geri al">↶ Son kaydı geri al</button>
+          <button type="button" class="btn" data-app="test" title="Ekranı şimdi oku ve görüntüyü kaydet">⌖ Ekranı şimdi oku</button>`}
         </div>
       </section>
 
@@ -112,7 +113,7 @@ export function renderAppView(root, b, { repo }) {
         </div>
       </section>
 
-      <section class="panel">
+      ${DESKTOP ? '' : `<section class="panel">
         <header class="panel-head"><h2>Son okunan kutu</h2>${last?.at ? `<span class="muted">${fmtTime(last.at)}</span>` : ''}</header>
         ${last ? `
         <dl class="kv">
@@ -121,7 +122,7 @@ export function renderAppView(root, b, { repo }) {
           <dt>Kutu · maliyet</dt><dd>${esc(last.boxes)} kutu · ${esc(last.cost)} enerji</dd>
           <dt>Enerji</dt><dd>${last.natural != null ? `${esc(last.natural)} <span class="bonus-tag">+${esc(last.bonus)}</span> / ${esc(last.energyMax)}` : '<span class="muted">okunamadı</span>'}</dd>
         </dl>` : '<p class="hint">Henüz kutu okunmadı. Oyunda ödül kutusunu açtığında burada görünür.</p>'}
-      </section>
+      </section>`}
 
       <section class="panel">
         <header class="panel-head"><h2>Oyun içi arayüz</h2><span class="muted">${(ov.openIds || []).length} bileşen${ov.edit ? ' · düzenleme modu' : ''}</span></header>
@@ -145,7 +146,7 @@ export function renderAppView(root, b, { repo }) {
         <div class="row">
           <button type="button" class="btn" data-app="netoff">Ağ okumayı kapat</button>
           <button type="button" class="btn ${s.net.recording ? 'primary' : ''}" data-app="netrec" title="Geliştirme için: oyun trafiğini dosyaya kaydeder (sohbet de dahil). İşin bitince kapat.">${s.net.recording ? '■ Kaydı durdur' : 'Paket kaydı (geliştirme)'}</button>
-        </div>` : `<p class="hint">Kapalı. Npcap kurulu olmalı (Questlog vb. ile kurulmuş olabilir) ve <code>ag.cs</code>, <code>izleyici.ps1</code> ile aynı klasörde olmalı.</p>
+        </div>` : `<p class="hint">Kapalı. Npcap kurulu olmalı (Questlog vb. ile kurulmuş olabilir)${DESKTOP ? '' : ' ve <code>ag.cs</code>, <code>izleyici.ps1</code> ile aynı klasörde olmalı'}.</p>
         <div class="row"><button type="button" class="btn" data-app="neton">Ağ okumayı aç</button></div>`}
         <p class="hint">Oyunun bu bilgisayara gelen trafiğinin bir kopyası okunur; oyuna, dosyalarına ya da belleğine dokunulmaz. Aktif karakter, Odyle enerjisi, saha bossu ölümleri ve hasar buradan gelir.</p>
       </section>

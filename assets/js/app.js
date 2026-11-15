@@ -940,6 +940,7 @@ setInterval(tick, 30_000);
   }
   await load();
   if (APP && !(state.data?.characters || []).length) openAddCharacter({ first: true });
+  if (APP) window.chrome?.webview?.postMessage({ type: 'ready' });   // uygulama bekleyen kayıtları göndersin
   // Doğrudan bağlantılar:
   //   #char/<karakterId>/<sekme>  (ör. #char/kyrakia/skills)
   //   #item/<karakterId>/<sıra>   (ör. #item/kyrakia/0)

@@ -133,7 +133,7 @@ public static class A2Net {
     try {
       NpcapOk = LoadNpcap();
       if (!NpcapOk) { Status = "Npcap bulunamadı"; Error = "Npcap kurulu değil (npcap.com)."; running = false; return; }
-      IntPtr handle = IntPtr.Zero; string openKey = ""; int link = 1;
+      IntPtr handle = IntPtr.Zero; string openKey = null; int link = 1;   // null: ilk taramada durum mutlaka yazılsın
       List<Conn> conns = new List<Conn>();
       long nextScan = 0;
       while (running) {
@@ -183,7 +183,7 @@ public static class A2Net {
           IntPtr hdr, data;
           int r = pcap_next_ex(handle, out hdr, out data);
           if (r == 0) break;                      // zaman aşımı
-          if (r < 0) { pcap_close(handle); handle = IntPtr.Zero; openKey = ""; Status = "yakalama kesildi, yeniden deneniyor"; break; }
+          if (r < 0) { pcap_close(handle); handle = IntPtr.Zero; openKey = null; Status = "yakalama kesildi, yeniden deneniyor"; break; }
           int caplen = Marshal.ReadInt32(hdr, 8);
           var pkt = new byte[caplen];
           Marshal.Copy(data, pkt, 0, caplen);
