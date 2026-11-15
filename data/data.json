@@ -26,7 +26,7 @@
     },
     "nearFullHours": 3
   },
-  "lastFetch": "2026-11-14T23:28:38.222Z",
+  "lastFetch": "2026-11-15T18:05:52.471Z",
   "characters": [
     {
       "id": "kyrakia",
@@ -36,7 +36,7 @@
         "class": "Sorcerer",
         "level": 45,
         "itemLevel": 3243,
-        "combatPower": 217509,
+        "combatPower": 217601,
         "race": "Elyos",
         "title": "Divine Skill",
         "profileImage": "https://profileimg.plaync.com/game_profile_images/aion2global/images?gameServerKey=1301&charKey=366198944700801654",
@@ -2536,7 +2536,7 @@
           "enchant": 0,
           "icon": "https://assets.playnccdn.com/static-aion2-gamedata/resources/Icon_WingF_001.png"
         },
-        "updatedAt": "2026-11-14T23:27:52.102Z"
+        "updatedAt": "2026-11-15T18:05:07.696Z"
       },
       "energy": {
         "value": 30,
