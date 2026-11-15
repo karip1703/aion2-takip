@@ -913,6 +913,10 @@ public static class A2Net {
   // GS ile CP arası değişken genişlikte → CP, üyenin sunucu numarasından çapalanarak bulunur; sonraki üye başlığından yeniden yakalanır.
   class Member { public int Slot, Cls, Level, Gs, Server, Flag; public long Cp; public ulong Dbid; public string Name; public bool Leader; }
   static List<Member> roster = new List<Member>();
+  /// Kendi karakterinin sunucu kodu (partideysen parti listesinden; bilinmiyorsa 0)
+  public static int SelfServer() {
+    lock (Lock) { if (SelfName.Length == 0) return 0; foreach (var m in roster) if (m.Name == SelfName) return m.Server; return 0; }
+  }
   static uint rosterKey; static int rosterDungeon; static long rosterAt; static string rosterName = "";
 
   static int RosterClass(uint v) {

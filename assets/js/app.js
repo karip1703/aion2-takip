@@ -12,7 +12,7 @@ import {
 import { renderBosses, fireNotifications, bossById, parseKillInput } from './bosses.js';
 import { renderHome } from './home.js';
 import { LOCAL, bridge, refreshBridge, appApi, appChip, renderAppView } from './izleyici.js';
-import { APP, initLocalApp, loadAppUser, openAddCharacter, removeCharacter, refreshAll } from './local-app.js';
+import { APP, initLocalApp, loadAppUser, openWelcome, autoAddCharacter, removeCharacter, refreshAll } from './local-app.js';
 let appVersion = '';
 
 const $ = (s) => document.querySelector(s);
@@ -162,7 +162,8 @@ function renderAll() {
 
   renderTodosNow();
   renderCards($('#view-cards'), d, ctx());
-  if (APP) $('#view-cards').insertAdjacentHTML('beforeend', '<button type="button" class="card kt-add-card" data-kt-add>＋<span>Karakter ekle</span></button>');
+  // Karakterler elle eklenmez: oyuna girilen karakter ağ okumasıyla kendiliğinden eklenir
+  if (APP) $('#view-cards').insertAdjacentHTML('beforeend', '<div class="card kt-add-card kt-auto-card"><svg viewBox="0 0 24 24" width="28" height="28" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M5 12.55a11 11 0 0 1 14 0M1.4 9a16 16 0 0 1 21.2 0M8.5 16.1a6 6 0 0 1 7 0M12 20h.01"/></svg><span>Yeni karakter</span><small>Oyuna o karakterle gir; uygulama tanıyıp buraya kendiliğinden ekler.</small></div>');
   if (charDlg.open && charCur) showChar(charCur.id, charCur.tab); // veri yenilendiyse pencereyi de yenile
   if (state.view === 'compare') renderCompare($('#rank-table'), $('#gear-matrix'), d, state.sortKey, ctx());
   renderChrome();
@@ -910,11 +911,12 @@ setInterval(tick, 30_000);
 // ---------------- Başlat ----------------
 (async () => {
   if (APP) {
-    appVersion = (await loadAppUser()).version || '';
+    const appInfo = await loadAppUser();
+    appVersion = appInfo.version || '';
+    state.needWelcome = !appInfo.user;
     state.login = getSession()?.user || null;
     initLocalApp({ getData: () => state.data, commit: commitMutation, status });
     document.addEventListener('click', async (e) => {
-      if (e.target.closest('[data-kt-add]')) { openAddCharacter(); return; }
       const rm = e.target.closest('[data-kt-remove]');
       if (rm && await removeCharacter(rm.dataset.ktRemove)) charDlg.close();
     });
@@ -925,6 +927,9 @@ setInterval(tick, 30_000);
         try { await commitMutation((d) => { let any = false; for (const op of m.ops) any = applyOp(d, op) || any; return any; }, m.summary || 'Uygulama kaydı'); }
         catch (err) { status(`Uygulama kaydı yazılamadı: ${esc(err.message)}`, 'error'); }
         window.chrome.webview.postMessage({ type: 'opsDone', id: m.id });
+      } else if (m?.type === 'charSeen') {
+        // Ağ okuyucusu oyundaki karakteri tanıdı: listede yoksa resmi siteden çekip ekle
+        try { await autoAddCharacter(m.name, m.server || 0); } finally { window.chrome.webview.postMessage({ type: 'opsDone', id: m.id }); }
       } else if (m?.type === 'reload') load();
     });
   }
@@ -939,7 +944,7 @@ setInterval(tick, 30_000);
     }
   }
   await load();
-  if (APP && !(state.data?.characters || []).length) openAddCharacter({ first: true });
+  if (APP && state.needWelcome) await openWelcome();
   if (APP) window.chrome?.webview?.postMessage({ type: 'ready' });   // uygulama bekleyen kayıtları göndersin
   // Doğrudan bağlantılar:
   //   #char/<karakterId>/<sekme>  (ör. #char/kyrakia/skills)

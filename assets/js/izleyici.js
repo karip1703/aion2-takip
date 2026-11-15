@@ -109,7 +109,7 @@ export function renderAppView(root, b, { repo }) {
       <section class="panel">
         <header class="panel-head"><h2>Aktif karakter</h2><span class="muted">kutular bu karaktere yazılır</span></header>
         <div class="seg" role="radiogroup" aria-label="Aktif karakter">
-          ${(s.chars || []).map((c) => `<button type="button" role="radio" class="seg-btn" data-app-char="${esc(c.id)}" aria-checked="${c.id === s.charId}">${esc(c.name)}</button>`).join('') || '<span class="hint">Giriş yapınca karakterler gelir.</span>'}
+          ${(s.chars || []).map((c) => `<button type="button" role="radio" class="seg-btn" data-app-char="${esc(c.id)}" aria-checked="${c.id === s.charId}">${esc(c.name)}</button>`).join('') || (DESKTOP ? '<span class="hint">Oyuna girince karakterin kendiliğinden eklenir.</span>' : '<span class="hint">Giriş yapınca karakterler gelir.</span>')}
         </div>
       </section>
 

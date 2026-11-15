@@ -559,3 +559,9 @@ kbd { font: .78rem/1 ui-monospace, Consolas, monospace; padding: 2px 5px; border
 .kt-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
 .kt-dlg .hint.error { color: #ffb4b4; }
 .kt-char-actions { margin-top: 14px; }
+/* Otomatik karakter kartı (masaüstü uygulaması): tıklanmaz, bilgi verir */
+.kt-auto-card { cursor: default; text-align: center; padding: 18px; color: var(--muted); }
+.kt-auto-card:hover { border-color: var(--border); background: transparent; }
+.kt-auto-card svg { color: var(--accent); }
+.kt-auto-card small { max-width: 26ch; font-size: .8rem; line-height: 1.4; }
+.kt-pick { display: grid; grid-template-columns: repeat(auto-fill, minmax(150px, 1fr)); gap: 8px; margin: 10px 0; }

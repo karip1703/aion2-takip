@@ -66,6 +66,14 @@ export async function searchCharacter(name, serverId, region) {
   return { characterId: decodeURIComponent(hit.characterId), serverId: Number(hit.serverId) };
 }
 
+/** Ada tam uyan karakterler (sunucu verilmezse bütün sunucularda): [{ ref, serverName, level, pcId }] */
+export async function findCandidates(name, region, serverId) {
+  const j = await fetchJson(api.search(name, serverId || undefined, region));
+  return (j.list || [])
+    .filter((x) => stripTags(x.name).toLowerCase() === name.toLowerCase() && (!serverId || Number(x.serverId) === Number(serverId)))
+    .map((x) => ({ ref: { characterId: decodeURIComponent(x.characterId), serverId: Number(x.serverId) }, serverName: x.serverName || '', level: x.level ?? null, pcId: x.pcId ?? null }));
+}
+
 function slimDetail(d) {
   return {
     category: d.categoryName ?? null, equipLevel: d.equipLevel ?? null, maxEnchant: d.maxEnchantLevel ?? null,
