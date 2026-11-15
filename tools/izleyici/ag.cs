@@ -141,6 +141,10 @@ public static class A2Net {
         if (now >= nextScan) {
           nextScan = now + 2000;
           int pid; var cs = GameConnections(out pid);
+          // Dışarıya giden gerçek bağlantı varsa onun ağ kartı dinlenir (127.0.0.1 bağlantıları başlatıcı/yerel süreçler olabilir).
+          // Sadece yerel bağlantı varsa oyun bir aktarıcı (ping düşürücü/VPN) üzerinden bağlanıyordur: loopback dinlenir.
+          var real = cs.FindAll(c => (c.RemoteIp & 0xFF) != 127);
+          if (real.Count > 0) { uint lip = real[0].LocalIp; cs = real.FindAll(c => c.LocalIp == lip); }
           GamePid = pid;
           var keyB = new StringBuilder();
           foreach (var c in cs) keyB.Append(c.LocalIp).Append(':').Append(c.LocalPort).Append('>').Append(c.RemoteIp).Append(':').Append(c.RemotePort).Append(';');
@@ -490,6 +494,22 @@ public static class A2Net {
 
   // ---- Odyle enerjisi: kimlik 60000001; ilk değer doğal (basic), ikinci ek (charged) ----
   const uint OdyleId = 60000001;
+  static readonly Dictionary<uint, long> contentVals = new Dictionary<uint, long>();   // kimlik → (v0 << 32 | v1)
+  public static int ContentCount { get { lock (Lock) return contentVals.Count; } }
+  static void NoteContent(List<uint[]> entries) {
+    foreach (var e in entries) {
+      uint id = e[0]; long v = ((long)e[1] << 32) | e[2];
+      long old; bool had;
+      lock (Lock) { had = contentVals.TryGetValue(id, out old); contentVals[id] = v; }
+      if (id == OdyleId || (had && old == v)) continue;
+      Events.Enqueue("content|" + id + "|" + e[1] + "|" + e[2] + "|" + (had ? ((int)(old >> 32)).ToString() : "-") + "|" + (had ? ((int)(old & 0xFFFFFFFF)).ToString() : "-"));
+    }
+  }
+  public static string ContentDump() {
+    var sb = new StringBuilder();
+    lock (Lock) { foreach (var kv in contentVals) sb.Append(kv.Key).Append('=').Append(kv.Value >> 32).Append('/').Append(kv.Value & 0xFFFFFFFF).Append(' '); }
+    return sb.ToString();
+  }
   public static int EnergyNatural = -1, EnergyBonus = -1; public static long EnergyAt;
 
   // Bir içerik kaydı: <tür> <id u32> <değerler>. Dönüş: sonraki kaydın yeri, -1: kayıt değil.
@@ -520,13 +540,16 @@ public static class A2Net {
         int o = st, count;
         if (!TryVarint(b, ref o, end, out count) || count == 0 || count > 1000) continue;
         int fn = -1, fb = -1; bool good = true;
+        var seen = new List<uint[]>();
         for (int i = 0; i < count; i++) {
           uint id; int v0, v1; bool isc;
           int nx = ContentEntry(b, o, end, out id, out v0, out v1, out isc);
           if (nx < 0) { good = false; break; }
           if (isc && id == OdyleId) { fn = v0; fb = v1; }
+          if (isc) seen.Add(new uint[] { id, (uint)v0, (uint)v1 });
           o = nx;
         }
+        if (good && o == end) NoteContent(seen);
         if (good && o == end && fn >= 0) { nat = fn; bon = fb; }
       }
       if (nat < 0) {                                    // liste bütün okunamadı: kaydı kimliğinden bul
@@ -542,14 +565,17 @@ public static class A2Net {
       if (body >= end) return;
       int count = Math.Max(1, (int)b[body]); int o = body + 1;
       int fn = -1, fb = -1;
+      var seen = new List<uint[]>();
       for (int i = 0; i < count; i++) {
         uint id; int v0, v1; bool isc;
         int nx = ContentEntry(b, o, end, out id, out v0, out v1, out isc);
         if (nx < 0) return;
         if (isc && id == OdyleId) { fn = v0; fb = v1; }
+        if (isc) seen.Add(new uint[] { id, (uint)v0, (uint)v1 });
         o = nx;
       }
       if (end - o > 5) return;
+      NoteContent(seen);
       nat = fn; bon = fb;
     }
     if (nat < 0 || nat > 100000 || bon > 100000) return;
