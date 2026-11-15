@@ -672,6 +672,7 @@ public static class A2Net {
   class SkillStat { public long Dmg; public int Hits, Crits; public long Max; }
   class ActorStat {
     public long Dmg, Dot, Taken, Max; public int Hits, Crits;
+    public long Heal, HealHot, Shield; public int HealTicks;     // destek: verdiği iyileştirme (HoT dahil) ve kalkan
     public Dictionary<int, SkillStat> Skills = new Dictionary<int, SkillStat>();
   }
   class Fight {
@@ -721,7 +722,11 @@ public static class A2Net {
       if (v2 < 0 || v2 > 99999999) break;
       o = SkipTail(b, o, end, and, sw, v2);
       if (o + 1 < end && b[o] == 0x03 && b[o + 1] == 0x00) { o += 2; int heal; TryVarint(b, ref o, end, out heal); }   // can çalma eki
-      if (actor == target) continue;                             // kendine (iyileştirme vb.)
+      if (actor == target) {                                     // kendine: bilinen oyuncunun anlık kendine iyileştirmesi
+        bool player; lock (Lock) { player = names.ContainsKey(actor) || playerClass.ContainsKey(actor); }
+        if (!npcSkill && player && v2 > 1) AddHeal(actor, actor, v2, false);
+        continue;
+      }
       if (npcSkill) { AddTaken(actor, target, v2); continue; }
       if (v1 >= 1000 && v1 <= 200000) lock (Lock) { scalar[actor] = v1; }
       int cls = (int)(skill / 1000000);
@@ -833,6 +838,7 @@ public static class A2Net {
     int o = at, target, actor, unk, amount;
     if (!TryVarint(b, ref o, end, out target) || o >= end) return;
     int et = b[o++];
+    if (et == 0x01 || et == 0x09 || et == 0x0B) { Heal(b, o, end, target, et == 0x0B); return; }
     if (et != 0x02 && et != 0x0A && et != 0x06 && et != 0x0E) return;
     if (!TryVarint(b, ref o, end, out actor) || actor == target || actor < 100) return;
     if (!TryVarint(b, ref o, end, out unk) || o + 4 > end) return;
@@ -840,6 +846,36 @@ public static class A2Net {
     if (!TryVarint(b, ref o, end, out amount) || amount <= 0 || amount > 99999999) return;
     if (!IsDot(skill)) return;
     AddDamage(actor, target, amount, skill, false, true);
+  }
+
+  // 05 38 iyileştirme: <iyileştiren> <?> <yetenek u32 (/100)> <miktar>. Kendine iyileştirme de sayılır.
+  static void Heal(byte[] b, int o, int end, int target, bool hot) {
+    int actor, unk, amount;
+    if (!TryVarint(b, ref o, end, out actor) || actor < 100) return;
+    if (!TryVarint(b, ref o, end, out unk) || o + 4 > end) return;
+    int skill = (int)(BitConverter.ToUInt32(b, o) / 100); o += 4;
+    if (skill < 1 || skill > 299999999) return;
+    if (!TryVarint(b, ref o, end, out amount) || amount <= 0 || amount > 9999999) return;
+    AddHeal(actor, target, amount, hot);
+  }
+  // Sadece süren bir savaşa yazılır (savaş dışı can yenilenmesi savaşı uzatmasın); canavarın iyileştirmesi sayılmaz.
+  static void AddHeal(int actor, int target, long amount, bool hot) {
+    long now = NowMs();
+    lock (Lock) {
+      if (fight == null || now - fight.Last > FightIdleMs) return;
+      if (mobCode.ContainsKey(actor) && !names.ContainsKey(actor)) return;
+      ActorStat a; if (!fight.Actors.TryGetValue(actor, out a)) { a = new ActorStat(); fight.Actors[actor] = a; }
+      a.Heal += amount; a.HealTicks++; if (hot) a.HealHot += amount;
+    }
+  }
+  /// Kalkan: verenin hesabına yazılır. (Emilen miktarın paketteki yeri keşfedilince doldurulacak.)
+  public static void AddShield(int actor, long amount) {
+    long now = NowMs();
+    lock (Lock) {
+      if (amount <= 0 || fight == null || now - fight.Last > FightIdleMs) return;
+      ActorStat a; if (!fight.Actors.TryGetValue(actor, out a)) { a = new ActorStat(); fight.Actors[actor] = a; }
+      a.Shield += amount;
+    }
   }
 
   // 06 38 <kimlik>: sunucunun yalnızca sana ve partine gönderdiği kayıt → parti üyesi
@@ -1074,6 +1110,7 @@ public static class A2Net {
       ActorStat m; if (!merged.TryGetValue(to, out m)) { m = new ActorStat(); merged[to] = m; }
       var a = kv.Value;
       m.Dmg += a.Dmg; m.Dot += a.Dot; m.Taken += a.Taken; m.Hits += a.Hits; m.Crits += a.Crits; if (a.Max > m.Max) m.Max = a.Max;
+      m.Heal += a.Heal; m.HealHot += a.HealHot; m.Shield += a.Shield; m.HealTicks += a.HealTicks;
       foreach (var s in a.Skills) {
         SkillStat t; if (!m.Skills.TryGetValue(s.Key, out t)) { t = new SkillStat(); m.Skills[s.Key] = t; }
         t.Dmg += s.Value.Dmg; t.Hits += s.Value.Hits; t.Crits += s.Value.Crits; if (s.Value.Max > t.Max) t.Max = s.Value.Max;
@@ -1097,7 +1134,7 @@ public static class A2Net {
     sb.Append(",\"rows\":[");
     int shown = 0;
     foreach (var r in rows) {
-      if (r.Value.Dmg <= 0 || shown >= 40) continue;
+      if ((r.Value.Dmg <= 0 && r.Value.Heal <= 0 && r.Value.Shield <= 0) || shown >= 40) continue;
       string nm; names.TryGetValue(r.Key, out nm);
       if (nm == null && r.Key == guess) nm = SelfHint;
       int cls; playerClass.TryGetValue(r.Key, out cls);
@@ -1108,7 +1145,7 @@ public static class A2Net {
         .Append(",\"self\":").Append(r.Key == SelfId || r.Key == guess ? "true" : "false").Append(",\"party\":").Append(r.Key == SelfId || party.ContainsKey(r.Key) || InRoster(nm) ? "true" : "false")
         .Append(",\"dmg\":").Append(a.Dmg).Append(",\"dps\":").Append(a.Dmg * 1000 / dur).Append(",\"dot\":").Append(a.Dot)
         .Append(",\"hits\":").Append(a.Hits).Append(",\"crits\":").Append(a.Crits).Append(",\"max\":").Append(a.Max)
-        .Append(",\"taken\":").Append(a.Taken).Append(",\"pets\":").Append(np).Append(",\"skills\":[");
+        .Append(",\"taken\":").Append(a.Taken).Append(",\"heal\":").Append(a.Heal).Append(",\"hot\":").Append(a.HealHot).Append(",\"shield\":").Append(a.Shield).Append(",\"pets\":").Append(np).Append(",\"skills\":[");
       var sk = new List<KeyValuePair<int, SkillStat>>(a.Skills);
       sk.Sort((x, y) => y.Value.Dmg.CompareTo(x.Value.Dmg));
       for (int i = 0; i < sk.Count && i < 16; i++) {

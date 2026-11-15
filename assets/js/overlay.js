@@ -29,6 +29,7 @@ const svg = (d) => `<svg class="ic" viewBox="0 0 24 24" aria-hidden="true">${d}<
 const ICON = {
   remind: svg('<path d="M6 8a6 6 0 0 1 12 0c0 7 3 9 3 9H3s3-2 3-9"/><path d="M10.3 21a1.94 1.94 0 0 0 3.4 0"/>'),
   dps: svg('<path d="M4 20V10M10 20V4M16 20v-8M22 20H2"/>'),
+  sup: svg('<path d="M12 21s-7-4.5-7-10.5V5l7-3 7 3v5.5C19 16.5 12 21 12 21z"/><path d="M12 8v6M9 11h6"/>'),
   energy: svg('<path d="M13 2 4 14h7l-1 8 9-12h-7z"/>'),
   bosses: svg('<path d="M12 3c-4.4 0-8 3.2-8 7.3 0 2.4 1.2 4.4 3 5.7V20h3v-2h4v2h3v-4c1.8-1.3 3-3.3 3-5.7C20 6.2 16.4 3 12 3z"/><circle cx="9" cy="11" r="1.6"/><circle cx="15" cy="11" r="1.6"/>'),
   gear: svg('<path d="M12 3l8 3v6c0 4.6-3.4 8-8 9-4.6-1-8-4.4-8-9V6z"/><path d="M9 12l2 2 4-4"/>'),
@@ -47,6 +48,8 @@ let net = null;           // ağ okuma durumu (/api/net): hasar, hedef, enerji
 
 // ---------------------------------------------------------------- Tercihler (kullanıcıya özel, tüm pencereler paylaşır)
 const DEFAULTS = {
+  supMode: 'party',   // SupMater: me | party | all
+  supRows: 8,
   scale: 100,         // yazı boyutu (%)
   energyChars: null,  // null = hepsi
   bossCount: 5,
@@ -190,6 +193,12 @@ function remAlertView(due) {
 
 // ---- Hasar bileşeni yardımcıları ----
 const dpsView = { fight: 0, detail: null, tab: 'auto', lastNo: 0 };
+const supView = { fight: 0 };
+function supModes() {
+  const m = prefs.supMode;
+  const b = (k, label) => `<button type="button" role="radio" data-supmode="${k}" aria-checked="${m === k}">${label}</button>`;
+  return `<div class="seg dp-modes" role="radiogroup" aria-label="Kimler">${b('me', 'Ben')}${b('party', 'Parti')}${b('all', 'Herkes')}</div>`;
+}
 // EU sunucuları (parti listesinde kısaltma: Siel → SIE)
 const SERVERS = {"1301":"Siel","1302":"Nezekan","1303":"Vaizel","1304":"Kaisinel","1305":"Yustiel","1306":"Ariel","1307":"Fregion","1308":"Meslamtaeda","1309":"Hithanya","1310":"Nania","1311":"Tahabata","1312":"Luteros","1313":"Phernos","1314":"Daminu","1315":"Kasika","1316":"Bakarma","1317":"Tsenka","1318":"Kochi","1319":"Ishtar","1320":"Tiamat","1321":"Poeta","1322":"Verteron","1323":"Nathara","1324":"Talisra","1325":"Zumion","1326":"Nahid","1327":"Asahr","1328":"Caelid","1329":"Laveis","1330":"Perion","1331":"Dramata","1332":"Reda","1333":"Auldor","1334":"Vakron","1335":"Narun","1336":"Gartua","1337":"Chloris","1338":"Ione","1339":"Teina","1340":"Dymones","1341":"Bargott","1342":"Atheron","1343":"Ruthilis","1344":"Siliator","1345":"Idris","1346":"Satia","1347":"Estian","1348":"Rahu","1349":"Rhanman","1350":"Hebran","2301":"Israphel","2302":"Zikel","2303":"Triniel","2304":"Lumiel","2305":"Marchutan","2306":"Azphel","2307":"Ereshkigal","2308":"Beritra","2309":"Nemon","2310":"Hadala","2311":"Ludra","2312":"Ulgorn","2313":"Munin","2314":"Odar","2315":"Zemurru","2316":"Kromede","2317":"Quai","2318":"Baba","2319":"Fafnir","2320":"Indnath","2321":"Ishalgen","2322":"Altgard","2323":"Agnita","2324":"Atiel","2325":"Valdemar","2326":"Lagta","2327":"Gerod","2328":"Urd","2329":"Ecco","2330":"Giselle","2331":"Kashapa","2332":"Stof","2333":"Berk","2334":"Nuakum","2335":"Grisilla","2336":"Santras","2337":"Reuben","2338":"Hugo","2339":"Kraki","2340":"Hystan","2341":"Rathman","2342":"Sigebert","2343":"Nazmun","2344":"Gelcos","2345":"Paton","2346":"Pelleir","2347":"Elvida","2348":"Ketu","2349":"Pydeon","2350":"Notun"};
 const srvTag = (id) => (SERVERS[id] ? SERVERS[id].slice(0, 3).toUpperCase() : id ? String(id) : '');
@@ -307,6 +316,56 @@ const WIDGETS = {
       return { right: '', html: due.length ? remAlertView(due) : empty('Yaklaşan hatırlatma yok.') };
     },
   },
+  sup: {
+    title: 'SupMater', hint: 'Partinin verdiği heal ve kalkan (oyun trafiğinden)',
+    render() {
+      if (!net) return idleHead('Uygulama yanıt vermiyor.');
+      if (net.npcap === false) return idleHead(`Ağ okuma kapalı: ${net.status || ''}`);
+      const fights = [net.fight, ...(net.history || [])].filter(Boolean);
+      if (!fights.length) return idleHead(net.status === 'dinleniyor' ? 'savaş bekleniyor' : (net.status || ''), supModes());
+      if (supView.fight >= fights.length) supView.fight = 0;
+      const f = fights[supView.fight];
+      const mode = prefs.supMode;
+      const rows = f.rows
+        .filter((r) => (r.heal || 0) + (r.shield || 0) > 0)
+        .filter((r) => (mode === 'me' ? r.self : mode === 'party' ? r.party || r.self : true))
+        .sort((a, b) => (b.heal + b.shield) - (a.heal + a.shield));
+      const top = rows[0] ? rows[0].heal + rows[0].shield : 1;
+      const sum = rows.reduce((x, r) => x + r.heal + r.shield, 0);
+      const sumHeal = rows.reduce((x, r) => x + r.heal, 0), sumShield = rows.reduce((x, r) => x + r.shield, 0);
+      const nav = `<span class="dp-nav">
+        <button type="button" data-supf="1" ${supView.fight >= fights.length - 1 ? 'disabled' : ''} title="Önceki savaş">‹</button>
+        <span>${supView.fight === 0 && f.active ? '<span class="ok-txt">●</span> canlı' : `#${f.no}`}</span>
+        <button type="button" data-supf="-1" ${supView.fight === 0 ? 'disabled' : ''} title="Sonraki savaş">›</button></span>`;
+      const body = rows.slice(0, prefs.supRows).map((r) => {
+        const tot = r.heal + r.shield;
+        // Önce heal (yeşil), devamında kalkan (sedefli camgöbeği-beyaz); ikisinin toplamı en iyiye göre oranlanır
+        const wh = (r.heal / top * 100).toFixed(1), ws = (r.shield / top * 100).toFixed(1);
+        return `
+        <div class="sq ${r.self ? 'me' : ''}" style="--c:${CLASSES[r.cls]?.[2] || '#6f8fb3'}" title="Heal ${nf.format(r.heal)}${r.hot ? ` (HoT ${nf.format(r.hot)})` : ''} · Kalkan ${nf.format(r.shield)}">
+          <span class="sq-bar"><i class="h" style="width:${wh}%"></i><i class="s" style="left:${wh}%;width:${ws}%"></i></span>
+          <span class="dq-ic">${CLASSES[r.cls]?.[0] || '?'}</span>
+          <span class="dq-n">${esc(r.name || `#${r.id}`)}</span>
+          <span class="sq-v"><b class="h">${kfmt(r.heal)}</b>${r.shield ? ` <b class="s">${kfmt(r.shield)}</b>` : ''}</span>
+          <span class="dq-d">${kfmt(tot * 1000 / f.dur)}</span>
+          <span class="dq-p">${sum ? (tot / sum * 100).toFixed(1) : '0'}%</span>
+        </div>`;
+      }).join('');
+      return {
+        right: '',
+        html: `<div class="dh" data-drag>
+            <div class="dh-top"><span class="dh-time">${nav} ${mmss(f.dur)}</span><span class="dh-sw">${supModes()}${dhCtl()}</span></div>
+            <div class="dh-dps sup"><b>${kfmt(sum * 1000 / f.dur)}</b> <span>HPS</span><span class="dh-who"><span class="sq-key h"></span>heal ${kfmt(sumHeal)} · <span class="sq-key s"></span>kalkan ${kfmt(sumShield)}</span></div>
+          </div>`
+          + (body || empty(mode === 'me' ? 'Bu savaşta heal ya da kalkan vermedin.' : 'Bu savaşta heal ya da kalkan yok.')),
+      };
+    },
+    settings() {
+      return `<div class="row"><label>Satır ${sel('supRows', [4, 6, 8, 12], prefs.supRows)}</label></div>
+        <p class="hint">Heal yeşil, kalkan sedefli beyaz olarak toplamın devamında gösterilir. Sıralama toplam (heal + kalkan) değere göre.</p>`;
+    },
+  },
+
   dps: {
 
     title: 'Hasar', hint: 'DPS, parti, yetenekler (oyun trafiğinden)',
@@ -519,7 +578,7 @@ const WIDGETS = {
   },
 };
 // Masaüstü uygulamasında ekran okuma yok: 'Son kutu' bileşeni sadece eski izleyicide
-const ORDER = ['dps', 'remind', 'energy', 'bosses', 'gear', 'todos', 'dungeons', 'lastbox', 'clock', 'status'].filter((id) => !(location.hostname === 'app.karip' && id === 'lastbox'));
+const ORDER = ['dps', 'sup', 'remind', 'energy', 'bosses', 'gear', 'todos', 'dungeons', 'lastbox', 'clock', 'status'].filter((id) => !(location.hostname === 'app.karip' && id === 'lastbox'));
 
 // ---------------------------------------------------------------- Pencereyi içeriğe oturt
 let fitSent = 0, fitTimer = 0;
@@ -672,7 +731,7 @@ function renderWidget() {
 function widgetEvents() {
   const root = $('#root');
   root.addEventListener('click', async (e) => {
-    const b = e.target.closest('[data-w], [data-char], [data-act], [data-gearchar], [data-net], [data-dpsmode], [data-dpsf], [data-dpsd], [data-dpstab], [data-rlead], [data-rsec], [data-rtest], [data-rdone], [data-rdis]');
+    const b = e.target.closest('[data-w], [data-char], [data-act], [data-gearchar], [data-net], [data-dpsmode], [data-dpsf], [data-supmode], [data-supf], [data-dpsd], [data-dpstab], [data-rlead], [data-rsec], [data-rtest], [data-rdone], [data-rdis]');
     if (!b) return;
     try {
       if (b.dataset.w === 'set') { setOpen = !setOpen; if (setOpen) renderSettings(); $('#wset').hidden = !setOpen; fitWindow(); return; }
@@ -688,6 +747,8 @@ function widgetEvents() {
       if (b.dataset.rdone !== undefined) { await appApi.overlay({ action: 'widget', id: 'remind', title: def.title, on: false }); return; }
       if (b.dataset.rdis) { const [key, at] = b.dataset.rdis.split('|'); await appApi.overlay({ action: 'remindDismiss', key, at: Number(at) }); await poll(); renderWidget(); return; }
       if (b.dataset.dpstab) { dpsView.tab = b.dataset.dpstab; dpsView.detail = null; if (b.dataset.dpstab === 'dmg') dpsView.fight = 0; renderWidget(); return; }
+      if (b.dataset.supmode) { prefs.supMode = b.dataset.supmode; savePrefs(); renderWidget(); return; }
+      if (b.dataset.supf) { supView.fight = Math.max(0, supView.fight + Number(b.dataset.supf)); renderWidget(); return; }
       if (b.dataset.dpsmode) { prefs.dpsMode = b.dataset.dpsmode; savePrefs(); renderWidget(); return; }
       if (b.dataset.dpsf) { dpsView.fight = Math.max(0, dpsView.fight + Number(b.dataset.dpsf)); dpsView.detail = null; renderWidget(); return; }
       if (b.dataset.dpsd !== undefined) { dpsView.detail = b.dataset.dpsd ? Number(b.dataset.dpsd) : null; renderWidget(); return; }
@@ -725,7 +786,7 @@ async function pollNet() {
   try { const r = await fetch('/api/net', { cache: 'no-store' }); net = r.ok ? await r.json() : null; } catch { net = null; }
 }
 async function poll() {
-  if (W === 'dps') await pollNet();
+  if (W === 'dps' || W === 'sup') await pollNet();
   try {
     const r = await fetch('/api/ov', { cache: 'no-store' });
     if (!r.ok) throw new Error(`HTTP ${r.status}`);
@@ -782,6 +843,6 @@ function renderAll(force) {
   await poll();
   renderAll(true);
   await loadData();
-  setInterval(async () => { await poll(); renderAll(false); fitWindow(); }, W === 'hub' ? 1000 : W === 'dps' ? 500 : 700);   // durum + geri sayımlar (+ pencere boyu doğru mu)
+  setInterval(async () => { await poll(); renderAll(false); fitWindow(); }, W === 'hub' ? 1000 : W === 'dps' || W === 'sup' ? 500 : 700);   // durum + geri sayımlar (+ pencere boyu doğru mu)
   setInterval(() => { if (!document.hidden) loadData(); }, 20_000);
 })();
