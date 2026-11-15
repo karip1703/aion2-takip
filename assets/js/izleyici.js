@@ -8,7 +8,7 @@
 import { esc } from './render.js';
 
 export const APP_PORT = '47321';
-export const LOCAL = ['127.0.0.1', 'localhost'].includes(location.hostname) && location.port === APP_PORT;
+export const LOCAL = (['127.0.0.1', 'localhost'].includes(location.hostname) && location.port === APP_PORT) || location.hostname === 'app.karip';
 
 async function api(path, body) {
   const opt = body === undefined

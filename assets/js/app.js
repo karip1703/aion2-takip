@@ -12,6 +12,8 @@ import {
 import { renderBosses, fireNotifications, bossById, parseKillInput } from './bosses.js';
 import { renderHome } from './home.js';
 import { LOCAL, bridge, refreshBridge, appApi, appChip, renderAppView } from './izleyici.js';
+import { APP, initLocalApp, loadAppUser, openAddCharacter, removeCharacter, refreshAll } from './local-app.js';
+let appVersion = '';
 
 const $ = (s) => document.querySelector(s);
 const LS_EDITS = 'aion2.edits';
@@ -103,6 +105,7 @@ async function load() {
 // Hesap kuruluysa ve oturum yoksa → giriş ekranı. Hesap hiç kurulmamışsa → salt okunur + uyarı.
 let loginError = '';
 function gate() {
+  if (APP) { $('#login').hidden = true; $('#app').hidden = false; return; }
   const locked = hasAccounts(state.data) && !hasAccess();
   $('#login').hidden = !locked;
   $('#app').hidden = locked;
@@ -159,6 +162,7 @@ function renderAll() {
 
   renderTodosNow();
   renderCards($('#view-cards'), d, ctx());
+  if (APP) $('#view-cards').insertAdjacentHTML('beforeend', '<button type="button" class="card kt-add-card" data-kt-add>＋<span>Karakter ekle</span></button>');
   if (charDlg.open && charCur) showChar(charCur.id, charCur.tab); // veri yenilendiyse pencereyi de yenile
   if (state.view === 'compare') renderCompare($('#rank-table'), $('#gear-matrix'), d, state.sortKey, ctx());
   renderChrome();
@@ -171,7 +175,7 @@ function renderChrome() {
   const editable = canEdit();
   const pill = $('#mode-pill');
   if (!pill.classList.contains('run')) {
-    pill.textContent = editable ? `Giriş: ${state.login || '?'}` : 'Salt okunur';
+    pill.textContent = APP ? `Kullanıcı: ${getSession()?.user || '?'}` : editable ? `Giriş: ${state.login || '?'}` : 'Salt okunur';
     pill.title = editable ? 'Tam yetki: enerji düzenleme ve gear güncelleme' : 'Giriş yapılmadı';
     pill.className = `pill ${editable ? 'edit' : ''}`;
   }
@@ -189,8 +193,8 @@ function renderChrome() {
 
   const r = gh.getRepo();
   $('#foot').innerHTML = [
-    state.source === 'api' ? 'Kaynak: GitHub API (anlık)' : 'Kaynak: GitHub Pages (≈10 dk önbellekli olabilir)',
-    r.owner && r.repo ? `<a href="https://github.com/${esc(r.owner)}/${esc(r.repo)}" style="color:inherit">${esc(r.owner)}/${esc(r.repo)}</a>` : 'repo ayarlı değil',
+    APP ? 'Veriler bu bilgisayarda (yerel)' : state.source === 'api' ? 'Kaynak: GitHub API (anlık)' : 'Kaynak: GitHub Pages (≈10 dk önbellekli olabilir)',
+    APP ? `Karip Traker ${esc(appVersion || '')}` : r.owner && r.repo ? `<a href="https://github.com/${esc(r.owner)}/${esc(r.repo)}" style="color:inherit">${esc(r.owner)}/${esc(r.repo)}</a>` : 'repo ayarlı değil',
   ].join(' · ');
 }
 
@@ -392,6 +396,26 @@ $('#view-cards').addEventListener('focusout', () => {
   setTimeout(() => { if (deferredRender && !typingEnergy()) { deferredRender = false; renderAll(); } }, 0);
 });
 
+// ---------------- Genel kayıt (masaüstü uygulaması ve izleyici kayıtları) ----------------
+// mutator(data) güncel veriyi yerinde değiştirir; false dönerse yazılmaz.
+async function commitMutation(mutator, message) {
+  for (let attempt = 0; attempt < 5; attempt++) {
+    const f = await gh.getFile();
+    const remote = JSON.parse(f.text);
+    if (mutator(remote) === false) return false;
+    try {
+      const r = await gh.putFile(gh.stringifyData(remote), f.sha, message);
+      state.data = remote; state.sha = r.sha; state.etag = r.sha; state.source = 'api';
+      pruneEdits(); renderAll();
+      return true;
+    } catch (e) {
+      if (e.status === 409) continue;
+      throw e;
+    }
+  }
+  throw new Error('Veri art arda değişti, tekrar dene.');
+}
+
 // ---------------- Kaydet (commit) ----------------
 async function save() {
   const pending = { ...state.edits };
@@ -457,6 +481,13 @@ const RUN_LABELS = { queued: 'Sırada', waiting: 'Bekliyor', pending: 'Bekliyor'
 async function triggerFetch() {
   const btn = $('#btn-fetch');
   const pill = $('#mode-pill');
+  if (APP) {
+    btn.disabled = true;
+    try { await refreshAll((t) => { pill.textContent = `Güncelleniyor: ${t}`; pill.className = 'pill run'; }); }
+    catch (e) { status(`Güncellenemedi: ${esc(e.message)}`, 'error', true); }
+    finally { btn.disabled = false; pill.classList.remove('run'); renderChrome(); }
+    return;
+  }
   btn.disabled = true;
   const since = Date.now();
   const setPill = (t) => { pill.textContent = t; pill.className = 'pill run'; };
@@ -642,7 +673,8 @@ function showChar(id, tab = charCur?.tab || 'gear') {
   if (!CHAR_TABS.some((t) => t.id === tab)) tab = 'gear';
   charCur = { id, tab };
   lsSet('aion2.charTab', tab);
-  $('#char-body').innerHTML = charDialogHtml(ch, tab, { editable: canEdit() });
+  $('#char-body').innerHTML = charDialogHtml(ch, tab, { editable: canEdit() })
+    + (APP ? `<div class="row end kt-char-actions"><button type="button" class="btn danger" data-kt-remove="${esc(ch.id)}">Karakteri kaldır</button></div>` : '');
   if (!charDlg.open) charDlg.showModal();
 }
 
@@ -877,8 +909,27 @@ setInterval(tick, 30_000);
 
 // ---------------- Başlat ----------------
 (async () => {
+  if (APP) {
+    appVersion = (await loadAppUser()).version || '';
+    state.login = getSession()?.user || null;
+    initLocalApp({ getData: () => state.data, commit: commitMutation, status });
+    document.addEventListener('click', async (e) => {
+      if (e.target.closest('[data-kt-add]')) { openAddCharacter(); return; }
+      const rm = e.target.closest('[data-kt-remove]');
+      if (rm && await removeCharacter(rm.dataset.ktRemove)) charDlg.close();
+    });
+    // Uygulamanın motorlarından (ekran/ağ okuma) gelen kayıtlar: sitenin kurallarıyla uygulanıp kaydedilir
+    window.chrome?.webview?.addEventListener('message', async (ev) => {
+      const m = ev.data;
+      if (m?.type === 'ops' && Array.isArray(m.ops)) {
+        try { await commitMutation((d) => { let any = false; for (const op of m.ops) any = applyOp(d, op) || any; return any; }, m.summary || 'Uygulama kaydı'); }
+        catch (err) { status(`Uygulama kaydı yazılamadı: ${esc(err.message)}`, 'error'); }
+        window.chrome.webview.postMessage({ type: 'opsDone', id: m.id });
+      } else if (m?.type === 'reload') load();
+    });
+  }
   // Uygulama penceresinde: izleyicinin kayıtlı oturumu varsa site de onunla açılır (tek giriş).
-  if (LOCAL) {
+  if (LOCAL && !APP) {
     await refreshBridge();
     if (!getSession()) {
       try {
@@ -888,6 +939,7 @@ setInterval(tick, 30_000);
     }
   }
   await load();
+  if (APP && !(state.data?.characters || []).length) openAddCharacter({ first: true });
   // Doğrudan bağlantılar:
   //   #char/<karakterId>/<sekme>  (ör. #char/kyrakia/skills)
   //   #item/<karakterId>/<sıra>   (ör. #item/kyrakia/0)

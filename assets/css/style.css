@@ -547,3 +547,15 @@ main { width: 100%; }
 .panel, .card { box-shadow: 0 1px 0 color-mix(in srgb, var(--accent) 6%, transparent) inset; }
 
 kbd { font: .78rem/1 ui-monospace, Consolas, monospace; padding: 2px 5px; border: 1px solid var(--border); border-bottom-width: 2px; border-radius: 4px; background: var(--surface-2); color: var(--text); }
+
+/* ---- Masaüstü uygulaması (Karip Traker) ---- */
+.kt-add-card { display: grid; place-items: center; align-content: center; gap: 6px; min-height: 160px; cursor: pointer;
+  font-size: 2rem; color: var(--accent); border: 2px dashed var(--border); background: transparent; }
+.kt-add-card span { font-size: .95rem; font-weight: 600; color: var(--muted); }
+.kt-add-card:hover { border-color: var(--accent); background: color-mix(in srgb, var(--accent) 6%, transparent); }
+.kt-dlg { width: min(460px, 92vw); }
+.kt-dlg label { display: grid; gap: 4px; }
+.kt-dlg input, .kt-dlg select { padding: 7px 9px; border-radius: 8px; border: 1px solid var(--border); background: var(--surface-2); }
+.kt-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
+.kt-dlg .hint.error { color: #ffb4b4; }
+.kt-char-actions { margin-top: 14px; }

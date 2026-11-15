@@ -81,7 +81,12 @@ export const hasAccounts = (data) => (data?.auth?.accounts || []).length > 0;
 const KEY = 'aion2.session';
 const store = (s) => { try { return s(); } catch { return null; } };
 
+// Masaüstü uygulaması: veri kullanıcının kendi bilgisayarında; giriş/hesap yok, kullanıcı adı uygulamadan gelir.
+export const APP = typeof location !== 'undefined' && location.hostname === 'app.karip';
+let appUser = 'ben';
+export function setAppUser(name) { if (name) appUser = name; }
 export function getSession() {
+  if (APP) return { user: appUser, token: 'local', owner: 'local', repo: 'local', branch: 'main' };
   const raw = store(() => sessionStorage.getItem(KEY)) || store(() => localStorage.getItem(KEY));
   try { return raw ? JSON.parse(raw) : null; } catch { return null; }
 }

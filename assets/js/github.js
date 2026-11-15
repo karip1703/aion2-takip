@@ -2,7 +2,7 @@
 // Token ve repo bilgisi giriş yapınca çözülen oturumdan gelir (bkz. auth.js).
 // Hesap kurulumu ekranı kendi token/repo bilgisini `ctx` ile verir.
 
-import { getSession } from './auth.js';
+import { getSession, APP } from './auth.js';
 
 const API = 'https://api.github.com';
 export const DATA_PATH = 'data/data.json';
@@ -70,7 +70,23 @@ const ctxOf = (ctx) => (ctx ? { token: ctx.token, r: { owner: ctx.owner, repo: c
   : { token: getToken(), r: getRepo() });
 
 // ---- Dosya oku / yaz ----
+// ---- Masaüstü uygulaması: aynı akış, uygulamanın yerel veri dosyasıyla (/api/data) ----
+async function localGet(etag) {
+  const res = await fetch('/api/data', { cache: 'no-store', headers: etag ? { 'If-None-Match': etag } : {} });
+  if (res.status === 304) return null;
+  const j = await res.json();
+  if (!res.ok) throw new GitHubError(res.status, j.error || `HTTP ${res.status}`);
+  return { text: j.text, sha: j.sha, etag: j.sha };
+}
+async function localPut(text, sha) {
+  const res = await fetch('/api/data', { method: 'PUT', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ text, sha }) });
+  const j = await res.json().catch(() => ({}));
+  if (!res.ok) throw new GitHubError(res.status, j.error || `HTTP ${res.status}`);
+  return { sha: j.sha };
+}
+
 export async function getFile(path = DATA_PATH, ctx) {
+  if (APP) return localGet(null);
   const { token, r } = ctxOf(ctx);
   const j = await api(`${repoPath(r)}/contents/${path}?ref=${encodeURIComponent(r.branch)}`, { token });
   return { text: b64decode(j.content), sha: j.sha };
@@ -79,6 +95,7 @@ export async function getFile(path = DATA_PATH, ctx) {
 // Değişiklik kontrolü: önceki ETag verilirse dosya değişmediğinde GitHub 304 döner → null.
 // 304 cevapları GitHub'ın saatlik istek limitinden düşülmez.
 export async function getFileIfChanged(etag, path = DATA_PATH) {
+  if (APP) return localGet(etag);
   const r = getRepo();
   const token = getToken();
   const res = await fetch(`${API}${repoPath(r)}/contents/${path}?ref=${encodeURIComponent(r.branch)}`, {
@@ -97,6 +114,7 @@ export async function getFileIfChanged(etag, path = DATA_PATH) {
 }
 
 export async function putFile(text, sha, message, path = DATA_PATH, ctx) {
+  if (APP) return localPut(text, sha);
   const { token, r } = ctxOf(ctx);
   const j = await api(`${repoPath(r)}/contents/${path}`, {
     method: 'PUT',
