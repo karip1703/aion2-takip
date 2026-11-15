@@ -582,7 +582,8 @@ public static class A2Net {
     if (bon < 0) bon = 0;
     bool changed = nat != EnergyNatural || bon != EnergyBonus;
     EnergyNatural = nat; EnergyBonus = bon; EnergyAt = NowMs();
-    if (changed) Events.Enqueue("energy|" + nat + "|" + bon);
+    // Tam liste (0B 61) karakter yüklenirken gelir: kimlik birkaç saniye sonra gelir, motor bekletsin
+    if (changed || wholeList) Events.Enqueue("energy|" + nat + "|" + bon + (wholeList ? "|full" : ""));
   }
 
   // ---- Varlıklar: isimler, NPC kodları, HP ----
