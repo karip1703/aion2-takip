@@ -26,7 +26,7 @@
     },
     "nearFullHours": 3
   },
-  "lastFetch": "2026-11-17T02:40:58.658Z",
+  "lastFetch": "2026-11-18T01:56:28.210Z",
   "characters": [
     {
       "id": "kyrakia",
@@ -35,8 +35,8 @@
       "game": {
         "class": "Sorcerer",
         "level": 45,
-        "itemLevel": 3258,
-        "combatPower": 219513,
+        "itemLevel": 3263,
+        "combatPower": 220230,
         "race": "Elyos",
         "title": "Divine Skill",
         "profileImage": "https://profileimg.plaync.com/game_profile_images/aion2global/images?gameServerKey=1301&charKey=366198944700801654",
@@ -355,7 +355,7 @@
               "equipLevel": 45,
               "maxEnchant": 15,
               "maxExceed": 5,
-              "soulBind": "81.8",
+              "soulBind": "61.8",
               "main": [
                 {
                   "name": "Defense",
@@ -375,6 +375,11 @@
                   "name": "Critical Hit",
                   "value": "24",
                   "added": false
+                },
+                {
+                  "name": "Attack",
+                  "value": "15",
+                  "added": false
                 }
               ],
               "subSkills": [
@@ -382,12 +387,6 @@
                   "name": "Grace of Enhancement",
                   "level": 1,
                   "icon": "https://assets.playnccdn.com/static-aion2-gamedata/resources/ICON_SO_SKILL_Passive_007.png",
-                  "added": false
-                },
-                {
-                  "name": "Revitalization Contract",
-                  "level": 1,
-                  "icon": "https://assets.playnccdn.com/static-aion2-gamedata/resources/ICON_AS_SKILL_Passive_009.png",
                   "added": false
                 },
                 {
@@ -1458,7 +1457,7 @@
             "name": "Nuakum Cloak",
             "grade": "Unique",
             "enchant": 15,
-            "exceed": 2,
+            "exceed": 3,
             "itemLevel": 86,
             "icon": "https://assets.playnccdn.com/static-aion2-gamedata/resources/Icon_Equip_AR_L_Idris_01_Cape.png",
             "detail": {
@@ -2390,7 +2389,7 @@
             "id": 15790000,
             "name": "Revitalization Contract",
             "category": "Passive",
-            "level": 18,
+            "level": 17,
             "icon": "https://assets.playnccdn.com/static-aion2-gamedata/resources/ICON_AS_SKILL_Passive_009.png",
             "equip": false,
             "acquired": true
@@ -2539,7 +2538,7 @@
           "enchant": 0,
           "icon": "https://assets.playnccdn.com/static-aion2-gamedata/resources/Icon_WingB_014.png"
         },
-        "updatedAt": "2026-11-17T02:40:13.884Z"
+        "updatedAt": "2026-11-18T01:55:45.164Z"
       },
       "energy": {
         "value": 30,
@@ -2570,7 +2569,7 @@
         "class": "Gladiator",
         "level": 45,
         "itemLevel": 2012,
-        "combatPower": 94137,
+        "combatPower": 94121,
         "race": "Elyos",
         "title": "Unbound by Genus",
         "profileImage": "https://profileimg.plaync.com/game_profile_images/aion2global/images?gameServerKey=1301&charKey=366198944700849139",
@@ -4970,7 +4969,7 @@
           "enchant": 0,
           "icon": null
         },
-        "updatedAt": "2026-11-17T02:40:28.890Z"
+        "updatedAt": "2026-11-18T01:55:59.788Z"
       },
       "energy": null,
       "ref": {
@@ -4985,8 +4984,8 @@
       "game": {
         "class": "Chanter",
         "level": 45,
-        "itemLevel": 1790,
-        "combatPower": 92907,
+        "itemLevel": 1843,
+        "combatPower": 94628,
         "race": "Elyos",
         "title": "Unbound by Genus",
         "profileImage": "https://profileimg.plaync.com/game_profile_images/aion2global/images?gameServerKey=1301&charKey=366198944700864403",
@@ -5275,58 +5274,86 @@
           {
             "slot": "Shoulder",
             "slotPos": 4,
-            "id": 210440047,
-            "name": "Unyielding Pauldrons",
-            "grade": "Legend",
+            "id": 210430052,
+            "name": "Vakron Pauldrons",
+            "grade": "Unique",
             "enchant": 0,
             "exceed": 0,
-            "itemLevel": 42,
-            "icon": "https://assets.playnccdn.com/static-aion2-gamedata/resources/Icon_GM_0049_T05_Shoulder.png",
+            "itemLevel": 70,
+            "icon": "https://assets.playnccdn.com/static-aion2-gamedata/resources/Icon_Equip_AR_L_0028_T05_Shoulder.png",
             "detail": {
               "category": "Pauldrons",
               "equipLevel": 45,
-              "maxEnchant": 10,
-              "maxExceed": null,
-              "soulBind": "56.7",
+              "maxEnchant": 15,
+              "maxExceed": 3,
+              "soulBind": "7.9",
               "main": [
                 {
                   "name": "Defense",
-                  "value": "230",
+                  "value": "388",
                   "extra": null,
                   "min": null
                 },
                 {
                   "name": "HP",
-                  "value": "105",
+                  "value": "175",
                   "extra": null,
                   "min": null
                 }
               ],
               "sub": [
                 {
-                  "name": "Attack",
-                  "value": "10",
+                  "name": "Block",
+                  "value": "16",
                   "added": false
                 },
                 {
-                  "name": "Back Defense",
-                  "value": "126",
+                  "name": "Front Defense",
+                  "value": "167",
                   "added": false
-                }
-              ],
-              "subSkills": [
+                },
                 {
-                  "name": "Inspiring Spell",
-                  "level": 1,
-                  "icon": "https://assets.playnccdn.com/static-aion2-gamedata/resources/ICON_CH_SKILL_Passive_011.png",
+                  "name": "Critical Damage Boost",
+                  "value": "9.6%",
+                  "added": false
+                },
+                {
+                  "name": "Critical Hit",
+                  "value": "20",
                   "added": false
                 }
               ],
-              "subSkillMax": 3,
+              "subSkills": [],
+              "subSkillMax": 4,
               "desc": null,
               "set": null,
-              "magicSlots": 3,
-              "magicStones": [],
+              "magicSlots": 4,
+              "magicStones": [
+                {
+                  "name": "MP",
+                  "value": "+40",
+                  "grade": "Rare",
+                  "icon": "https://assets.playnccdn.com/static-aion2-gamedata/resources/Icon_Item_Usable_Enchant_MagicStone_A_c_002.png"
+                },
+                {
+                  "name": "MP",
+                  "value": "+23",
+                  "grade": "Common",
+                  "icon": "https://assets.playnccdn.com/static-aion2-gamedata/resources/Icon_Item_Usable_Enchant_MagicStone_A_c_002.png"
+                },
+                {
+                  "name": "Evasion Bonus",
+                  "value": "+6",
+                  "grade": "Common",
+                  "icon": "https://assets.playnccdn.com/static-aion2-gamedata/resources/Icon_Item_Usable_Enchant_MagicStone_A_c_002.png"
+                },
+                {
+                  "name": "Attack",
+                  "value": "+2",
+                  "grade": "Common",
+                  "icon": "https://assets.playnccdn.com/static-aion2-gamedata/resources/Icon_Item_Usable_Enchant_MagicStone_A_c_002.png"
+                }
+              ],
               "godSlots": 0,
               "godStones": []
             }
@@ -5657,7 +5684,7 @@
             "id": 310130050,
             "name": "Aulamus Necklace",
             "grade": "Unique",
-            "enchant": 0,
+            "enchant": 5,
             "exceed": 0,
             "itemLevel": 70,
             "icon": "https://assets.playnccdn.com/static-aion2-gamedata/resources/Icon_ACC_NL_0072.png",
@@ -5671,13 +5698,13 @@
                 {
                   "name": "Attack",
                   "value": "108",
-                  "extra": null,
+                  "extra": "19",
                   "min": null
                 },
                 {
                   "name": "Defense",
                   "value": "259",
-                  "extra": null,
+                  "extra": "49",
                   "min": null
                 }
               ],
@@ -5744,7 +5771,7 @@
             "id": 310230052,
             "name": "Aulamus Earrings",
             "grade": "Unique",
-            "enchant": 0,
+            "enchant": 5,
             "exceed": 0,
             "itemLevel": 70,
             "icon": "https://assets.playnccdn.com/static-aion2-gamedata/resources/Icon_ACC_ER_0072.png",
@@ -5758,13 +5785,13 @@
                 {
                   "name": "Attack",
                   "value": "90",
-                  "extra": null,
+                  "extra": "19",
                   "min": null
                 },
                 {
                   "name": "Defense",
                   "value": "216",
-                  "extra": null,
+                  "extra": "49",
                   "min": null
                 }
               ],
@@ -5918,7 +5945,7 @@
             "id": 310330052,
             "name": "Aulamus Ring",
             "grade": "Unique",
-            "enchant": 0,
+            "enchant": 5,
             "exceed": 0,
             "itemLevel": 70,
             "icon": "https://assets.playnccdn.com/static-aion2-gamedata/resources/Icon_ACC_Ring_0072.png",
@@ -5932,13 +5959,13 @@
                 {
                   "name": "Attack",
                   "value": "72",
-                  "extra": null,
+                  "extra": "19",
                   "min": null
                 },
                 {
                   "name": "Defense",
                   "value": "172",
-                  "extra": null,
+                  "extra": "49",
                   "min": null
                 }
               ],
@@ -6007,7 +6034,7 @@
             "id": 310330052,
             "name": "Aulamus Ring",
             "grade": "Unique",
-            "enchant": 0,
+            "enchant": 5,
             "exceed": 0,
             "itemLevel": 70,
             "icon": "https://assets.playnccdn.com/static-aion2-gamedata/resources/Icon_ACC_Ring_0072.png",
@@ -6021,13 +6048,13 @@
                 {
                   "name": "Attack",
                   "value": "72",
-                  "extra": null,
+                  "extra": "19",
                   "min": null
                 },
                 {
                   "name": "Defense",
                   "value": "172",
-                  "extra": null,
+                  "extra": "49",
                   "min": null
                 }
               ],
@@ -7083,7 +7110,7 @@
             "id": 18740000,
             "name": "Inspiring Spell",
             "category": "Passive",
-            "level": 15,
+            "level": 14,
             "icon": "https://assets.playnccdn.com/static-aion2-gamedata/resources/ICON_CH_SKILL_Passive_011.png",
             "equip": false,
             "acquired": true
@@ -7277,7 +7304,7 @@
           "enchant": 0,
           "icon": null
         },
-        "updatedAt": "2026-11-17T02:40:43.755Z"
+        "updatedAt": "2026-11-18T01:56:13.830Z"
       },
       "energy": {
         "value": 280,
