@@ -26,7 +26,7 @@
     },
     "nearFullHours": 3
   },
-  "lastFetch": "2026-11-19T01:34:12.946Z",
+  "lastFetch": "2026-11-20T01:29:05.733Z",
   "characters": [
     {
       "id": "kyrakia",
@@ -35,8 +35,8 @@
       "game": {
         "class": "Sorcerer",
         "level": 45,
-        "itemLevel": 3312,
-        "combatPower": 225332,
+        "itemLevel": 3318,
+        "combatPower": 226887,
         "race": "Elyos",
         "title": "Divine Skill",
         "profileImage": "https://profileimg.plaync.com/game_profile_images/aion2global/images?gameServerKey=1301&charKey=366198944700801654",
@@ -266,7 +266,7 @@
               "equipLevel": 45,
               "maxEnchant": 15,
               "maxExceed": 5,
-              "soulBind": "51.7",
+              "soulBind": "62.7",
               "main": [
                 {
                   "name": "Defense",
@@ -283,8 +283,8 @@
               ],
               "sub": [
                 {
-                  "name": "HP",
-                  "value": "169",
+                  "name": "Accuracy",
+                  "value": "43",
                   "added": false
                 },
                 {
@@ -968,7 +968,7 @@
             "name": "Enraged Kromede Earrings",
             "grade": "Unique",
             "enchant": 15,
-            "exceed": 2,
+            "exceed": 3,
             "itemLevel": 86,
             "icon": "https://assets.playnccdn.com/static-aion2-gamedata/resources/Icon_ACC_ER_0053.png",
             "detail": {
@@ -1066,7 +1066,7 @@
               "equipLevel": 45,
               "maxEnchant": 15,
               "maxExceed": 5,
-              "soulBind": "77.7",
+              "soulBind": "100",
               "main": [
                 {
                   "name": "Attack",
@@ -1084,7 +1084,7 @@
               "sub": [
                 {
                   "name": "Might",
-                  "value": "6",
+                  "value": "14",
                   "added": false
                 }
               ],
@@ -1106,6 +1106,12 @@
                   "level": 1,
                   "icon": "https://assets.playnccdn.com/static-aion2-gamedata/resources/ICON_SO_SKILL_004.png",
                   "added": false
+                },
+                {
+                  "name": "Winter's Shackles",
+                  "level": 1,
+                  "icon": "https://assets.playnccdn.com/static-aion2-gamedata/resources/ICON_SO_SKILL_011.png",
+                  "added": true
                 }
               ],
               "subSkillMax": 4,
@@ -1926,7 +1932,7 @@
             "id": 810330002,
             "name": "Compass of Magic",
             "grade": "Unique",
-            "enchant": 2,
+            "enchant": 3,
             "exceed": 0,
             "itemLevel": 80,
             "icon": "https://assets.playnccdn.com/static-aion2-gamedata/resources/Icon_Arcana_Card_Compass_u_DefenceSet2.png",
@@ -1940,16 +1946,16 @@
                 {
                   "name": "Death [Triniel]",
                   "value": "20",
-                  "extra": "2",
+                  "extra": "3",
                   "min": null
                 }
               ],
               "sub": [],
               "subSkills": [
                 {
-                  "name": "Defiance",
-                  "level": 1,
-                  "icon": "https://assets.playnccdn.com/static-aion2-gamedata/resources/ICON_CO_SKILL_002.png",
+                  "name": "Winter's Shackles",
+                  "level": 2,
+                  "icon": "https://assets.playnccdn.com/static-aion2-gamedata/resources/ICON_SO_SKILL_011.png",
                   "added": false
                 },
                 {
@@ -1959,15 +1965,15 @@
                   "added": false
                 },
                 {
-                  "name": "Ice Chain",
-                  "level": 1,
-                  "icon": "https://assets.playnccdn.com/static-aion2-gamedata/resources/ICON_SO_SKILL_009.png",
+                  "name": "Defiance",
+                  "level": 2,
+                  "icon": "https://assets.playnccdn.com/static-aion2-gamedata/resources/ICON_CO_SKILL_002.png",
                   "added": false
                 },
                 {
-                  "name": "Bittercold Wind",
-                  "level": 2,
-                  "icon": "https://assets.playnccdn.com/static-aion2-gamedata/resources/ICON_SO_SKILL_025.png",
+                  "name": "Flame Scattershot",
+                  "level": 1,
+                  "icon": "https://assets.playnccdn.com/static-aion2-gamedata/resources/ICON_SO_SKILL_001.png",
                   "added": false
                 }
               ],
@@ -2232,7 +2238,7 @@
             "id": 15090000,
             "name": "Ice Chain",
             "category": "Active",
-            "level": 15,
+            "level": 14,
             "icon": "https://assets.playnccdn.com/static-aion2-gamedata/resources/ICON_SO_SKILL_009.png",
             "equip": true,
             "acquired": true
@@ -2250,7 +2256,7 @@
             "id": 15280000,
             "name": "Bittercold Wind",
             "category": "Active",
-            "level": 16,
+            "level": 14,
             "icon": "https://assets.playnccdn.com/static-aion2-gamedata/resources/ICON_SO_SKILL_025.png",
             "equip": true,
             "acquired": true
@@ -2268,7 +2274,7 @@
             "id": 15010000,
             "name": "Flame Scattershot",
             "category": "Active",
-            "level": 5,
+            "level": 6,
             "icon": "https://assets.playnccdn.com/static-aion2-gamedata/resources/ICON_SO_SKILL_001.png",
             "equip": true,
             "acquired": true
@@ -2286,7 +2292,7 @@
             "id": 15110000,
             "name": "Winter's Shackles",
             "category": "Active",
-            "level": 17,
+            "level": 20,
             "icon": "https://assets.playnccdn.com/static-aion2-gamedata/resources/ICON_SO_SKILL_011.png",
             "equip": true,
             "acquired": true
@@ -2322,7 +2328,7 @@
             "id": 15240000,
             "name": "Defiance",
             "category": "Active",
-            "level": 2,
+            "level": 3,
             "icon": "https://assets.playnccdn.com/static-aion2-gamedata/resources/ICON_CO_SKILL_002.png",
             "equip": false,
             "acquired": true
@@ -2536,9 +2542,9 @@
           }
         ],
         "pet": {
-          "name": "Konutin Worker",
+          "name": "Kailin",
           "level": 3,
-          "icon": "https://assets.playnccdn.com/static-aion2-gamedata/resources/UT_Vehicle_Portrait_Conuti_02.png"
+          "icon": "https://assets.playnccdn.com/static-aion2-gamedata/resources/UT_Vehicle_Portrait_Kailin_01.png"
         },
         "wing": {
           "name": "Talisra Wings",
@@ -2547,12 +2553,12 @@
           "icon": "https://assets.playnccdn.com/static-aion2-gamedata/resources/Icon_WingA_011.png"
         },
         "wingSkin": {
-          "name": "Kromede Wings",
+          "name": "Talisra Wings",
           "grade": "Unique",
           "enchant": 0,
-          "icon": "https://assets.playnccdn.com/static-aion2-gamedata/resources/Icon_WingB_014.png"
+          "icon": "https://assets.playnccdn.com/static-aion2-gamedata/resources/Icon_WingA_011.png"
         },
-        "updatedAt": "2026-11-19T01:33:28.278Z"
+        "updatedAt": "2026-11-20T01:28:21.829Z"
       },
       "energy": {
         "value": 30,
