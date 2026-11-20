@@ -26,7 +26,7 @@
     },
     "nearFullHours": 3
   },
-  "lastFetch": "2026-11-20T01:29:05.733Z",
+  "lastFetch": "2026-11-20T12:17:50.083Z",
   "characters": [
     {
       "id": "kyrakia",
@@ -36,7 +36,7 @@
         "class": "Sorcerer",
         "level": 45,
         "itemLevel": 3318,
-        "combatPower": 226887,
+        "combatPower": 226686,
         "race": "Elyos",
         "title": "Divine Skill",
         "profileImage": "https://profileimg.plaync.com/game_profile_images/aion2global/images?gameServerKey=1301&charKey=366198944700801654",
@@ -797,7 +797,7 @@
               "equipLevel": 45,
               "maxEnchant": 15,
               "maxExceed": 5,
-              "soulBind": "31.3",
+              "soulBind": "31.5",
               "main": [
                 {
                   "name": "Attack",
@@ -824,8 +824,8 @@
                   "added": false
                 },
                 {
-                  "name": "Critical Hit",
-                  "value": "39",
+                  "name": "MP",
+                  "value": "118",
                   "added": false
                 }
               ],
@@ -2558,7 +2558,7 @@
           "enchant": 0,
           "icon": "https://assets.playnccdn.com/static-aion2-gamedata/resources/Icon_WingA_011.png"
         },
-        "updatedAt": "2026-11-20T01:28:21.829Z"
+        "updatedAt": "2026-11-20T12:17:05.211Z"
       },
       "energy": {
         "value": 30,
@@ -2588,8 +2588,8 @@
       "game": {
         "class": "Gladiator",
         "level": 45,
-        "itemLevel": 2012,
-        "combatPower": 94177,
+        "itemLevel": 2100,
+        "combatPower": 95338,
         "race": "Elyos",
         "title": "Unbound by Genus",
         "profileImage": "https://profileimg.plaync.com/game_profile_images/aion2global/images?gameServerKey=1301&charKey=366198944700849139",
@@ -3982,7 +3982,7 @@
             "id": 210730052,
             "name": "Vakron Cloak",
             "grade": "Unique",
-            "enchant": 0,
+            "enchant": 3,
             "exceed": 0,
             "itemLevel": 70,
             "icon": "https://assets.playnccdn.com/static-aion2-gamedata/resources/Icon_Equip_AR_L_0028_T05_Cape.png",
@@ -3996,13 +3996,13 @@
                 {
                   "name": "Defense",
                   "value": "345",
-                  "extra": null,
+                  "extra": "60",
                   "min": null
                 },
                 {
                   "name": "HP",
                   "value": "140",
-                  "extra": null,
+                  "extra": "48",
                   "min": null
                 }
               ],
@@ -4286,11 +4286,11 @@
                   },
                   {
                     "name": "Compass of Vigor",
-                    "equipped": false
+                    "equipped": true
                   },
                   {
                     "name": "Bell of Vigor",
-                    "equipped": true
+                    "equipped": false
                   },
                   {
                     "name": "Mirror of Vigor",
@@ -4321,23 +4321,23 @@
           {
             "slot": "Arcana 2",
             "slotPos": 42,
-            "id": 810250001,
+            "id": 810240001,
             "name": "Parchment of Vigor",
-            "grade": "Rare",
+            "grade": "Legend",
             "enchant": 0,
             "exceed": 0,
-            "itemLevel": 40,
+            "itemLevel": 60,
             "icon": "https://assets.playnccdn.com/static-aion2-gamedata/resources/Icon_Arcana_Card_Parchment_u_PveSet2.png",
             "detail": {
               "category": "Parchment",
               "equipLevel": 45,
-              "maxEnchant": 3,
+              "maxEnchant": 4,
               "maxExceed": null,
               "soulBind": "100",
               "main": [
                 {
                   "name": "Life [Yustiel]",
-                  "value": "12",
+                  "value": "16",
                   "extra": null,
                   "min": null
                 }
@@ -4345,19 +4345,25 @@
               "sub": [],
               "subSkills": [
                 {
-                  "name": "Overhead Slam",
-                  "level": 1,
-                  "icon": "https://assets.playnccdn.com/static-aion2-gamedata/resources/ICON_GL_SKILL_017.png",
-                  "added": false
-                },
-                {
                   "name": "Ruinous Blow",
                   "level": 1,
                   "icon": "https://assets.playnccdn.com/static-aion2-gamedata/resources/ICON_GL_SKILL_010.png",
                   "added": false
+                },
+                {
+                  "name": "Aerial Snare",
+                  "level": 1,
+                  "icon": "https://assets.playnccdn.com/static-aion2-gamedata/resources/ICON_GL_SKILL_015.png",
+                  "added": false
+                },
+                {
+                  "name": "Overhead Slam",
+                  "level": 1,
+                  "icon": "https://assets.playnccdn.com/static-aion2-gamedata/resources/ICON_GL_SKILL_017.png",
+                  "added": false
                 }
               ],
-              "subSkillMax": 2,
+              "subSkillMax": 3,
               "desc": null,
               "set": {
                 "name": "Primal Vigor",
@@ -4373,11 +4379,11 @@
                   },
                   {
                     "name": "Compass of Vigor",
-                    "equipped": false
+                    "equipped": true
                   },
                   {
                     "name": "Bell of Vigor",
-                    "equipped": true
+                    "equipped": false
                   },
                   {
                     "name": "Mirror of Vigor",
@@ -4408,23 +4414,23 @@
           {
             "slot": "Arcana 3",
             "slotPos": 43,
-            "id": 810360002,
-            "name": "Compass of Magic",
-            "grade": "Common",
+            "id": 810350001,
+            "name": "Compass of Vigor",
+            "grade": "Rare",
             "enchant": 0,
             "exceed": 0,
-            "itemLevel": 20,
-            "icon": "https://assets.playnccdn.com/static-aion2-gamedata/resources/Icon_Arcana_Card_Compass_u_DefenceSet2.png",
+            "itemLevel": 40,
+            "icon": "https://assets.playnccdn.com/static-aion2-gamedata/resources/Icon_Arcana_Card_Compass_u_PveSet2.png",
             "detail": {
               "category": "Compass",
               "equipLevel": 45,
-              "maxEnchant": 2,
+              "maxEnchant": 3,
               "maxExceed": null,
               "soulBind": "100",
               "main": [
                 {
-                  "name": "Death [Triniel]",
-                  "value": "8",
+                  "name": "Freedom [Vaizel]",
+                  "value": "12",
                   "extra": null,
                   "min": null
                 }
@@ -4432,94 +4438,19 @@
               "sub": [],
               "subSkills": [
                 {
-                  "name": "Mocking Blade",
+                  "name": "Sword Aura Rampage",
                   "level": 1,
-                  "icon": "https://assets.playnccdn.com/static-aion2-gamedata/resources/ICON_GL_SKILL_028.png",
+                  "icon": "https://assets.playnccdn.com/static-aion2-gamedata/resources/ICON_TE_SKILL_034.png",
+                  "added": false
+                },
+                {
+                  "name": "Defiance",
+                  "level": 1,
+                  "icon": "https://assets.playnccdn.com/static-aion2-gamedata/resources/ICON_CO_SKILL_002.png",
                   "added": false
                 }
               ],
-              "subSkillMax": 1,
-              "desc": null,
-              "set": {
-                "name": "Magic Armor",
-                "equipped": 1,
-                "items": [
-                  {
-                    "name": "Chalice of Magic",
-                    "equipped": false
-                  },
-                  {
-                    "name": "Parchment of Magic",
-                    "equipped": false
-                  },
-                  {
-                    "name": "Compass of Magic",
-                    "equipped": true
-                  },
-                  {
-                    "name": "Bell of Magic",
-                    "equipped": false
-                  },
-                  {
-                    "name": "Mirror of Magic",
-                    "equipped": false
-                  }
-                ],
-                "bonuses": [
-                  {
-                    "degree": 2,
-                    "text": [
-                      "Restores 1,500 MP when MP is 20% or less [Cooldown: 30s]"
-                    ]
-                  },
-                  {
-                    "degree": 4,
-                    "text": [
-                      "+1,000 PvE Defense when MP is 50% or more"
-                    ]
-                  }
-                ]
-              },
-              "magicSlots": 0,
-              "magicStones": [],
-              "godSlots": 0,
-              "godStones": []
-            }
-          },
-          {
-            "slot": "Arcana 4",
-            "slotPos": 44,
-            "id": 810460001,
-            "name": "Bell of Vigor",
-            "grade": "Common",
-            "enchant": 0,
-            "exceed": 0,
-            "itemLevel": 20,
-            "icon": "https://assets.playnccdn.com/static-aion2-gamedata/resources/Icon_Arcana_Card_Bell_u_PveSet2.png",
-            "detail": {
-              "category": "Bell",
-              "equipLevel": 45,
-              "maxEnchant": 2,
-              "maxExceed": null,
-              "soulBind": "100",
-              "main": [
-                {
-                  "name": "Justice [Nezekan]",
-                  "value": "8",
-                  "extra": null,
-                  "min": null
-                }
-              ],
-              "sub": [],
-              "subSkills": [
-                {
-                  "name": "Survival Willpower",
-                  "level": 1,
-                  "icon": "https://assets.playnccdn.com/static-aion2-gamedata/resources/ICON_GL_SKILL_Passive_009.png",
-                  "added": false
-                }
-              ],
-              "subSkillMax": 1,
+              "subSkillMax": 2,
               "desc": null,
               "set": {
                 "name": "Primal Vigor",
@@ -4535,11 +4466,11 @@
                   },
                   {
                     "name": "Compass of Vigor",
-                    "equipped": false
+                    "equipped": true
                   },
                   {
                     "name": "Bell of Vigor",
-                    "equipped": true
+                    "equipped": false
                   },
                   {
                     "name": "Mirror of Vigor",
@@ -4568,24 +4499,24 @@
             }
           },
           {
-            "slot": "Arcana 5",
-            "slotPos": 45,
-            "id": 810550001,
-            "name": "Mirror of Vigor",
+            "slot": "Arcana 4",
+            "slotPos": 44,
+            "id": 810450002,
+            "name": "Bell of Magic",
             "grade": "Rare",
             "enchant": 0,
             "exceed": 0,
             "itemLevel": 40,
-            "icon": "https://assets.playnccdn.com/static-aion2-gamedata/resources/Icon_Arcana_Card_Mirror_u_PveSet2.png",
+            "icon": "https://assets.playnccdn.com/static-aion2-gamedata/resources/Icon_Arcana_Card_Bell_u_DefenceSet2.png",
             "detail": {
-              "category": "Mirror",
+              "category": "Bell",
               "equipLevel": 45,
               "maxEnchant": 3,
               "maxExceed": null,
               "soulBind": "100",
               "main": [
                 {
-                  "name": "Illusion [Kaisinel]",
+                  "name": "Destruction [Zikel]",
                   "value": "12",
                   "extra": null,
                   "min": null
@@ -4594,9 +4525,96 @@
               "sub": [],
               "subSkills": [
                 {
-                  "name": "Impact Hit",
+                  "name": "Survival Willpower",
                   "level": 1,
-                  "icon": "https://assets.playnccdn.com/static-aion2-gamedata/resources/ICON_GL_SKILL_Passive_006.png",
+                  "icon": "https://assets.playnccdn.com/static-aion2-gamedata/resources/ICON_GL_SKILL_Passive_009.png",
+                  "added": false
+                },
+                {
+                  "name": "Destructive Impulse",
+                  "level": 1,
+                  "icon": "https://assets.playnccdn.com/static-aion2-gamedata/resources/ICON_GL_SKILL_Passive_007.png",
+                  "added": false
+                }
+              ],
+              "subSkillMax": 2,
+              "desc": null,
+              "set": {
+                "name": "Magic Armor",
+                "equipped": 1,
+                "items": [
+                  {
+                    "name": "Chalice of Magic",
+                    "equipped": false
+                  },
+                  {
+                    "name": "Parchment of Magic",
+                    "equipped": false
+                  },
+                  {
+                    "name": "Compass of Magic",
+                    "equipped": false
+                  },
+                  {
+                    "name": "Bell of Magic",
+                    "equipped": true
+                  },
+                  {
+                    "name": "Mirror of Magic",
+                    "equipped": false
+                  }
+                ],
+                "bonuses": [
+                  {
+                    "degree": 2,
+                    "text": [
+                      "Restores 1,500 MP when MP is 20% or less [Cooldown: 30s]"
+                    ]
+                  },
+                  {
+                    "degree": 4,
+                    "text": [
+                      "+1,000 PvE Defense when MP is 50% or more"
+                    ]
+                  }
+                ]
+              },
+              "magicSlots": 0,
+              "magicStones": [],
+              "godSlots": 0,
+              "godStones": []
+            }
+          },
+          {
+            "slot": "Arcana 5",
+            "slotPos": 45,
+            "id": 810540001,
+            "name": "Mirror of Vigor",
+            "grade": "Legend",
+            "enchant": 0,
+            "exceed": 0,
+            "itemLevel": 60,
+            "icon": "https://assets.playnccdn.com/static-aion2-gamedata/resources/Icon_Arcana_Card_Mirror_u_PveSet2.png",
+            "detail": {
+              "category": "Mirror",
+              "equipLevel": 45,
+              "maxEnchant": 4,
+              "maxExceed": null,
+              "soulBind": "100",
+              "main": [
+                {
+                  "name": "Illusion [Kaisinel]",
+                  "value": "16",
+                  "extra": null,
+                  "min": null
+                }
+              ],
+              "sub": [],
+              "subSkills": [
+                {
+                  "name": "Protection Armor",
+                  "level": 1,
+                  "icon": "https://assets.playnccdn.com/static-aion2-gamedata/resources/ICON_GL_SKILL_Passive_002.png",
                   "added": false
                 },
                 {
@@ -4604,9 +4622,15 @@
                   "level": 1,
                   "icon": "https://assets.playnccdn.com/static-aion2-gamedata/resources/ICON_GL_SKILL_Passive_010.png",
                   "added": false
+                },
+                {
+                  "name": "Identify Weakness",
+                  "level": 1,
+                  "icon": "https://assets.playnccdn.com/static-aion2-gamedata/resources/ICON_GL_SKILL_Passive_004.png",
+                  "added": false
                 }
               ],
-              "subSkillMax": 2,
+              "subSkillMax": 3,
               "desc": null,
               "set": {
                 "name": "Primal Vigor",
@@ -4622,11 +4646,11 @@
                   },
                   {
                     "name": "Compass of Vigor",
-                    "equipped": false
+                    "equipped": true
                   },
                   {
                     "name": "Bell of Vigor",
-                    "equipped": true
+                    "equipped": false
                   },
                   {
                     "name": "Mirror of Vigor",
@@ -4687,7 +4711,7 @@
             "id": 11290000,
             "name": "Mocking Blade",
             "category": "Active",
-            "level": 14,
+            "level": 13,
             "icon": "https://assets.playnccdn.com/static-aion2-gamedata/resources/ICON_GL_SKILL_028.png",
             "equip": true,
             "acquired": true
@@ -4705,7 +4729,7 @@
             "id": 11280000,
             "name": "Sword Aura Rampage",
             "category": "Active",
-            "level": 1,
+            "level": 2,
             "icon": "https://assets.playnccdn.com/static-aion2-gamedata/resources/ICON_TE_SKILL_034.png",
             "equip": true,
             "acquired": true
@@ -4741,7 +4765,7 @@
             "id": 11300000,
             "name": "Aerial Snare",
             "category": "Active",
-            "level": 2,
+            "level": 3,
             "icon": "https://assets.playnccdn.com/static-aion2-gamedata/resources/ICON_GL_SKILL_015.png",
             "equip": true,
             "acquired": true
@@ -4759,7 +4783,7 @@
             "id": 11260000,
             "name": "Defiance",
             "category": "Active",
-            "level": 4,
+            "level": 5,
             "icon": "https://assets.playnccdn.com/static-aion2-gamedata/resources/ICON_CO_SKILL_002.png",
             "equip": false,
             "acquired": true
@@ -4777,7 +4801,7 @@
             "id": 11720000,
             "name": "Protection Armor",
             "category": "Passive",
-            "level": 13,
+            "level": 14,
             "icon": "https://assets.playnccdn.com/static-aion2-gamedata/resources/ICON_GL_SKILL_Passive_002.png",
             "equip": false,
             "acquired": true
@@ -4795,7 +4819,7 @@
             "id": 11740000,
             "name": "Identify Weakness",
             "category": "Passive",
-            "level": 13,
+            "level": 14,
             "icon": "https://assets.playnccdn.com/static-aion2-gamedata/resources/ICON_GL_SKILL_Passive_004.png",
             "equip": false,
             "acquired": true
@@ -4813,7 +4837,7 @@
             "id": 11760000,
             "name": "Impact Hit",
             "category": "Passive",
-            "level": 13,
+            "level": 12,
             "icon": "https://assets.playnccdn.com/static-aion2-gamedata/resources/ICON_GL_SKILL_Passive_006.png",
             "equip": false,
             "acquired": true
@@ -4822,7 +4846,7 @@
             "id": 11770000,
             "name": "Destructive Impulse",
             "category": "Passive",
-            "level": 16,
+            "level": 17,
             "icon": "https://assets.playnccdn.com/static-aion2-gamedata/resources/ICON_GL_SKILL_Passive_007.png",
             "equip": false,
             "acquired": true
@@ -4831,7 +4855,7 @@
             "id": 11780000,
             "name": "Experienced Counterstrike",
             "category": "Passive",
-            "level": 15,
+            "level": 16,
             "icon": "https://assets.playnccdn.com/static-aion2-gamedata/resources/ICON_GL_SKILL_Passive_008.png",
             "equip": false,
             "acquired": true
@@ -4989,7 +5013,7 @@
           "enchant": 0,
           "icon": null
         },
-        "updatedAt": "2026-11-19T01:33:42.780Z"
+        "updatedAt": "2026-11-20T12:17:20.357Z"
       },
       "energy": null,
       "ref": {
@@ -5004,8 +5028,8 @@
       "game": {
         "class": "Chanter",
         "level": 45,
-        "itemLevel": 1843,
-        "combatPower": 94702,
+        "itemLevel": 1995,
+        "combatPower": 97781,
         "race": "Elyos",
         "title": "Unbound by Genus",
         "profileImage": "https://profileimg.plaync.com/game_profile_images/aion2global/images?gameServerKey=1301&charKey=366198944700864403",
@@ -5208,7 +5232,7 @@
             "id": 210330052,
             "name": "Vakron Helm",
             "grade": "Unique",
-            "enchant": 0,
+            "enchant": 5,
             "exceed": 0,
             "itemLevel": 70,
             "icon": "https://assets.playnccdn.com/static-aion2-gamedata/resources/Icon_Equip_AR_L_0028_T05_Helmet.png",
@@ -5222,13 +5246,13 @@
                 {
                   "name": "Defense",
                   "value": "388",
-                  "extra": null,
+                  "extra": "100",
                   "min": null
                 },
                 {
                   "name": "HP",
                   "value": "175",
-                  "extra": null,
+                  "extra": "80",
                   "min": null
                 }
               ],
@@ -5297,7 +5321,7 @@
             "id": 210430052,
             "name": "Vakron Pauldrons",
             "grade": "Unique",
-            "enchant": 0,
+            "enchant": 5,
             "exceed": 0,
             "itemLevel": 70,
             "icon": "https://assets.playnccdn.com/static-aion2-gamedata/resources/Icon_Equip_AR_L_0028_T05_Shoulder.png",
@@ -5311,13 +5335,13 @@
                 {
                   "name": "Defense",
                   "value": "388",
-                  "extra": null,
+                  "extra": "100",
                   "min": null
                 },
                 {
                   "name": "HP",
                   "value": "175",
-                  "extra": null,
+                  "extra": "80",
                   "min": null
                 }
               ],
@@ -5384,7 +5408,7 @@
             "id": 210130052,
             "name": "Vakron Breastplate",
             "grade": "Unique",
-            "enchant": 0,
+            "enchant": 5,
             "exceed": 0,
             "itemLevel": 70,
             "icon": "https://assets.playnccdn.com/static-aion2-gamedata/resources/Icon_Equip_AR_L_0028_T05_Torso.png",
@@ -5398,13 +5422,13 @@
                 {
                   "name": "Defense",
                   "value": "517",
-                  "extra": null,
+                  "extra": "100",
                   "min": null
                 },
                 {
                   "name": "HP",
                   "value": "280",
-                  "extra": null,
+                  "extra": "80",
                   "min": null
                 }
               ],
@@ -5473,7 +5497,7 @@
             "id": 210230052,
             "name": "Vakron Greaves",
             "grade": "Unique",
-            "enchant": 0,
+            "enchant": 5,
             "exceed": 0,
             "itemLevel": 70,
             "icon": "https://assets.playnccdn.com/static-aion2-gamedata/resources/Icon_Equip_AR_L_0028_T05_Pants.png",
@@ -5487,13 +5511,13 @@
                 {
                   "name": "Defense",
                   "value": "431",
-                  "extra": null,
+                  "extra": "100",
                   "min": null
                 },
                 {
                   "name": "HP",
                   "value": "210",
-                  "extra": null,
+                  "extra": "80",
                   "min": null
                 }
               ],
@@ -5560,7 +5584,7 @@
             "id": 210530052,
             "name": "Vakron Gloves",
             "grade": "Unique",
-            "enchant": 0,
+            "enchant": 5,
             "exceed": 0,
             "itemLevel": 70,
             "icon": "https://assets.playnccdn.com/static-aion2-gamedata/resources/Icon_Equip_AR_L_0028_T05_Gloves.png",
@@ -5574,13 +5598,13 @@
                 {
                   "name": "Defense",
                   "value": "345",
-                  "extra": null,
+                  "extra": "100",
                   "min": null
                 },
                 {
                   "name": "HP",
                   "value": "140",
-                  "extra": null,
+                  "extra": "80",
                   "min": null
                 }
               ],
@@ -5875,84 +5899,86 @@
           {
             "slot": "Earring 2",
             "slotPos": 12,
-            "id": 310230051,
-            "name": "Berk Earrings",
+            "id": 310230052,
+            "name": "Aulamus Earrings",
             "grade": "Unique",
             "enchant": 5,
             "exceed": 0,
-            "itemLevel": 54,
-            "icon": "https://assets.playnccdn.com/static-aion2-gamedata/resources/Icon_ACC_ER_0066.png",
+            "itemLevel": 70,
+            "icon": "https://assets.playnccdn.com/static-aion2-gamedata/resources/Icon_ACC_ER_0072.png",
             "detail": {
               "category": "Earrings",
               "equipLevel": 45,
               "maxEnchant": 15,
-              "maxExceed": 1,
-              "soulBind": "34",
+              "maxExceed": 3,
+              "soulBind": "46.4",
               "main": [
                 {
                   "name": "Attack",
-                  "value": "69",
-                  "extra": "15",
+                  "value": "90",
+                  "extra": "19",
                   "min": null
                 },
                 {
                   "name": "Defense",
-                  "value": "166",
-                  "extra": "35",
+                  "value": "216",
+                  "extra": "49",
                   "min": null
                 }
               ],
               "sub": [
                 {
-                  "name": "Might",
+                  "name": "Precision",
                   "value": "8",
                   "added": false
                 },
                 {
-                  "name": "Natural MP Regen",
-                  "value": "29",
+                  "name": "Attack",
+                  "value": "22",
                   "added": false
                 },
                 {
-                  "name": "Natural HP Regen",
-                  "value": "39",
-                  "added": false
-                },
-                {
-                  "name": "MP",
-                  "value": "83",
+                  "name": "Defense",
+                  "value": "255",
                   "added": false
                 }
               ],
-              "subSkills": [],
+              "subSkills": [
+                {
+                  "name": "Inspiring Spell",
+                  "level": 1,
+                  "icon": "https://assets.playnccdn.com/static-aion2-gamedata/resources/ICON_CH_SKILL_Passive_011.png",
+                  "added": false
+                }
+              ],
               "subSkillMax": 4,
               "desc": null,
               "set": null,
               "magicSlots": 4,
               "magicStones": [
                 {
-                  "name": "Evasion Bonus",
-                  "value": "+7",
-                  "grade": "Rare",
-                  "icon": "https://assets.playnccdn.com/static-aion2-gamedata/resources/Icon_Item_Usable_Enchant_SoulStone_A_c_001.png"
+                  "name": "HP",
+                  "value": "+45",
+                  "grade": "Common",
+                  "icon": "https://assets.playnccdn.com/static-aion2-gamedata/resources/Icon_Item_Usable_Enchant_SoulStone_A_c_002.png"
                 },
                 {
                   "name": "MP",
-                  "value": "+30",
+                  "value": "+40",
                   "grade": "Rare",
-                  "icon": "https://assets.playnccdn.com/static-aion2-gamedata/resources/Icon_Item_Usable_Enchant_SoulStone_A_c_001.png"
+                  "icon": "https://assets.playnccdn.com/static-aion2-gamedata/resources/Icon_Item_Usable_Enchant_SoulStone_A_c_002.png"
                 },
                 {
-                  "name": "Critical Hit Resist",
-                  "value": "+5",
-                  "grade": "Common",
-                  "icon": "https://assets.playnccdn.com/static-aion2-gamedata/resources/Icon_Item_Usable_Enchant_SoulStone_A_c_001.png"
+                  "name": "Accuracy Bonus",
+                  "value": "+9",
+                  "grade": "Rare",
+                  "icon": "https://assets.playnccdn.com/static-aion2-gamedata/resources/Icon_Item_Usable_Enchant_SoulStone_A_c_002.png"
                 },
                 {
                   "name": "Evasion Bonus",
-                  "value": "+5",
+                  "value": "+6",
                   "grade": "Common",
-                  "icon": "https://assets.playnccdn.com/static-aion2-gamedata/resources/Icon_Item_Usable_Enchant_SoulStone_A_c_001.png"
+                  "icon": "https://assets.playnccdn.com/static-aion2-gamedata/resources/Icon_Item_Usable_Enchant_SoulStone_A_c_002.png"
                 }
               ],
               "godSlots": 0,
@@ -6141,7 +6167,7 @@
             "id": 310430046,
             "name": "Ascension Bracelet",
             "grade": "Unique",
-            "enchant": 4,
+            "enchant": 5,
             "exceed": 0,
             "itemLevel": 51,
             "icon": "https://assets.playnccdn.com/static-aion2-gamedata/resources/Icon_Acc_Bracelet_R_027.png",
@@ -6155,13 +6181,13 @@
                 {
                   "name": "Attack",
                   "value": "65",
-                  "extra": "10",
+                  "extra": "13",
                   "min": null
                 },
                 {
                   "name": "Defense",
                   "value": "156",
-                  "extra": "28",
+                  "extra": "35",
                   "min": null
                 }
               ],
@@ -6332,7 +6358,7 @@
             "id": 210730052,
             "name": "Vakron Cloak",
             "grade": "Unique",
-            "enchant": 0,
+            "enchant": 5,
             "exceed": 0,
             "itemLevel": 70,
             "icon": "https://assets.playnccdn.com/static-aion2-gamedata/resources/Icon_Equip_AR_L_0028_T05_Cape.png",
@@ -6346,13 +6372,13 @@
                 {
                   "name": "Defense",
                   "value": "345",
-                  "extra": null,
+                  "extra": "100",
                   "min": null
                 },
                 {
                   "name": "HP",
                   "value": "140",
-                  "extra": null,
+                  "extra": "80",
                   "min": null
                 }
               ],
@@ -6416,13 +6442,13 @@
           {
             "slot": "Amulet",
             "slotPos": 22,
-            "id": 311040001,
+            "id": 311030001,
             "name": "Revelation Amulet",
-            "grade": "Legend",
-            "enchant": 6,
+            "grade": "Unique",
+            "enchant": 0,
             "exceed": 0,
-            "itemLevel": 36,
-            "icon": "https://assets.playnccdn.com/static-aion2-gamedata/resources/Icon_Item_Craft_Conversion_Crystal_L_lv4_01.png",
+            "itemLevel": 65,
+            "icon": "https://assets.playnccdn.com/static-aion2-gamedata/resources/Icon_Item_Craft_Conversion_Crystal_L_lv5_01.png",
             "detail": {
               "category": "Amulet",
               "equipLevel": 1,
@@ -6432,19 +6458,25 @@
               "main": [
                 {
                   "name": "Penetration",
-                  "value": "400",
-                  "extra": "180",
+                  "value": "700",
+                  "extra": null,
                   "min": null
                 },
                 {
                   "name": "Power Shard Damage Bonus",
-                  "value": "10",
-                  "extra": "18",
+                  "value": "40",
+                  "extra": null,
                   "min": null
                 },
                 {
                   "name": "Weapon Damage Boost",
-                  "value": "7.5%",
+                  "value": "10%",
+                  "extra": "0%",
+                  "min": null
+                },
+                {
+                  "name": "Perfect Chance",
+                  "value": "5%",
                   "extra": "0%",
                   "min": null
                 }
@@ -6452,7 +6484,7 @@
               "sub": [],
               "subSkills": [],
               "subSkillMax": 0,
-              "desc": "An amulet granted only to those who follow the revelation.\nCan be enhanced with Amulet Enhance Scroll acquired through Monolith Resonance.\nCan be upgraded via Substance Morph after enhancing it 10 times.",
+              "desc": "An amulet attainable only by those who have truly understood the revelation.\nCan be enhanced with Amulet Enhance Scrolls acquired through Monolith Resonance.",
               "set": null,
               "magicSlots": 0,
               "magicStones": [],
@@ -6581,23 +6613,23 @@
           {
             "slot": "Arcana 1",
             "slotPos": 41,
-            "id": 810160001,
+            "id": 810150001,
             "name": "Chalice of Vigor",
-            "grade": "Common",
+            "grade": "Rare",
             "enchant": 0,
             "exceed": 0,
-            "itemLevel": 20,
+            "itemLevel": 40,
             "icon": "https://assets.playnccdn.com/static-aion2-gamedata/resources/Icon_Arcana_Card_Grail_u_PveSet2.png",
             "detail": {
               "category": "Chalice",
               "equipLevel": 45,
-              "maxEnchant": 2,
+              "maxEnchant": 3,
               "maxExceed": null,
               "soulBind": "100",
               "main": [
                 {
                   "name": "Time [Siel]",
-                  "value": "8",
+                  "value": "12",
                   "extra": null,
                   "min": null
                 }
@@ -6605,13 +6637,19 @@
               "sub": [],
               "subSkills": [
                 {
-                  "name": "Spinning Strike",
+                  "name": "Onslaught",
                   "level": 1,
-                  "icon": "https://assets.playnccdn.com/static-aion2-gamedata/resources/ICON_CH_SKILL_029.png",
+                  "icon": "https://assets.playnccdn.com/static-aion2-gamedata/resources/ICON_CH_SKILL_001.png",
+                  "added": false
+                },
+                {
+                  "name": "Blessing of Life",
+                  "level": 1,
+                  "icon": "https://assets.playnccdn.com/static-aion2-gamedata/resources/ICON_CH_SKILL_Passive_001.png",
                   "added": false
                 }
               ],
-              "subSkillMax": 1,
+              "subSkillMax": 2,
               "desc": null,
               "set": {
                 "name": "Primal Vigor",
@@ -6662,23 +6700,23 @@
           {
             "slot": "Arcana 2",
             "slotPos": 42,
-            "id": 810260001,
+            "id": 810250001,
             "name": "Parchment of Vigor",
-            "grade": "Common",
+            "grade": "Rare",
             "enchant": 0,
             "exceed": 0,
-            "itemLevel": 20,
+            "itemLevel": 40,
             "icon": "https://assets.playnccdn.com/static-aion2-gamedata/resources/Icon_Arcana_Card_Parchment_u_PveSet2.png",
             "detail": {
               "category": "Parchment",
               "equipLevel": 45,
-              "maxEnchant": 2,
+              "maxEnchant": 3,
               "maxExceed": null,
               "soulBind": "100",
               "main": [
                 {
                   "name": "Life [Yustiel]",
-                  "value": "8",
+                  "value": "12",
                   "extra": null,
                   "min": null
                 }
@@ -6686,13 +6724,19 @@
               "sub": [],
               "subSkills": [
                 {
-                  "name": "Rushing Smash",
+                  "name": "Wave Blow",
                   "level": 1,
-                  "icon": "https://assets.playnccdn.com/static-aion2-gamedata/resources/ICON_CH_SKILL_009.png",
+                  "icon": "https://assets.playnccdn.com/static-aion2-gamedata/resources/ICON_CH_SKILL_008.png",
+                  "added": false
+                },
+                {
+                  "name": "Spinning Strike",
+                  "level": 1,
+                  "icon": "https://assets.playnccdn.com/static-aion2-gamedata/resources/ICON_CH_SKILL_029.png",
                   "added": false
                 }
               ],
-              "subSkillMax": 1,
+              "subSkillMax": 2,
               "desc": null,
               "set": {
                 "name": "Primal Vigor",
@@ -6911,23 +6955,23 @@
           {
             "slot": "Arcana 5",
             "slotPos": 45,
-            "id": 810560001,
+            "id": 810540001,
             "name": "Mirror of Vigor",
-            "grade": "Common",
+            "grade": "Legend",
             "enchant": 0,
             "exceed": 0,
-            "itemLevel": 20,
+            "itemLevel": 60,
             "icon": "https://assets.playnccdn.com/static-aion2-gamedata/resources/Icon_Arcana_Card_Mirror_u_PveSet2.png",
             "detail": {
               "category": "Mirror",
               "equipLevel": 45,
-              "maxEnchant": 2,
+              "maxEnchant": 4,
               "maxExceed": null,
               "soulBind": "100",
               "main": [
                 {
                   "name": "Illusion [Kaisinel]",
-                  "value": "8",
+                  "value": "16",
                   "extra": null,
                   "min": null
                 }
@@ -6939,9 +6983,21 @@
                   "level": 1,
                   "icon": "https://assets.playnccdn.com/static-aion2-gamedata/resources/ICON_CH_SKILL_Passive_008.png",
                   "added": false
+                },
+                {
+                  "name": "Crossguard",
+                  "level": 1,
+                  "icon": "https://assets.playnccdn.com/static-aion2-gamedata/resources/ICON_CH_SKILL_Passive_002.png",
+                  "added": false
+                },
+                {
+                  "name": "Inspiring Spell",
+                  "level": 1,
+                  "icon": "https://assets.playnccdn.com/static-aion2-gamedata/resources/ICON_CH_SKILL_Passive_011.png",
+                  "added": false
                 }
               ],
-              "subSkillMax": 1,
+              "subSkillMax": 3,
               "desc": null,
               "set": {
                 "name": "Primal Vigor",
@@ -6995,7 +7051,7 @@
             "id": 18010000,
             "name": "Onslaught",
             "category": "Active",
-            "level": 14,
+            "level": 15,
             "icon": "https://assets.playnccdn.com/static-aion2-gamedata/resources/ICON_CH_SKILL_001.png",
             "equip": true,
             "acquired": true
@@ -7013,7 +7069,7 @@
             "id": 18090000,
             "name": "Rushing Smash",
             "category": "Active",
-            "level": 15,
+            "level": 14,
             "icon": "https://assets.playnccdn.com/static-aion2-gamedata/resources/ICON_CH_SKILL_009.png",
             "equip": true,
             "acquired": true
@@ -7022,7 +7078,7 @@
             "id": 18060000,
             "name": "Impactful Crush",
             "category": "Active",
-            "level": 14,
+            "level": 15,
             "icon": "https://assets.playnccdn.com/static-aion2-gamedata/resources/ICON_CH_SKILL_006.png",
             "equip": true,
             "acquired": true
@@ -7076,7 +7132,7 @@
             "id": 18080000,
             "name": "Wave Blow",
             "category": "Active",
-            "level": 14,
+            "level": 15,
             "icon": "https://assets.playnccdn.com/static-aion2-gamedata/resources/ICON_CH_SKILL_008.png",
             "equip": true,
             "acquired": true
@@ -7103,7 +7159,7 @@
             "id": 18710000,
             "name": "Blessing of Life",
             "category": "Passive",
-            "level": 11,
+            "level": 12,
             "icon": "https://assets.playnccdn.com/static-aion2-gamedata/resources/ICON_CH_SKILL_Passive_012.png",
             "equip": false,
             "acquired": true
@@ -7112,7 +7168,7 @@
             "id": 18720000,
             "name": "Crossguard",
             "category": "Passive",
-            "level": 9,
+            "level": 10,
             "icon": "https://assets.playnccdn.com/static-aion2-gamedata/resources/ICON_CH_SKILL_Passive_002.png",
             "equip": false,
             "acquired": true
@@ -7130,7 +7186,7 @@
             "id": 18740000,
             "name": "Inspiring Spell",
             "category": "Passive",
-            "level": 14,
+            "level": 16,
             "icon": "https://assets.playnccdn.com/static-aion2-gamedata/resources/ICON_CH_SKILL_Passive_011.png",
             "equip": false,
             "acquired": true
@@ -7324,7 +7380,7 @@
           "enchant": 0,
           "icon": null
         },
-        "updatedAt": "2026-11-19T01:33:57.891Z"
+        "updatedAt": "2026-11-20T12:17:35.227Z"
       },
       "energy": {
         "value": 280,
