@@ -26,7 +26,7 @@
     },
     "nearFullHours": 3
   },
-  "lastFetch": "2026-11-21T11:53:39.350Z",
+  "lastFetch": "2026-11-21T18:23:07.849Z",
   "characters": [
     {
       "id": "kyrakia",
@@ -35,8 +35,8 @@
       "game": {
         "class": "Sorcerer",
         "level": 45,
-        "itemLevel": 3323,
-        "combatPower": 228049,
+        "itemLevel": 3351,
+        "combatPower": 230961,
         "race": "Elyos",
         "title": "Divine Skill",
         "profileImage": "https://profileimg.plaync.com/game_profile_images/aion2global/images?gameServerKey=1301&charKey=366198944700801654",
@@ -48,7 +48,7 @@
             "name": "Splendent Wise Dragon Lord Spellbook",
             "grade": "Unique",
             "enchant": 15,
-            "exceed": 4,
+            "exceed": 5,
             "itemLevel": 102,
             "icon": "https://assets.playnccdn.com/static-aion2-gamedata/resources/Icon_WP_MB_0100_T06.png",
             "detail": {
@@ -56,7 +56,7 @@
               "equipLevel": 45,
               "maxEnchant": 15,
               "maxExceed": 5,
-              "soulBind": "92",
+              "soulBind": "99.1",
               "main": [
                 {
                   "name": "Attack",
@@ -105,7 +105,7 @@
                 },
                 {
                   "name": "Status Effect Chance",
-                  "value": "24%",
+                  "value": "25.4%",
                   "added": true
                 }
               ],
@@ -116,28 +116,28 @@
               "magicSlots": 4,
               "magicStones": [
                 {
-                  "name": "Attack",
-                  "value": "+5",
-                  "grade": "Legend",
-                  "icon": "https://assets.playnccdn.com/static-aion2-gamedata/resources/Icon_Item_Usable_Enchant_MagicStone_A_c_003.png"
-                },
-                {
-                  "name": "HP",
-                  "value": "+100",
-                  "grade": "Legend",
-                  "icon": "https://assets.playnccdn.com/static-aion2-gamedata/resources/Icon_Item_Usable_Enchant_MagicStone_A_c_003.png"
-                },
-                {
-                  "name": "MP",
+                  "name": "Defense",
                   "value": "+50",
                   "grade": "Legend",
-                  "icon": "https://assets.playnccdn.com/static-aion2-gamedata/resources/Icon_Item_Usable_Enchant_MagicStone_A_c_003.png"
+                  "icon": "https://assets.playnccdn.com/static-aion2-gamedata/resources/Icon_Item_Usable_Enchant_MagicStone_Abyss_A_r_003.png"
                 },
                 {
-                  "name": "HP",
-                  "value": "+160",
+                  "name": "Defense",
+                  "value": "+30",
+                  "grade": "Rare",
+                  "icon": "https://assets.playnccdn.com/static-aion2-gamedata/resources/Icon_Item_Usable_Enchant_MagicStone_Abyss_A_r_003.png"
+                },
+                {
+                  "name": "PvP Critical Hit Resist",
+                  "value": "+14",
+                  "grade": "Rare",
+                  "icon": "https://assets.playnccdn.com/static-aion2-gamedata/resources/Icon_Item_Usable_Enchant_MagicStone_Abyss_A_r_003.png"
+                },
+                {
+                  "name": "Accuracy Bonus",
+                  "value": "+15",
                   "grade": "Unique",
-                  "icon": "https://assets.playnccdn.com/static-aion2-gamedata/resources/Icon_Item_Usable_Enchant_MagicStone_A_c_003.png"
+                  "icon": "https://assets.playnccdn.com/static-aion2-gamedata/resources/Icon_Item_Usable_Enchant_MagicStone_Abyss_A_r_003.png"
                 }
               ],
               "godSlots": 1,
@@ -356,7 +356,7 @@
               "equipLevel": 45,
               "maxEnchant": 15,
               "maxExceed": 5,
-              "soulBind": "46.3",
+              "soulBind": "44.8",
               "main": [
                 {
                   "name": "Defense",
@@ -378,13 +378,13 @@
                   "added": false
                 },
                 {
-                  "name": "Critical Hit Resist",
-                  "value": "33",
+                  "name": "Attack",
+                  "value": "17",
                   "added": false
                 },
                 {
-                  "name": "Attack",
-                  "value": "17",
+                  "name": "Front Defense",
+                  "value": "184",
                   "added": false
                 }
               ],
@@ -710,7 +710,7 @@
               "equipLevel": 45,
               "maxEnchant": 15,
               "maxExceed": 5,
-              "soulBind": "33.7",
+              "soulBind": "51.1",
               "main": [
                 {
                   "name": "Defense",
@@ -727,27 +727,29 @@
               ],
               "sub": [
                 {
-                  "name": "Critical Hit",
-                  "value": "27",
+                  "name": "Attack",
+                  "value": "18",
                   "added": false
                 },
                 {
-                  "name": "Perfect Chance",
-                  "value": "3.6%",
+                  "name": "Dexterity",
+                  "value": "23",
                   "added": false
                 },
                 {
-                  "name": "Accuracy",
-                  "value": "42",
-                  "added": false
-                },
-                {
-                  "name": "Status Effect Resist",
-                  "value": "5.2%",
+                  "name": "Constitution",
+                  "value": "12",
                   "added": false
                 }
               ],
-              "subSkills": [],
+              "subSkills": [
+                {
+                  "name": "Cold Snap",
+                  "level": 1,
+                  "icon": "https://assets.playnccdn.com/static-aion2-gamedata/resources/ICON_SO_SKILL_Passive_003.png",
+                  "added": false
+                }
+              ],
               "subSkillMax": 4,
               "desc": null,
               "set": null,
@@ -789,7 +791,7 @@
             "name": "Enraged Kromede Necklace",
             "grade": "Unique",
             "enchant": 15,
-            "exceed": 2,
+            "exceed": 3,
             "itemLevel": 86,
             "icon": "https://assets.playnccdn.com/static-aion2-gamedata/resources/Icon_ACC_NL_0053.png",
             "detail": {
@@ -879,7 +881,7 @@
             "name": "Enraged Kromede Earrings",
             "grade": "Unique",
             "enchant": 15,
-            "exceed": 2,
+            "exceed": 3,
             "itemLevel": 86,
             "icon": "https://assets.playnccdn.com/static-aion2-gamedata/resources/Icon_ACC_ER_0053.png",
             "detail": {
@@ -1059,7 +1061,7 @@
             "name": "Enraged Kromede Ring",
             "grade": "Unique",
             "enchant": 15,
-            "exceed": 2,
+            "exceed": 3,
             "itemLevel": 86,
             "icon": "https://assets.playnccdn.com/static-aion2-gamedata/resources/Icon_ACC_Ring_0053.png",
             "detail": {
@@ -1156,7 +1158,7 @@
             "name": "Enraged Kromede Ring",
             "grade": "Unique",
             "enchant": 15,
-            "exceed": 2,
+            "exceed": 3,
             "itemLevel": 86,
             "icon": "https://assets.playnccdn.com/static-aion2-gamedata/resources/Icon_ACC_Ring_0053.png",
             "detail": {
@@ -1246,7 +1248,7 @@
             "name": "Abyssal Bracelet",
             "grade": "Unique",
             "enchant": 15,
-            "exceed": 2,
+            "exceed": 3,
             "itemLevel": 70,
             "icon": "https://assets.playnccdn.com/static-aion2-gamedata/resources/Icon_ACC_Bracelet_n_02.png",
             "detail": {
@@ -2356,7 +2358,7 @@
             "id": 15730000,
             "name": "Cold Snap",
             "category": "Passive",
-            "level": 18,
+            "level": 19,
             "icon": "https://assets.playnccdn.com/static-aion2-gamedata/resources/ICON_SO_SKILL_Passive_003.png",
             "equip": false,
             "acquired": true
@@ -2559,7 +2561,7 @@
           "enchant": 0,
           "icon": "https://assets.playnccdn.com/static-aion2-gamedata/resources/Icon_WingA_011.png"
         },
-        "updatedAt": "2026-11-21T11:52:54.508Z"
+        "updatedAt": "2026-11-21T18:22:22.145Z"
       },
       "energy": {
         "value": 105,
@@ -2891,7 +2893,7 @@
         "class": "Gladiator",
         "level": 45,
         "itemLevel": 2140,
-        "combatPower": 99443,
+        "combatPower": 100020,
         "race": "Elyos",
         "title": "Unbound by Genus",
         "profileImage": "https://profileimg.plaync.com/game_profile_images/aion2global/images?gameServerKey=1301&charKey=366198944700849139",
@@ -5327,7 +5329,7 @@
           "enchant": 0,
           "icon": null
         },
-        "updatedAt": "2026-11-21T11:53:09.823Z"
+        "updatedAt": "2026-11-21T18:22:37.528Z"
       },
       "energy": null,
       "ref": {
@@ -5343,8 +5345,8 @@
       "game": {
         "class": "Chanter",
         "level": 45,
-        "itemLevel": 1995,
-        "combatPower": 99761,
+        "itemLevel": 2001,
+        "combatPower": 102544,
         "race": "Elyos",
         "title": "Unbound by Genus",
         "profileImage": "https://profileimg.plaync.com/game_profile_images/aion2global/images?gameServerKey=1301&charKey=366198944700864403",
@@ -6626,7 +6628,7 @@
             "id": 215240001,
             "name": "Noble Belt",
             "grade": "Legend",
-            "enchant": 0,
+            "enchant": 6,
             "exceed": 0,
             "itemLevel": 36,
             "icon": "https://assets.playnccdn.com/static-aion2-gamedata/resources/Icon_Acc_Belt_C_021.png",
@@ -6640,13 +6642,13 @@
                 {
                   "name": "Defense",
                   "value": "200",
-                  "extra": null,
+                  "extra": "180",
                   "min": null
                 },
                 {
                   "name": "HP",
                   "value": "600",
-                  "extra": null,
+                  "extra": "300",
                   "min": null
                 },
                 {
@@ -7609,7 +7611,7 @@
             "id": 18330000,
             "name": "Marchutan's Wrath",
             "category": "Dp",
-            "level": 6,
+            "level": 10,
             "icon": "https://assets.playnccdn.com/static-aion2-gamedata/resources/ICON_CH_SKILL_033.png",
             "equip": true,
             "acquired": true
@@ -7695,7 +7697,7 @@
           "enchant": 0,
           "icon": null
         },
-        "updatedAt": "2026-11-21T01:00:12.644Z"
+        "updatedAt": "2026-11-21T18:22:52.640Z"
       },
       "energy": {
         "value": 280,
