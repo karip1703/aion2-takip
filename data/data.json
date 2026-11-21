@@ -26,7 +26,7 @@
     },
     "nearFullHours": 3
   },
-  "lastFetch": "2026-11-21T01:00:27.740Z",
+  "lastFetch": "2026-11-21T11:53:39.350Z",
   "characters": [
     {
       "id": "kyrakia",
@@ -35,8 +35,8 @@
       "game": {
         "class": "Sorcerer",
         "level": 45,
-        "itemLevel": 3313,
-        "combatPower": 221687,
+        "itemLevel": 3323,
+        "combatPower": 228049,
         "race": "Elyos",
         "title": "Divine Skill",
         "profileImage": "https://profileimg.plaync.com/game_profile_images/aion2global/images?gameServerKey=1301&charKey=366198944700801654",
@@ -1561,13 +1561,13 @@
           {
             "slot": "Amulet",
             "slotPos": 22,
-            "id": 311030002,
-            "name": "Fierce Battle Amulet",
+            "id": 311030001,
+            "name": "Revelation Amulet",
             "grade": "Unique",
-            "enchant": 0,
+            "enchant": 10,
             "exceed": 0,
             "itemLevel": 65,
-            "icon": "https://assets.playnccdn.com/static-aion2-gamedata/resources/Icon_Equip_EB_EmblemD_MI_abyssshop_L_u_003.png",
+            "icon": "https://assets.playnccdn.com/static-aion2-gamedata/resources/Icon_Item_Craft_Conversion_Crystal_L_lv5_01.png",
             "detail": {
               "category": "Amulet",
               "equipLevel": 1,
@@ -1578,18 +1578,18 @@
                 {
                   "name": "Penetration",
                   "value": "700",
-                  "extra": null,
+                  "extra": "300",
                   "min": null
                 },
                 {
                   "name": "Power Shard Damage Bonus",
                   "value": "40",
-                  "extra": null,
+                  "extra": "30",
                   "min": null
                 },
                 {
-                  "name": "PvP Damage Boost",
-                  "value": "20%",
+                  "name": "Weapon Damage Boost",
+                  "value": "10%",
                   "extra": "0%",
                   "min": null
                 },
@@ -1603,7 +1603,7 @@
               "sub": [],
               "subSkills": [],
               "subSkillMax": 0,
-              "desc": "An amulet bestowed only upon conquerors forged in the heart of fierce battle.\nCan be enhanced with Amulet Enhance Scrolls acquired through Abyss Shop.",
+              "desc": "An amulet attainable only by those who have truly understood the revelation.\nCan be enhanced with Amulet Enhance Scrolls acquired through Monolith Resonance.",
               "set": null,
               "magicSlots": 0,
               "magicStones": [],
@@ -2548,10 +2548,10 @@
           "icon": "https://assets.playnccdn.com/static-aion2-gamedata/resources/UT_Vehicle_Portrait_Ursuss_01_V01.png"
         },
         "wing": {
-          "name": "Dark Veil Wings",
+          "name": "Talisra Wings",
           "grade": "Unique",
           "enchant": 0,
-          "icon": "https://assets.playnccdn.com/static-aion2-gamedata/resources/Icon_WingB_019.png"
+          "icon": "https://assets.playnccdn.com/static-aion2-gamedata/resources/Icon_WingA_011.png"
         },
         "wingSkin": {
           "name": "Talisra Wings",
@@ -2559,7 +2559,7 @@
           "enchant": 0,
           "icon": "https://assets.playnccdn.com/static-aion2-gamedata/resources/Icon_WingA_011.png"
         },
-        "updatedAt": "2026-11-21T00:59:42.488Z"
+        "updatedAt": "2026-11-21T11:52:54.508Z"
       },
       "energy": {
         "value": 30,
@@ -2590,7 +2590,7 @@
         "class": "Gladiator",
         "level": 45,
         "itemLevel": 2140,
-        "combatPower": 97343,
+        "combatPower": 99443,
         "race": "Elyos",
         "title": "Unbound by Genus",
         "profileImage": "https://profileimg.plaync.com/game_profile_images/aion2global/images?gameServerKey=1301&charKey=366198944700849139",
@@ -4922,7 +4922,7 @@
             "id": 11110000,
             "name": "Focused Block",
             "category": "Dp",
-            "level": 3,
+            "level": 4,
             "icon": "https://assets.playnccdn.com/static-aion2-gamedata/resources/ICON_GL_SKILL_011.png",
             "equip": true,
             "acquired": true
@@ -4967,7 +4967,7 @@
             "id": 11390000,
             "name": "Rage Burst",
             "category": "Dp",
-            "level": 5,
+            "level": 10,
             "icon": "https://assets.playnccdn.com/static-aion2-gamedata/resources/ICON_GL_SKILL_039.png",
             "equip": true,
             "acquired": true
@@ -5026,7 +5026,7 @@
           "enchant": 0,
           "icon": null
         },
-        "updatedAt": "2026-11-21T00:59:57.477Z"
+        "updatedAt": "2026-11-21T11:53:09.823Z"
       },
       "energy": null,
       "ref": {
