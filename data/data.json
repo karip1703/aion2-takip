@@ -7876,5 +7876,15 @@
         "verteron-high-commander-lagta"
       ]
     }
+  },
+  "sync": {
+    "links": [
+      {
+        "from": "mustafa",
+        "to": "karip",
+        "status": "pending",
+        "at": "2026-11-21T16:45:27.051Z"
+      }
+    ]
   }
 }
