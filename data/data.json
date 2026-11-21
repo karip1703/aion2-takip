@@ -26,7 +26,7 @@
     },
     "nearFullHours": 3
   },
-  "lastFetch": "2026-11-21T18:23:07.849Z",
+  "lastFetch": "2026-11-21T23:59:24.761Z",
   "characters": [
     {
       "id": "kyrakia",
@@ -35,8 +35,8 @@
       "game": {
         "class": "Sorcerer",
         "level": 45,
-        "itemLevel": 3351,
-        "combatPower": 230961,
+        "itemLevel": 3355,
+        "combatPower": 231446,
         "race": "Elyos",
         "title": "Divine Skill",
         "profileImage": "https://profileimg.plaync.com/game_profile_images/aion2global/images?gameServerKey=1301&charKey=366198944700801654",
@@ -116,26 +116,26 @@
               "magicSlots": 4,
               "magicStones": [
                 {
-                  "name": "Defense",
-                  "value": "+50",
+                  "name": "Critical Hit",
+                  "value": "+10",
                   "grade": "Legend",
                   "icon": "https://assets.playnccdn.com/static-aion2-gamedata/resources/Icon_Item_Usable_Enchant_MagicStone_Abyss_A_r_003.png"
                 },
                 {
-                  "name": "Defense",
-                  "value": "+30",
-                  "grade": "Rare",
+                  "name": "Critical Damage Boost",
+                  "value": "+100",
+                  "grade": "Unique",
                   "icon": "https://assets.playnccdn.com/static-aion2-gamedata/resources/Icon_Item_Usable_Enchant_MagicStone_Abyss_A_r_003.png"
                 },
                 {
-                  "name": "PvP Critical Hit Resist",
-                  "value": "+14",
-                  "grade": "Rare",
+                  "name": "Back Attack Damage Boost",
+                  "value": "+100",
+                  "grade": "Unique",
                   "icon": "https://assets.playnccdn.com/static-aion2-gamedata/resources/Icon_Item_Usable_Enchant_MagicStone_Abyss_A_r_003.png"
                 },
                 {
-                  "name": "Accuracy Bonus",
-                  "value": "+15",
+                  "name": "Block",
+                  "value": "+20",
                   "grade": "Unique",
                   "icon": "https://assets.playnccdn.com/static-aion2-gamedata/resources/Icon_Item_Usable_Enchant_MagicStone_Abyss_A_r_003.png"
                 }
@@ -356,7 +356,7 @@
               "equipLevel": 45,
               "maxEnchant": 15,
               "maxExceed": 5,
-              "soulBind": "44.8",
+              "soulBind": "44.4",
               "main": [
                 {
                   "name": "Defense",
@@ -383,8 +383,8 @@
                   "added": false
                 },
                 {
-                  "name": "Front Defense",
-                  "value": "184",
+                  "name": "Natural HP Regen",
+                  "value": "32",
                   "added": false
                 }
               ],
@@ -2561,7 +2561,7 @@
           "enchant": 0,
           "icon": "https://assets.playnccdn.com/static-aion2-gamedata/resources/Icon_WingA_011.png"
         },
-        "updatedAt": "2026-11-21T18:22:22.145Z"
+        "updatedAt": "2026-11-21T23:58:39.186Z"
       },
       "energy": {
         "value": 105,
@@ -2893,7 +2893,7 @@
         "class": "Gladiator",
         "level": 45,
         "itemLevel": 2140,
-        "combatPower": 100020,
+        "combatPower": 100050,
         "race": "Elyos",
         "title": "Unbound by Genus",
         "profileImage": "https://profileimg.plaync.com/game_profile_images/aion2global/images?gameServerKey=1301&charKey=366198944700849139",
@@ -5313,9 +5313,9 @@
           }
         ],
         "pet": {
-          "name": "Manduri Trebuchet Worker",
+          "name": "Krall Laborer",
           "level": 3,
-          "icon": "https://assets.playnccdn.com/static-aion2-gamedata/resources/UT_Vehicle_Portrait_ManduriRng_01.png"
+          "icon": "https://assets.playnccdn.com/static-aion2-gamedata/resources/UT_Vehicle_Portrait_KrallReg_01.png"
         },
         "wing": {
           "name": "Ultimate Daeva Wings",
@@ -5329,7 +5329,7 @@
           "enchant": 0,
           "icon": null
         },
-        "updatedAt": "2026-11-21T18:22:37.528Z"
+        "updatedAt": "2026-11-21T23:58:54.559Z"
       },
       "energy": null,
       "ref": {
@@ -5346,7 +5346,7 @@
         "class": "Chanter",
         "level": 45,
         "itemLevel": 2001,
-        "combatPower": 102544,
+        "combatPower": 103369,
         "race": "Elyos",
         "title": "Unbound by Genus",
         "profileImage": "https://profileimg.plaync.com/game_profile_images/aion2global/images?gameServerKey=1301&charKey=366198944700864403",
@@ -7647,7 +7647,7 @@
             "id": 18250000,
             "name": "Power of the Storm",
             "category": "Dp",
-            "level": 10,
+            "level": 12,
             "icon": "https://assets.playnccdn.com/static-aion2-gamedata/resources/ICON_CH_SKILL_025.png",
             "equip": true,
             "acquired": true
@@ -7697,7 +7697,7 @@
           "enchant": 0,
           "icon": null
         },
-        "updatedAt": "2026-11-21T18:22:52.640Z"
+        "updatedAt": "2026-11-21T23:59:09.576Z"
       },
       "energy": {
         "value": 280,
