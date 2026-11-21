@@ -26,7 +26,7 @@
     },
     "nearFullHours": 3
   },
-  "lastFetch": "2026-11-20T12:17:50.083Z",
+  "lastFetch": "2026-11-21T01:00:27.740Z",
   "characters": [
     {
       "id": "kyrakia",
@@ -35,8 +35,8 @@
       "game": {
         "class": "Sorcerer",
         "level": 45,
-        "itemLevel": 3318,
-        "combatPower": 226686,
+        "itemLevel": 3313,
+        "combatPower": 221687,
         "race": "Elyos",
         "title": "Divine Skill",
         "profileImage": "https://profileimg.plaync.com/game_profile_images/aion2global/images?gameServerKey=1301&charKey=366198944700801654",
@@ -266,7 +266,7 @@
               "equipLevel": 45,
               "maxEnchant": 15,
               "maxExceed": 5,
-              "soulBind": "62.7",
+              "soulBind": "54.7",
               "main": [
                 {
                   "name": "Defense",
@@ -283,8 +283,8 @@
               ],
               "sub": [
                 {
-                  "name": "Accuracy",
-                  "value": "43",
+                  "name": "Attack",
+                  "value": "19",
                   "added": false
                 },
                 {
@@ -295,15 +295,15 @@
               ],
               "subSkills": [
                 {
-                  "name": "Fire Mark",
-                  "level": 1,
-                  "icon": "https://assets.playnccdn.com/static-aion2-gamedata/resources/ICON_SO_SKILL_Passive_002.png",
-                  "added": false
-                },
-                {
                   "name": "Grace of Resistance",
                   "level": 1,
                   "icon": "https://assets.playnccdn.com/static-aion2-gamedata/resources/ICON_SO_SKILL_038.png",
+                  "added": false
+                },
+                {
+                  "name": "Robe of Flame",
+                  "level": 1,
+                  "icon": "https://assets.playnccdn.com/static-aion2-gamedata/resources/ICON_SO_SKILL_Passive_004.png",
                   "added": false
                 }
               ],
@@ -356,7 +356,7 @@
               "equipLevel": 45,
               "maxEnchant": 15,
               "maxExceed": 5,
-              "soulBind": "63.2",
+              "soulBind": "46.3",
               "main": [
                 {
                   "name": "Defense",
@@ -378,8 +378,8 @@
                   "added": false
                 },
                 {
-                  "name": "Willpower",
-                  "value": "27",
+                  "name": "Critical Hit Resist",
+                  "value": "33",
                   "added": false
                 },
                 {
@@ -797,7 +797,7 @@
               "equipLevel": 45,
               "maxEnchant": 15,
               "maxExceed": 5,
-              "soulBind": "31.5",
+              "soulBind": "54.5",
               "main": [
                 {
                   "name": "Attack",
@@ -822,11 +822,6 @@
                   "name": "Attack",
                   "value": "25",
                   "added": false
-                },
-                {
-                  "name": "MP",
-                  "value": "118",
-                  "added": false
                 }
               ],
               "subSkills": [
@@ -834,6 +829,12 @@
                   "name": "Robe of Flame",
                   "level": 1,
                   "icon": "https://assets.playnccdn.com/static-aion2-gamedata/resources/ICON_SO_SKILL_Passive_004.png",
+                  "added": false
+                },
+                {
+                  "name": "Grace of Enhancement",
+                  "level": 1,
+                  "icon": "https://assets.playnccdn.com/static-aion2-gamedata/resources/ICON_SO_SKILL_Passive_007.png",
                   "added": false
                 }
               ],
@@ -1245,7 +1246,7 @@
             "name": "Abyssal Bracelet",
             "grade": "Unique",
             "enchant": 15,
-            "exceed": 1,
+            "exceed": 2,
             "itemLevel": 70,
             "icon": "https://assets.playnccdn.com/static-aion2-gamedata/resources/Icon_ACC_Bracelet_n_02.png",
             "detail": {
@@ -1560,13 +1561,13 @@
           {
             "slot": "Amulet",
             "slotPos": 22,
-            "id": 311030001,
-            "name": "Revelation Amulet",
+            "id": 311030002,
+            "name": "Fierce Battle Amulet",
             "grade": "Unique",
-            "enchant": 10,
+            "enchant": 0,
             "exceed": 0,
             "itemLevel": 65,
-            "icon": "https://assets.playnccdn.com/static-aion2-gamedata/resources/Icon_Item_Craft_Conversion_Crystal_L_lv5_01.png",
+            "icon": "https://assets.playnccdn.com/static-aion2-gamedata/resources/Icon_Equip_EB_EmblemD_MI_abyssshop_L_u_003.png",
             "detail": {
               "category": "Amulet",
               "equipLevel": 1,
@@ -1577,18 +1578,18 @@
                 {
                   "name": "Penetration",
                   "value": "700",
-                  "extra": "300",
+                  "extra": null,
                   "min": null
                 },
                 {
                   "name": "Power Shard Damage Bonus",
                   "value": "40",
-                  "extra": "30",
+                  "extra": null,
                   "min": null
                 },
                 {
-                  "name": "Weapon Damage Boost",
-                  "value": "10%",
+                  "name": "PvP Damage Boost",
+                  "value": "20%",
                   "extra": "0%",
                   "min": null
                 },
@@ -1602,7 +1603,7 @@
               "sub": [],
               "subSkills": [],
               "subSkillMax": 0,
-              "desc": "An amulet attainable only by those who have truly understood the revelation.\nCan be enhanced with Amulet Enhance Scrolls acquired through Monolith Resonance.",
+              "desc": "An amulet bestowed only upon conquerors forged in the heart of fierce battle.\nCan be enhanced with Amulet Enhance Scrolls acquired through Abyss Shop.",
               "set": null,
               "magicSlots": 0,
               "magicStones": [],
@@ -2256,7 +2257,7 @@
             "id": 15280000,
             "name": "Bittercold Wind",
             "category": "Active",
-            "level": 14,
+            "level": 13,
             "icon": "https://assets.playnccdn.com/static-aion2-gamedata/resources/ICON_SO_SKILL_025.png",
             "equip": true,
             "acquired": true
@@ -2337,7 +2338,7 @@
             "id": 15710000,
             "name": "Fire Mark",
             "category": "Passive",
-            "level": 18,
+            "level": 8,
             "icon": "https://assets.playnccdn.com/static-aion2-gamedata/resources/ICON_SO_SKILL_Passive_002.png",
             "equip": false,
             "acquired": true
@@ -2364,7 +2365,7 @@
             "id": 15740000,
             "name": "Robe of Flame",
             "category": "Passive",
-            "level": 19,
+            "level": 20,
             "icon": "https://assets.playnccdn.com/static-aion2-gamedata/resources/ICON_SO_SKILL_Passive_004.png",
             "equip": false,
             "acquired": true
@@ -2382,7 +2383,7 @@
             "id": 15770000,
             "name": "Grace of Resistance",
             "category": "Passive",
-            "level": 5,
+            "level": 16,
             "icon": "https://assets.playnccdn.com/static-aion2-gamedata/resources/ICON_SO_SKILL_038.png",
             "equip": false,
             "acquired": true
@@ -2400,7 +2401,7 @@
             "id": 15780000,
             "name": "Grace of Enhancement",
             "category": "Passive",
-            "level": 14,
+            "level": 15,
             "icon": "https://assets.playnccdn.com/static-aion2-gamedata/resources/ICON_SO_SKILL_Passive_007.png",
             "equip": false,
             "acquired": true
@@ -2542,15 +2543,15 @@
           }
         ],
         "pet": {
-          "name": "Kailin",
+          "name": "Young Ursus",
           "level": 3,
-          "icon": "https://assets.playnccdn.com/static-aion2-gamedata/resources/UT_Vehicle_Portrait_Kailin_01.png"
+          "icon": "https://assets.playnccdn.com/static-aion2-gamedata/resources/UT_Vehicle_Portrait_Ursuss_01_V01.png"
         },
         "wing": {
-          "name": "Talisra Wings",
+          "name": "Dark Veil Wings",
           "grade": "Unique",
           "enchant": 0,
-          "icon": "https://assets.playnccdn.com/static-aion2-gamedata/resources/Icon_WingA_011.png"
+          "icon": "https://assets.playnccdn.com/static-aion2-gamedata/resources/Icon_WingB_019.png"
         },
         "wingSkin": {
           "name": "Talisra Wings",
@@ -2558,7 +2559,7 @@
           "enchant": 0,
           "icon": "https://assets.playnccdn.com/static-aion2-gamedata/resources/Icon_WingA_011.png"
         },
-        "updatedAt": "2026-11-20T12:17:05.211Z"
+        "updatedAt": "2026-11-21T00:59:42.488Z"
       },
       "energy": {
         "value": 30,
@@ -2588,8 +2589,8 @@
       "game": {
         "class": "Gladiator",
         "level": 45,
-        "itemLevel": 2100,
-        "combatPower": 95338,
+        "itemLevel": 2140,
+        "combatPower": 97343,
         "race": "Elyos",
         "title": "Unbound by Genus",
         "profileImage": "https://profileimg.plaync.com/game_profile_images/aion2global/images?gameServerKey=1301&charKey=366198944700849139",
@@ -4234,23 +4235,23 @@
           {
             "slot": "Arcana 1",
             "slotPos": 41,
-            "id": 810150001,
+            "id": 810130001,
             "name": "Chalice of Vigor",
-            "grade": "Rare",
+            "grade": "Unique",
             "enchant": 0,
             "exceed": 0,
-            "itemLevel": 40,
+            "itemLevel": 80,
             "icon": "https://assets.playnccdn.com/static-aion2-gamedata/resources/Icon_Arcana_Card_Grail_u_PveSet2.png",
             "detail": {
               "category": "Chalice",
               "equipLevel": 45,
-              "maxEnchant": 3,
+              "maxEnchant": 5,
               "maxExceed": null,
               "soulBind": "100",
               "main": [
                 {
                   "name": "Time [Siel]",
-                  "value": "12",
+                  "value": "20",
                   "extra": null,
                   "min": null
                 }
@@ -4258,19 +4259,31 @@
               "sub": [],
               "subSkills": [
                 {
-                  "name": "Experienced Counterstrike",
+                  "name": "Overhead Slam",
                   "level": 1,
-                  "icon": "https://assets.playnccdn.com/static-aion2-gamedata/resources/ICON_GL_SKILL_Passive_008.png",
+                  "icon": "https://assets.playnccdn.com/static-aion2-gamedata/resources/ICON_GL_SKILL_017.png",
                   "added": false
                 },
                 {
-                  "name": "Destructive Impulse",
+                  "name": "Rush Strike",
                   "level": 1,
-                  "icon": "https://assets.playnccdn.com/static-aion2-gamedata/resources/ICON_GL_SKILL_Passive_007.png",
+                  "icon": "https://assets.playnccdn.com/static-aion2-gamedata/resources/ICON_GL_SKILL_036.png",
+                  "added": false
+                },
+                {
+                  "name": "Survival Willpower",
+                  "level": 1,
+                  "icon": "https://assets.playnccdn.com/static-aion2-gamedata/resources/ICON_GL_SKILL_Passive_009.png",
+                  "added": false
+                },
+                {
+                  "name": "Mocking Blade",
+                  "level": 1,
+                  "icon": "https://assets.playnccdn.com/static-aion2-gamedata/resources/ICON_GL_SKILL_028.png",
                   "added": false
                 }
               ],
-              "subSkillMax": 2,
+              "subSkillMax": 4,
               "desc": null,
               "set": {
                 "name": "Primal Vigor",
@@ -4711,7 +4724,7 @@
             "id": 11290000,
             "name": "Mocking Blade",
             "category": "Active",
-            "level": 13,
+            "level": 14,
             "icon": "https://assets.playnccdn.com/static-aion2-gamedata/resources/ICON_GL_SKILL_028.png",
             "equip": true,
             "acquired": true
@@ -4720,7 +4733,7 @@
             "id": 11170000,
             "name": "Overhead Slam",
             "category": "Active",
-            "level": 15,
+            "level": 16,
             "icon": "https://assets.playnccdn.com/static-aion2-gamedata/resources/ICON_GL_SKILL_017.png",
             "equip": true,
             "acquired": true
@@ -4756,7 +4769,7 @@
             "id": 11360000,
             "name": "Rush Strike",
             "category": "Active",
-            "level": 15,
+            "level": 16,
             "icon": "https://assets.playnccdn.com/static-aion2-gamedata/resources/ICON_GL_SKILL_036.png",
             "equip": true,
             "acquired": true
@@ -4846,7 +4859,7 @@
             "id": 11770000,
             "name": "Destructive Impulse",
             "category": "Passive",
-            "level": 17,
+            "level": 16,
             "icon": "https://assets.playnccdn.com/static-aion2-gamedata/resources/ICON_GL_SKILL_Passive_007.png",
             "equip": false,
             "acquired": true
@@ -4855,7 +4868,7 @@
             "id": 11780000,
             "name": "Experienced Counterstrike",
             "category": "Passive",
-            "level": 16,
+            "level": 15,
             "icon": "https://assets.playnccdn.com/static-aion2-gamedata/resources/ICON_GL_SKILL_Passive_008.png",
             "equip": false,
             "acquired": true
@@ -4864,7 +4877,7 @@
             "id": 11790000,
             "name": "Survival Willpower",
             "category": "Passive",
-            "level": 15,
+            "level": 16,
             "icon": "https://assets.playnccdn.com/static-aion2-gamedata/resources/ICON_GL_SKILL_Passive_009.png",
             "equip": false,
             "acquired": true
@@ -4997,9 +5010,9 @@
           }
         ],
         "pet": {
-          "name": "Elite Dratona",
-          "level": 2,
-          "icon": "https://assets.playnccdn.com/static-aion2-gamedata/resources/UT_Vehicle_Portrait_Dratona_03.png"
+          "name": "Manduri Trebuchet Worker",
+          "level": 3,
+          "icon": "https://assets.playnccdn.com/static-aion2-gamedata/resources/UT_Vehicle_Portrait_ManduriRng_01.png"
         },
         "wing": {
           "name": "Ultimate Daeva Wings",
@@ -5013,7 +5026,7 @@
           "enchant": 0,
           "icon": null
         },
-        "updatedAt": "2026-11-20T12:17:20.357Z"
+        "updatedAt": "2026-11-21T00:59:57.477Z"
       },
       "energy": null,
       "ref": {
@@ -5029,7 +5042,7 @@
         "class": "Chanter",
         "level": 45,
         "itemLevel": 1995,
-        "combatPower": 97781,
+        "combatPower": 99761,
         "race": "Elyos",
         "title": "Unbound by Genus",
         "profileImage": "https://profileimg.plaync.com/game_profile_images/aion2global/images?gameServerKey=1301&charKey=366198944700864403",
@@ -7276,7 +7289,7 @@
             "id": 18160000,
             "name": "Sprint Mantra",
             "category": "Dp",
-            "level": 2,
+            "level": 5,
             "icon": "https://assets.playnccdn.com/static-aion2-gamedata/resources/ICON_CH_SKILL_016.png",
             "equip": true,
             "acquired": true
@@ -7294,7 +7307,7 @@
             "id": 18330000,
             "name": "Marchutan's Wrath",
             "category": "Dp",
-            "level": 1,
+            "level": 6,
             "icon": "https://assets.playnccdn.com/static-aion2-gamedata/resources/ICON_CH_SKILL_033.png",
             "equip": true,
             "acquired": true
@@ -7364,9 +7377,9 @@
           }
         ],
         "pet": {
-          "name": "Lesser Fire Spirit",
+          "name": "Fossa",
           "level": 3,
-          "icon": "https://assets.playnccdn.com/static-aion2-gamedata/resources/UT_Vehicle_Portrait_FireEle_01.png"
+          "icon": "https://assets.playnccdn.com/static-aion2-gamedata/resources/UT_Vehicle_Portrait_Fossa_01.png"
         },
         "wing": {
           "name": "Ultimate Daeva Wings",
@@ -7380,7 +7393,7 @@
           "enchant": 0,
           "icon": null
         },
-        "updatedAt": "2026-11-20T12:17:35.227Z"
+        "updatedAt": "2026-11-21T01:00:12.644Z"
       },
       "energy": {
         "value": 280,
