@@ -7824,7 +7824,13 @@
         ],
         "updatedAt": "2026-11-13T13:19:00.000Z"
       },
-      "energy": null,
+      "energy": {
+        "value": 50,
+        "setAt": "2026-11-21T16:47:53.4603441Z",
+        "bonus": 875,
+        "editedAt": "2026-11-21T16:47:53.4603441Z",
+        "setBy": "sa"
+      },
       "syncOwner": "mustafa"
     }
   ],
