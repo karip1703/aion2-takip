@@ -26,7 +26,7 @@
     },
     "nearFullHours": 3
   },
-  "lastFetch": "2026-11-21T23:59:24.761Z",
+  "lastFetch": "2026-11-22T12:05:55.628Z",
   "characters": [
     {
       "id": "kyrakia",
@@ -36,7 +36,7 @@
         "class": "Sorcerer",
         "level": 45,
         "itemLevel": 3355,
-        "combatPower": 231446,
+        "combatPower": 231693,
         "race": "Elyos",
         "title": "Divine Skill",
         "profileImage": "https://profileimg.plaync.com/game_profile_images/aion2global/images?gameServerKey=1301&charKey=366198944700801654",
@@ -356,7 +356,7 @@
               "equipLevel": 45,
               "maxEnchant": 15,
               "maxExceed": 5,
-              "soulBind": "44.4",
+              "soulBind": "78.1",
               "main": [
                 {
                   "name": "Defense",
@@ -373,18 +373,18 @@
               ],
               "sub": [
                 {
-                  "name": "Constitution",
-                  "value": "10",
-                  "added": false
-                },
-                {
                   "name": "Attack",
                   "value": "17",
                   "added": false
                 },
                 {
-                  "name": "Natural HP Regen",
-                  "value": "32",
+                  "name": "Critical Hit",
+                  "value": "31",
+                  "added": false
+                },
+                {
+                  "name": "Evasion",
+                  "value": "25",
                   "added": false
                 }
               ],
@@ -2556,12 +2556,12 @@
           "icon": "https://assets.playnccdn.com/static-aion2-gamedata/resources/Icon_WingA_011.png"
         },
         "wingSkin": {
-          "name": "Talisra Wings",
+          "name": "Brawler Wings",
           "grade": "Unique",
           "enchant": 0,
-          "icon": "https://assets.playnccdn.com/static-aion2-gamedata/resources/Icon_WingA_011.png"
+          "icon": "https://assets.playnccdn.com/static-aion2-gamedata/resources/Icon_WingA_003.png"
         },
-        "updatedAt": "2026-11-21T23:58:39.186Z"
+        "updatedAt": "2026-11-22T12:04:55.560Z"
       },
       "energy": {
         "value": 105,
@@ -2893,7 +2893,7 @@
         "class": "Gladiator",
         "level": 45,
         "itemLevel": 2140,
-        "combatPower": 100050,
+        "combatPower": 100069,
         "race": "Elyos",
         "title": "Unbound by Genus",
         "profileImage": "https://profileimg.plaync.com/game_profile_images/aion2global/images?gameServerKey=1301&charKey=366198944700849139",
@@ -5329,7 +5329,7 @@
           "enchant": 0,
           "icon": null
         },
-        "updatedAt": "2026-11-21T23:58:54.559Z"
+        "updatedAt": "2026-11-22T12:05:10.652Z"
       },
       "energy": null,
       "ref": {
@@ -5346,7 +5346,7 @@
         "class": "Chanter",
         "level": 45,
         "itemLevel": 2001,
-        "combatPower": 103369,
+        "combatPower": 103376,
         "race": "Elyos",
         "title": "Unbound by Genus",
         "profileImage": "https://profileimg.plaync.com/game_profile_images/aion2global/images?gameServerKey=1301&charKey=366198944700864403",
@@ -7697,7 +7697,7 @@
           "enchant": 0,
           "icon": null
         },
-        "updatedAt": "2026-11-21T23:59:09.576Z"
+        "updatedAt": "2026-11-22T12:05:25.864Z"
       },
       "energy": {
         "value": 280,
