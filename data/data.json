@@ -26,7 +26,7 @@
     },
     "nearFullHours": 3
   },
-  "lastFetch": "2026-11-22T12:05:55.628Z",
+  "lastFetch": "2026-11-23T00:31:48.321Z",
   "characters": [
     {
       "id": "kyrakia",
@@ -35,8 +35,8 @@
       "game": {
         "class": "Sorcerer",
         "level": 45,
-        "itemLevel": 3355,
-        "combatPower": 231693,
+        "itemLevel": 3360,
+        "combatPower": 232728,
         "race": "Elyos",
         "title": "Divine Skill",
         "profileImage": "https://profileimg.plaync.com/game_profile_images/aion2global/images?gameServerKey=1301&charKey=366198944700801654",
@@ -356,7 +356,7 @@
               "equipLevel": 45,
               "maxEnchant": 15,
               "maxExceed": 5,
-              "soulBind": "78.1",
+              "soulBind": "37.4",
               "main": [
                 {
                   "name": "Defense",
@@ -378,13 +378,13 @@
                   "added": false
                 },
                 {
-                  "name": "Critical Hit",
-                  "value": "31",
+                  "name": "Double Chance",
+                  "value": "1.4%",
                   "added": false
                 },
                 {
-                  "name": "Evasion",
-                  "value": "25",
+                  "name": "Critical Damage Defense",
+                  "value": "179",
                   "added": false
                 }
               ],
@@ -971,7 +971,7 @@
             "name": "Enraged Kromede Earrings",
             "grade": "Unique",
             "enchant": 15,
-            "exceed": 3,
+            "exceed": 4,
             "itemLevel": 86,
             "icon": "https://assets.playnccdn.com/static-aion2-gamedata/resources/Icon_ACC_ER_0053.png",
             "detail": {
@@ -2561,7 +2561,7 @@
           "enchant": 0,
           "icon": "https://assets.playnccdn.com/static-aion2-gamedata/resources/Icon_WingA_003.png"
         },
-        "updatedAt": "2026-11-22T12:04:55.560Z"
+        "updatedAt": "2026-11-23T00:30:49.481Z"
       },
       "energy": {
         "value": 105,
@@ -2892,8 +2892,8 @@
       "game": {
         "class": "Gladiator",
         "level": 45,
-        "itemLevel": 2140,
-        "combatPower": 100069,
+        "itemLevel": 2154,
+        "combatPower": 100947,
         "race": "Elyos",
         "title": "Unbound by Genus",
         "profileImage": "https://profileimg.plaync.com/game_profile_images/aion2global/images?gameServerKey=1301&charKey=366198944700849139",
@@ -3626,84 +3626,86 @@
           {
             "slot": "Necklace",
             "slotPos": 10,
-            "id": 310130050,
-            "name": "Aulamus Necklace",
+            "id": 310130051,
+            "name": "Enraged Kromede Necklace",
             "grade": "Unique",
-            "enchant": 10,
+            "enchant": 5,
             "exceed": 0,
-            "itemLevel": 70,
-            "icon": "https://assets.playnccdn.com/static-aion2-gamedata/resources/Icon_ACC_NL_0072.png",
+            "itemLevel": 86,
+            "icon": "https://assets.playnccdn.com/static-aion2-gamedata/resources/Icon_ACC_NL_0053.png",
             "detail": {
               "category": "Necklace",
               "equipLevel": 45,
               "maxEnchant": 15,
-              "maxExceed": 3,
-              "soulBind": "29",
+              "maxExceed": 5,
+              "soulBind": "39.7",
               "main": [
                 {
                   "name": "Attack",
-                  "value": "108",
-                  "extra": "39",
+                  "value": "133",
+                  "extra": "22",
                   "min": null
                 },
                 {
                   "name": "Defense",
-                  "value": "259",
-                  "extra": "99",
+                  "value": "318",
+                  "extra": "60",
                   "min": null
                 }
               ],
               "sub": [
                 {
-                  "name": "Natural HP Regen",
-                  "value": "51",
-                  "added": false
-                },
-                {
-                  "name": "MP",
-                  "value": "114",
-                  "added": false
-                },
-                {
-                  "name": "Natural MP Regen",
-                  "value": "26",
+                  "name": "Block",
+                  "value": "35",
                   "added": false
                 },
                 {
                   "name": "Critical Hit",
-                  "value": "41",
+                  "value": "40",
+                  "added": false
+                },
+                {
+                  "name": "Natural HP Regen",
+                  "value": "55",
                   "added": false
                 }
               ],
-              "subSkills": [],
+              "subSkills": [
+                {
+                  "name": "Attack Preparation",
+                  "level": 1,
+                  "icon": "https://assets.playnccdn.com/static-aion2-gamedata/resources/ICON_GL_SKILL_Passive_005.png",
+                  "added": false
+                }
+              ],
               "subSkillMax": 4,
               "desc": null,
               "set": null,
               "magicSlots": 4,
               "magicStones": [
                 {
-                  "name": "Block",
-                  "value": "+7",
-                  "grade": "Common",
-                  "icon": "https://assets.playnccdn.com/static-aion2-gamedata/resources/Icon_Item_Usable_Enchant_SoulStone_A_c_001.png"
-                },
-                {
-                  "name": "Block",
-                  "value": "+7",
-                  "grade": "Common",
-                  "icon": "https://assets.playnccdn.com/static-aion2-gamedata/resources/Icon_Item_Usable_Enchant_SoulStone_A_c_001.png"
-                },
-                {
-                  "name": "MP",
-                  "value": "+15",
-                  "grade": "Common",
-                  "icon": "https://assets.playnccdn.com/static-aion2-gamedata/resources/Icon_Item_Usable_Enchant_SoulStone_A_c_001.png"
-                },
-                {
                   "name": "Critical Hit Resist",
-                  "value": "+5",
+                  "value": "+9",
+                  "grade": "Rare",
+                  "icon": "https://assets.playnccdn.com/static-aion2-gamedata/resources/Icon_Item_Usable_Enchant_SoulStone_A_c_002.png"
+                },
+                {
+                  "name": "Attack",
+                  "value": "+8",
+                  "grade": "Legend",
+                  "icon": "https://assets.playnccdn.com/static-aion2-gamedata/resources/Icon_Item_Usable_Enchant_SoulStone_A_c_002.png"
+                },
+                {
+                  "name": "Defense",
+                  "value": "+20",
                   "grade": "Common",
-                  "icon": "https://assets.playnccdn.com/static-aion2-gamedata/resources/Icon_Item_Usable_Enchant_SoulStone_A_c_001.png"
+                  "icon": "https://assets.playnccdn.com/static-aion2-gamedata/resources/Icon_Item_Usable_Enchant_SoulStone_A_c_002.png"
+                },
+                {
+                  "name": "Attack",
+                  "value": "+2",
+                  "grade": "Common",
+                  "icon": "https://assets.playnccdn.com/static-aion2-gamedata/resources/Icon_Item_Usable_Enchant_SoulStone_A_c_002.png"
                 }
               ],
               "godSlots": 0,
@@ -5144,7 +5146,7 @@
             "id": 11750000,
             "name": "Attack Preparation",
             "category": "Passive",
-            "level": 14,
+            "level": 15,
             "icon": "https://assets.playnccdn.com/static-aion2-gamedata/resources/ICON_GL_SKILL_Passive_005.png",
             "equip": false,
             "acquired": true
@@ -5329,7 +5331,7 @@
           "enchant": 0,
           "icon": null
         },
-        "updatedAt": "2026-11-22T12:05:10.652Z"
+        "updatedAt": "2026-11-23T00:31:04.289Z"
       },
       "energy": null,
       "ref": {
@@ -5345,8 +5347,8 @@
       "game": {
         "class": "Chanter",
         "level": 45,
-        "itemLevel": 2001,
-        "combatPower": 103376,
+        "itemLevel": 2005,
+        "combatPower": 104209,
         "race": "Elyos",
         "title": "Unbound by Genus",
         "profileImage": "https://profileimg.plaync.com/game_profile_images/aion2global/images?gameServerKey=1301&charKey=366198944700864403",
@@ -7413,7 +7415,7 @@
             "id": 18300000,
             "name": "Gust Rampage",
             "category": "Active",
-            "level": 13,
+            "level": 14,
             "icon": "https://assets.playnccdn.com/static-aion2-gamedata/resources/ICON_CH_SKILL_030.png",
             "equip": true,
             "acquired": true
@@ -7424,7 +7426,7 @@
             "category": "Active",
             "level": 12,
             "icon": "https://assets.playnccdn.com/static-aion2-gamedata/resources/ICON_CH_SKILL_015.png",
-            "equip": true,
+            "equip": false,
             "acquired": true
           },
           {
@@ -7451,7 +7453,7 @@
             "category": "Active",
             "level": 15,
             "icon": "https://assets.playnccdn.com/static-aion2-gamedata/resources/ICON_CH_SKILL_008.png",
-            "equip": true,
+            "equip": false,
             "acquired": true
           },
           {
@@ -7611,7 +7613,7 @@
             "id": 18330000,
             "name": "Marchutan's Wrath",
             "category": "Dp",
-            "level": 10,
+            "level": 5,
             "icon": "https://assets.playnccdn.com/static-aion2-gamedata/resources/ICON_CH_SKILL_033.png",
             "equip": true,
             "acquired": true
@@ -7647,7 +7649,7 @@
             "id": 18250000,
             "name": "Power of the Storm",
             "category": "Dp",
-            "level": 12,
+            "level": 15,
             "icon": "https://assets.playnccdn.com/static-aion2-gamedata/resources/ICON_CH_SKILL_025.png",
             "equip": true,
             "acquired": true
@@ -7659,7 +7661,7 @@
             "level": 0,
             "icon": "https://assets.playnccdn.com/static-aion2-gamedata/resources/ICON_CH_SKILL_042.png",
             "equip": false,
-            "acquired": false
+            "acquired": true
           },
           {
             "id": 18700000,
@@ -7697,7 +7699,7 @@
           "enchant": 0,
           "icon": null
         },
-        "updatedAt": "2026-11-22T12:05:25.864Z"
+        "updatedAt": "2026-11-23T00:31:18.894Z"
       },
       "energy": {
         "value": 280,
