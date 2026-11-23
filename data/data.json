@@ -26,7 +26,7 @@
     },
     "nearFullHours": 3
   },
-  "lastFetch": "2026-11-23T00:31:48.321Z",
+  "lastFetch": "2026-11-23T13:46:58.983Z",
   "characters": [
     {
       "id": "kyrakia",
@@ -36,7 +36,7 @@
         "class": "Sorcerer",
         "level": 45,
         "itemLevel": 3360,
-        "combatPower": 232728,
+        "combatPower": 232784,
         "race": "Elyos",
         "title": "Divine Skill",
         "profileImage": "https://profileimg.plaync.com/game_profile_images/aion2global/images?gameServerKey=1301&charKey=366198944700801654",
@@ -2561,7 +2561,7 @@
           "enchant": 0,
           "icon": "https://assets.playnccdn.com/static-aion2-gamedata/resources/Icon_WingA_003.png"
         },
-        "updatedAt": "2026-11-23T00:30:49.481Z"
+        "updatedAt": "2026-11-23T13:46:00.903Z"
       },
       "energy": {
         "value": 105,
@@ -2893,7 +2893,7 @@
         "class": "Gladiator",
         "level": 45,
         "itemLevel": 2154,
-        "combatPower": 100947,
+        "combatPower": 100984,
         "race": "Elyos",
         "title": "Unbound by Genus",
         "profileImage": "https://profileimg.plaync.com/game_profile_images/aion2global/images?gameServerKey=1301&charKey=366198944700849139",
@@ -5331,7 +5331,7 @@
           "enchant": 0,
           "icon": null
         },
-        "updatedAt": "2026-11-23T00:31:04.289Z"
+        "updatedAt": "2026-11-23T13:46:15.382Z"
       },
       "energy": null,
       "ref": {
@@ -5348,7 +5348,7 @@
         "class": "Chanter",
         "level": 45,
         "itemLevel": 2005,
-        "combatPower": 104209,
+        "combatPower": 393117,
         "race": "Elyos",
         "title": "Unbound by Genus",
         "profileImage": "https://profileimg.plaync.com/game_profile_images/aion2global/images?gameServerKey=1301&charKey=366198944700864403",
@@ -7577,7 +7577,7 @@
             "id": 18190000,
             "name": "Undefeated Mantra",
             "category": "Dp",
-            "level": 15,
+            "level": 16,
             "icon": "https://assets.playnccdn.com/static-aion2-gamedata/resources/ICON_CH_SKILL_019.png",
             "equip": true,
             "acquired": true
@@ -7613,9 +7613,9 @@
             "id": 18330000,
             "name": "Marchutan's Wrath",
             "category": "Dp",
-            "level": 5,
+            "level": 0,
             "icon": "https://assets.playnccdn.com/static-aion2-gamedata/resources/ICON_CH_SKILL_033.png",
-            "equip": true,
+            "equip": false,
             "acquired": true
           },
           {
@@ -7658,9 +7658,9 @@
             "id": 18420000,
             "name": "Guardian Blessing",
             "category": "Dp",
-            "level": 0,
+            "level": 4,
             "icon": "https://assets.playnccdn.com/static-aion2-gamedata/resources/ICON_CH_SKILL_042.png",
-            "equip": false,
+            "equip": true,
             "acquired": true
           },
           {
@@ -7699,7 +7699,7 @@
           "enchant": 0,
           "icon": null
         },
-        "updatedAt": "2026-11-23T00:31:18.894Z"
+        "updatedAt": "2026-11-23T13:46:29.644Z"
       },
       "energy": {
         "value": 280,
@@ -8151,7 +8151,7 @@
         "class": "Ranger",
         "level": 45,
         "itemLevel": 2834,
-        "combatPower": 177022,
+        "combatPower": 178628,
         "race": "Elyos",
         "title": "",
         "profileImage": "https://profileimg.plaync.com/game_profile_images/aion2global/images?gameServerKey=1301&charKey=366198944700797298",
@@ -10535,7 +10535,7 @@
             "id": 14220000,
             "name": "Bow of Blessing",
             "category": "Dp",
-            "level": 16,
+            "level": 15,
             "icon": "https://assets.playnccdn.com/static-aion2-gamedata/resources/ICON_RA_SKILL_030.png",
             "equip": true,
             "acquired": true
@@ -10625,7 +10625,7 @@
             "id": 14380000,
             "name": "Supporting Fire",
             "category": "Dp",
-            "level": 15,
+            "level": 18,
             "icon": "https://assets.playnccdn.com/static-aion2-gamedata/resources/ICON_RA_SKILL_038.png",
             "equip": true,
             "acquired": true
@@ -10648,7 +10648,7 @@
           "enchant": 0,
           "icon": "https://assets.playnccdn.com/static-aion2-gamedata/resources/Icon_WingB_019.png"
         },
-        "updatedAt": "2026-11-22T10:10:32.137Z"
+        "updatedAt": "2026-11-23T13:46:44.234Z"
       },
       "energy": null,
       "dungeons": [],
