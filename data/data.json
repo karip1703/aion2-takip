@@ -26,7 +26,7 @@
     },
     "nearFullHours": 3
   },
-  "lastFetch": "2026-11-23T13:46:58.983Z",
+  "lastFetch": "2026-11-24T04:30:38.128Z",
   "characters": [
     {
       "id": "kyrakia",
@@ -35,8 +35,8 @@
       "game": {
         "class": "Sorcerer",
         "level": 45,
-        "itemLevel": 3360,
-        "combatPower": 232784,
+        "itemLevel": 3350,
+        "combatPower": 227170,
         "race": "Elyos",
         "title": "Divine Skill",
         "profileImage": "https://profileimg.plaync.com/game_profile_images/aion2global/images?gameServerKey=1301&charKey=366198944700801654",
@@ -356,7 +356,7 @@
               "equipLevel": 45,
               "maxEnchant": 15,
               "maxExceed": 5,
-              "soulBind": "37.4",
+              "soulBind": "44.2",
               "main": [
                 {
                   "name": "Defense",
@@ -383,8 +383,8 @@
                   "added": false
                 },
                 {
-                  "name": "Critical Damage Defense",
-                  "value": "179",
+                  "name": "Natural MP Regen",
+                  "value": "18",
                   "added": false
                 }
               ],
@@ -1563,13 +1563,13 @@
           {
             "slot": "Amulet",
             "slotPos": 22,
-            "id": 311030001,
-            "name": "Revelation Amulet",
+            "id": 311030002,
+            "name": "Fierce Battle Amulet",
             "grade": "Unique",
-            "enchant": 10,
+            "enchant": 0,
             "exceed": 0,
             "itemLevel": 65,
-            "icon": "https://assets.playnccdn.com/static-aion2-gamedata/resources/Icon_Item_Craft_Conversion_Crystal_L_lv5_01.png",
+            "icon": "https://assets.playnccdn.com/static-aion2-gamedata/resources/Icon_Equip_EB_EmblemD_MI_abyssshop_L_u_003.png",
             "detail": {
               "category": "Amulet",
               "equipLevel": 1,
@@ -1580,18 +1580,18 @@
                 {
                   "name": "Penetration",
                   "value": "700",
-                  "extra": "300",
+                  "extra": null,
                   "min": null
                 },
                 {
                   "name": "Power Shard Damage Bonus",
                   "value": "40",
-                  "extra": "30",
+                  "extra": null,
                   "min": null
                 },
                 {
-                  "name": "Weapon Damage Boost",
-                  "value": "10%",
+                  "name": "PvP Damage Boost",
+                  "value": "20%",
                   "extra": "0%",
                   "min": null
                 },
@@ -1605,7 +1605,7 @@
               "sub": [],
               "subSkills": [],
               "subSkillMax": 0,
-              "desc": "An amulet attainable only by those who have truly understood the revelation.\nCan be enhanced with Amulet Enhance Scrolls acquired through Monolith Resonance.",
+              "desc": "An amulet bestowed only upon conquerors forged in the heart of fierce battle.\nCan be enhanced with Amulet Enhance Scrolls acquired through Abyss Shop.",
               "set": null,
               "magicSlots": 0,
               "magicStones": [],
@@ -2561,7 +2561,7 @@
           "enchant": 0,
           "icon": "https://assets.playnccdn.com/static-aion2-gamedata/resources/Icon_WingA_003.png"
         },
-        "updatedAt": "2026-11-23T13:46:00.903Z"
+        "updatedAt": "2026-11-24T04:29:40.208Z"
       },
       "energy": {
         "value": 105,
@@ -2893,7 +2893,7 @@
         "class": "Gladiator",
         "level": 45,
         "itemLevel": 2154,
-        "combatPower": 100984,
+        "combatPower": 102057,
         "race": "Elyos",
         "title": "Unbound by Genus",
         "profileImage": "https://profileimg.plaync.com/game_profile_images/aion2global/images?gameServerKey=1301&charKey=366198944700849139",
@@ -5209,7 +5209,7 @@
             "id": 11400000,
             "name": "Lunge Stance",
             "category": "Dp",
-            "level": 10,
+            "level": 11,
             "icon": "https://assets.playnccdn.com/static-aion2-gamedata/resources/ICON_GL_SKILL_024.png",
             "equip": true,
             "acquired": true
@@ -5227,7 +5227,7 @@
             "id": 11110000,
             "name": "Focused Block",
             "category": "Dp",
-            "level": 4,
+            "level": 5,
             "icon": "https://assets.playnccdn.com/static-aion2-gamedata/resources/ICON_GL_SKILL_011.png",
             "equip": true,
             "acquired": true
@@ -5331,7 +5331,7 @@
           "enchant": 0,
           "icon": null
         },
-        "updatedAt": "2026-11-23T13:46:15.382Z"
+        "updatedAt": "2026-11-24T04:29:54.849Z"
       },
       "energy": null,
       "ref": {
@@ -5348,7 +5348,7 @@
         "class": "Chanter",
         "level": 45,
         "itemLevel": 2005,
-        "combatPower": 393117,
+        "combatPower": 105731,
         "race": "Elyos",
         "title": "Unbound by Genus",
         "profileImage": "https://profileimg.plaync.com/game_profile_images/aion2global/images?gameServerKey=1301&charKey=366198944700864403",
@@ -7415,7 +7415,7 @@
             "id": 18300000,
             "name": "Gust Rampage",
             "category": "Active",
-            "level": 14,
+            "level": 6,
             "icon": "https://assets.playnccdn.com/static-aion2-gamedata/resources/ICON_CH_SKILL_030.png",
             "equip": true,
             "acquired": true
@@ -7487,7 +7487,7 @@
             "id": 18720000,
             "name": "Crossguard",
             "category": "Passive",
-            "level": 10,
+            "level": 11,
             "icon": "https://assets.playnccdn.com/static-aion2-gamedata/resources/ICON_CH_SKILL_Passive_002.png",
             "equip": false,
             "acquired": true
@@ -7541,7 +7541,7 @@
             "id": 18780000,
             "name": "Earth's Promise",
             "category": "Passive",
-            "level": 5,
+            "level": 11,
             "icon": "https://assets.playnccdn.com/static-aion2-gamedata/resources/ICON_CH_SKILL_Passive_010.png",
             "equip": false,
             "acquired": true
@@ -7577,7 +7577,7 @@
             "id": 18190000,
             "name": "Undefeated Mantra",
             "category": "Dp",
-            "level": 16,
+            "level": 15,
             "icon": "https://assets.playnccdn.com/static-aion2-gamedata/resources/ICON_CH_SKILL_019.png",
             "equip": true,
             "acquired": true
@@ -7595,7 +7595,7 @@
             "id": 18160000,
             "name": "Sprint Mantra",
             "category": "Dp",
-            "level": 5,
+            "level": 10,
             "icon": "https://assets.playnccdn.com/static-aion2-gamedata/resources/ICON_CH_SKILL_016.png",
             "equip": true,
             "acquired": true
@@ -7658,7 +7658,7 @@
             "id": 18420000,
             "name": "Guardian Blessing",
             "category": "Dp",
-            "level": 4,
+            "level": 5,
             "icon": "https://assets.playnccdn.com/static-aion2-gamedata/resources/ICON_CH_SKILL_042.png",
             "equip": true,
             "acquired": true
@@ -7699,7 +7699,7 @@
           "enchant": 0,
           "icon": null
         },
-        "updatedAt": "2026-11-23T13:46:29.644Z"
+        "updatedAt": "2026-11-24T04:30:09.317Z"
       },
       "energy": {
         "value": 280,
