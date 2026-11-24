@@ -26,7 +26,7 @@
     },
     "nearFullHours": 3
   },
-  "lastFetch": "2026-11-24T04:30:38.128Z",
+  "lastFetch": "2026-11-24T21:39:11.332Z",
   "characters": [
     {
       "id": "kyrakia",
@@ -35,8 +35,8 @@
       "game": {
         "class": "Sorcerer",
         "level": 45,
-        "itemLevel": 3350,
-        "combatPower": 227170,
+        "itemLevel": 3360,
+        "combatPower": 233866,
         "race": "Elyos",
         "title": "Divine Skill",
         "profileImage": "https://profileimg.plaync.com/game_profile_images/aion2global/images?gameServerKey=1301&charKey=366198944700801654",
@@ -356,7 +356,7 @@
               "equipLevel": 45,
               "maxEnchant": 15,
               "maxExceed": 5,
-              "soulBind": "44.2",
+              "soulBind": "57.2",
               "main": [
                 {
                   "name": "Defense",
@@ -383,8 +383,8 @@
                   "added": false
                 },
                 {
-                  "name": "Natural MP Regen",
-                  "value": "18",
+                  "name": "HP",
+                  "value": "157",
                   "added": false
                 }
               ],
@@ -1563,13 +1563,13 @@
           {
             "slot": "Amulet",
             "slotPos": 22,
-            "id": 311030002,
-            "name": "Fierce Battle Amulet",
+            "id": 311030001,
+            "name": "Revelation Amulet",
             "grade": "Unique",
-            "enchant": 0,
+            "enchant": 10,
             "exceed": 0,
             "itemLevel": 65,
-            "icon": "https://assets.playnccdn.com/static-aion2-gamedata/resources/Icon_Equip_EB_EmblemD_MI_abyssshop_L_u_003.png",
+            "icon": "https://assets.playnccdn.com/static-aion2-gamedata/resources/Icon_Item_Craft_Conversion_Crystal_L_lv5_01.png",
             "detail": {
               "category": "Amulet",
               "equipLevel": 1,
@@ -1580,18 +1580,18 @@
                 {
                   "name": "Penetration",
                   "value": "700",
-                  "extra": null,
+                  "extra": "300",
                   "min": null
                 },
                 {
                   "name": "Power Shard Damage Bonus",
                   "value": "40",
-                  "extra": null,
+                  "extra": "30",
                   "min": null
                 },
                 {
-                  "name": "PvP Damage Boost",
-                  "value": "20%",
+                  "name": "Weapon Damage Boost",
+                  "value": "10%",
                   "extra": "0%",
                   "min": null
                 },
@@ -1605,7 +1605,7 @@
               "sub": [],
               "subSkills": [],
               "subSkillMax": 0,
-              "desc": "An amulet bestowed only upon conquerors forged in the heart of fierce battle.\nCan be enhanced with Amulet Enhance Scrolls acquired through Abyss Shop.",
+              "desc": "An amulet attainable only by those who have truly understood the revelation.\nCan be enhanced with Amulet Enhance Scrolls acquired through Monolith Resonance.",
               "set": null,
               "magicSlots": 0,
               "magicStones": [],
@@ -2561,7 +2561,7 @@
           "enchant": 0,
           "icon": "https://assets.playnccdn.com/static-aion2-gamedata/resources/Icon_WingA_003.png"
         },
-        "updatedAt": "2026-11-24T04:29:40.208Z"
+        "updatedAt": "2026-11-24T21:38:10.445Z"
       },
       "energy": {
         "value": 105,
