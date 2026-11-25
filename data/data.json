@@ -26,7 +26,7 @@
     },
     "nearFullHours": 3
   },
-  "lastFetch": "2026-11-24T21:39:11.332Z",
+  "lastFetch": "2026-11-25T13:41:35.709Z",
   "characters": [
     {
       "id": "kyrakia",
@@ -8151,7 +8151,7 @@
         "class": "Ranger",
         "level": 45,
         "itemLevel": 2834,
-        "combatPower": 178628,
+        "combatPower": 395748,
         "race": "Elyos",
         "title": "",
         "profileImage": "https://profileimg.plaync.com/game_profile_images/aion2global/images?gameServerKey=1301&charKey=366198944700797298",
@@ -10648,7 +10648,7 @@
           "enchant": 0,
           "icon": "https://assets.playnccdn.com/static-aion2-gamedata/resources/Icon_WingB_019.png"
         },
-        "updatedAt": "2026-11-23T13:46:44.234Z"
+        "updatedAt": "2026-11-25T13:41:20.742Z"
       },
       "energy": null,
       "dungeons": [],
