@@ -26,7 +26,7 @@
     },
     "nearFullHours": 3
   },
-  "lastFetch": "2026-11-25T13:41:35.709Z",
+  "lastFetch": "2026-11-26T02:32:52.157Z",
   "characters": [
     {
       "id": "kyrakia",
@@ -36,7 +36,7 @@
         "class": "Sorcerer",
         "level": 45,
         "itemLevel": 3360,
-        "combatPower": 233866,
+        "combatPower": 244224,
         "race": "Elyos",
         "title": "Divine Skill",
         "profileImage": "https://profileimg.plaync.com/game_profile_images/aion2global/images?gameServerKey=1301&charKey=366198944700801654",
@@ -356,7 +356,7 @@
               "equipLevel": 45,
               "maxEnchant": 15,
               "maxExceed": 5,
-              "soulBind": "57.2",
+              "soulBind": "43.6",
               "main": [
                 {
                   "name": "Defense",
@@ -383,8 +383,8 @@
                   "added": false
                 },
                 {
-                  "name": "HP",
-                  "value": "157",
+                  "name": "MP",
+                  "value": "71",
                   "added": false
                 }
               ],
@@ -799,7 +799,7 @@
               "equipLevel": 45,
               "maxEnchant": 15,
               "maxExceed": 5,
-              "soulBind": "54.5",
+              "soulBind": "100",
               "main": [
                 {
                   "name": "Attack",
@@ -817,12 +817,17 @@
               "sub": [
                 {
                   "name": "Might",
-                  "value": "10",
+                  "value": "19",
                   "added": false
                 },
                 {
                   "name": "Attack",
-                  "value": "25",
+                  "value": "36",
+                  "added": false
+                },
+                {
+                  "name": "Combat Speed",
+                  "value": "4.1%",
                   "added": false
                 }
               ],
@@ -831,12 +836,6 @@
                   "name": "Robe of Flame",
                   "level": 1,
                   "icon": "https://assets.playnccdn.com/static-aion2-gamedata/resources/ICON_SO_SKILL_Passive_004.png",
-                  "added": false
-                },
-                {
-                  "name": "Grace of Enhancement",
-                  "level": 1,
-                  "icon": "https://assets.playnccdn.com/static-aion2-gamedata/resources/ICON_SO_SKILL_Passive_007.png",
                   "added": false
                 }
               ],
@@ -2403,7 +2402,7 @@
             "id": 15780000,
             "name": "Grace of Enhancement",
             "category": "Passive",
-            "level": 15,
+            "level": 14,
             "icon": "https://assets.playnccdn.com/static-aion2-gamedata/resources/ICON_SO_SKILL_Passive_007.png",
             "equip": false,
             "acquired": true
@@ -2439,10 +2438,10 @@
             "id": 15160000,
             "name": "Steel Barrier",
             "category": "Dp",
-            "level": 0,
+            "level": 15,
             "icon": "https://assets.playnccdn.com/static-aion2-gamedata/resources/ICON_SO_SKILL_016.png",
-            "equip": false,
-            "acquired": false
+            "equip": true,
+            "acquired": true
           },
           {
             "id": 15400000,
@@ -2522,7 +2521,7 @@
             "category": "Dp",
             "level": 0,
             "icon": "https://assets.playnccdn.com/static-aion2-gamedata/resources/ICON_SO_SKILL_012.png",
-            "equip": false,
+            "equip": true,
             "acquired": true
           },
           {
@@ -2550,18 +2549,18 @@
           "icon": "https://assets.playnccdn.com/static-aion2-gamedata/resources/UT_Vehicle_Portrait_Ursuss_01_V01.png"
         },
         "wing": {
-          "name": "Talisra Wings",
+          "name": "Abyssal Waves Wings",
           "grade": "Unique",
           "enchant": 0,
-          "icon": "https://assets.playnccdn.com/static-aion2-gamedata/resources/Icon_WingA_011.png"
+          "icon": "https://assets.playnccdn.com/static-aion2-gamedata/resources/Icon_WingB_021.png"
         },
         "wingSkin": {
-          "name": "Brawler Wings",
+          "name": "Abyssal Waves Wings",
           "grade": "Unique",
           "enchant": 0,
-          "icon": "https://assets.playnccdn.com/static-aion2-gamedata/resources/Icon_WingA_003.png"
+          "icon": "https://assets.playnccdn.com/static-aion2-gamedata/resources/Icon_WingB_021.png"
         },
-        "updatedAt": "2026-11-24T21:38:10.445Z"
+        "updatedAt": "2026-11-26T02:31:52.399Z"
       },
       "energy": {
         "value": 105,
@@ -8151,7 +8150,7 @@
         "class": "Ranger",
         "level": 45,
         "itemLevel": 2834,
-        "combatPower": 395748,
+        "combatPower": 178728,
         "race": "Elyos",
         "title": "",
         "profileImage": "https://profileimg.plaync.com/game_profile_images/aion2global/images?gameServerKey=1301&charKey=366198944700797298",
@@ -10517,7 +10516,7 @@
             "id": 14270000,
             "name": "Arrow Storm",
             "category": "Dp",
-            "level": 0,
+            "level": 1,
             "icon": "https://assets.playnccdn.com/static-aion2-gamedata/resources/ICON_RA_SKILL_026.png",
             "equip": true,
             "acquired": true
@@ -10648,7 +10647,7 @@
           "enchant": 0,
           "icon": "https://assets.playnccdn.com/static-aion2-gamedata/resources/Icon_WingB_019.png"
         },
-        "updatedAt": "2026-11-25T13:41:20.742Z"
+        "updatedAt": "2026-11-26T02:32:37.420Z"
       },
       "energy": null,
       "dungeons": [],
