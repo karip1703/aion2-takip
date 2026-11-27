@@ -26,7 +26,7 @@
     },
     "nearFullHours": 3
   },
-  "lastFetch": "2026-11-26T02:32:52.157Z",
+  "lastFetch": "2026-11-27T02:31:16.752Z",
   "characters": [
     {
       "id": "kyrakia",
@@ -35,8 +35,8 @@
       "game": {
         "class": "Sorcerer",
         "level": 45,
-        "itemLevel": 3360,
-        "combatPower": 244224,
+        "itemLevel": 3379,
+        "combatPower": 247233,
         "race": "Elyos",
         "title": "Divine Skill",
         "profileImage": "https://profileimg.plaync.com/game_profile_images/aion2global/images?gameServerKey=1301&charKey=366198944700801654",
@@ -266,7 +266,7 @@
               "equipLevel": 45,
               "maxEnchant": 15,
               "maxExceed": 5,
-              "soulBind": "54.7",
+              "soulBind": "46.4",
               "main": [
                 {
                   "name": "Defense",
@@ -291,15 +291,14 @@
                   "name": "Weapon Damage Tolerance",
                   "value": "6.3%",
                   "added": false
+                },
+                {
+                  "name": "Critical Hit",
+                  "value": "35",
+                  "added": false
                 }
               ],
               "subSkills": [
-                {
-                  "name": "Grace of Resistance",
-                  "level": 1,
-                  "icon": "https://assets.playnccdn.com/static-aion2-gamedata/resources/ICON_SO_SKILL_038.png",
-                  "added": false
-                },
                 {
                   "name": "Robe of Flame",
                   "level": 1,
@@ -356,7 +355,7 @@
               "equipLevel": 45,
               "maxEnchant": 15,
               "maxExceed": 5,
-              "soulBind": "43.6",
+              "soulBind": "100",
               "main": [
                 {
                   "name": "Defense",
@@ -374,17 +373,17 @@
               "sub": [
                 {
                   "name": "Attack",
-                  "value": "17",
+                  "value": "23",
                   "added": false
                 },
                 {
                   "name": "Double Chance",
-                  "value": "1.4%",
+                  "value": "1.7%",
                   "added": false
                 },
                 {
-                  "name": "MP",
-                  "value": "71",
+                  "name": "Critical Damage Boost",
+                  "value": "12.2%",
                   "added": false
                 }
               ],
@@ -710,7 +709,7 @@
               "equipLevel": 45,
               "maxEnchant": 15,
               "maxExceed": 5,
-              "soulBind": "51.1",
+              "soulBind": "34.7",
               "main": [
                 {
                   "name": "Defense",
@@ -727,29 +726,27 @@
               ],
               "sub": [
                 {
-                  "name": "Attack",
-                  "value": "18",
-                  "added": false
-                },
-                {
-                  "name": "Dexterity",
-                  "value": "23",
-                  "added": false
-                },
-                {
                   "name": "Constitution",
-                  "value": "12",
+                  "value": "14",
                   "added": false
-                }
-              ],
-              "subSkills": [
+                },
                 {
-                  "name": "Cold Snap",
-                  "level": 1,
-                  "icon": "https://assets.playnccdn.com/static-aion2-gamedata/resources/ICON_SO_SKILL_Passive_003.png",
+                  "name": "Natural HP Regen",
+                  "value": "42",
+                  "added": false
+                },
+                {
+                  "name": "Attack",
+                  "value": "16",
+                  "added": false
+                },
+                {
+                  "name": "Evasion",
+                  "value": "21",
                   "added": false
                 }
               ],
+              "subSkills": [],
               "subSkillMax": 4,
               "desc": null,
               "set": null,
@@ -791,7 +788,7 @@
             "name": "Enraged Kromede Necklace",
             "grade": "Unique",
             "enchant": 15,
-            "exceed": 3,
+            "exceed": 4,
             "itemLevel": 86,
             "icon": "https://assets.playnccdn.com/static-aion2-gamedata/resources/Icon_ACC_NL_0053.png",
             "detail": {
@@ -2357,7 +2354,7 @@
             "id": 15730000,
             "name": "Cold Snap",
             "category": "Passive",
-            "level": 19,
+            "level": 18,
             "icon": "https://assets.playnccdn.com/static-aion2-gamedata/resources/ICON_SO_SKILL_Passive_003.png",
             "equip": false,
             "acquired": true
@@ -2384,7 +2381,7 @@
             "id": 15770000,
             "name": "Grace of Resistance",
             "category": "Passive",
-            "level": 16,
+            "level": 15,
             "icon": "https://assets.playnccdn.com/static-aion2-gamedata/resources/ICON_SO_SKILL_038.png",
             "equip": false,
             "acquired": true
@@ -2521,7 +2518,7 @@
             "category": "Dp",
             "level": 0,
             "icon": "https://assets.playnccdn.com/static-aion2-gamedata/resources/ICON_SO_SKILL_012.png",
-            "equip": true,
+            "equip": false,
             "acquired": true
           },
           {
@@ -2560,7 +2557,7 @@
           "enchant": 0,
           "icon": "https://assets.playnccdn.com/static-aion2-gamedata/resources/Icon_WingB_021.png"
         },
-        "updatedAt": "2026-11-26T02:31:52.399Z"
+        "updatedAt": "2026-11-27T02:30:16.319Z"
       },
       "energy": {
         "value": 290,
@@ -5347,7 +5344,7 @@
         "class": "Chanter",
         "level": 45,
         "itemLevel": 2005,
-        "combatPower": 105731,
+        "combatPower": 109550,
         "race": "Elyos",
         "title": "Unbound by Genus",
         "profileImage": "https://profileimg.plaync.com/game_profile_images/aion2global/images?gameServerKey=1301&charKey=366198944700864403",
@@ -7612,9 +7609,9 @@
             "id": 18330000,
             "name": "Marchutan's Wrath",
             "category": "Dp",
-            "level": 0,
+            "level": 11,
             "icon": "https://assets.playnccdn.com/static-aion2-gamedata/resources/ICON_CH_SKILL_033.png",
-            "equip": false,
+            "equip": true,
             "acquired": true
           },
           {
@@ -7698,7 +7695,7 @@
           "enchant": 0,
           "icon": null
         },
-        "updatedAt": "2026-11-24T04:30:09.317Z"
+        "updatedAt": "2026-11-27T02:30:46.966Z"
       },
       "energy": {
         "value": 425,
