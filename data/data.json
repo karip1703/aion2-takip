@@ -26,7 +26,7 @@
     },
     "nearFullHours": 3
   },
-  "lastFetch": "2026-11-27T13:16:36.230Z",
+  "lastFetch": "2026-11-28T02:19:51.926Z",
   "characters": [
     {
       "id": "kyrakia",
@@ -35,8 +35,8 @@
       "game": {
         "class": "Sorcerer",
         "level": 45,
-        "itemLevel": 3379,
-        "combatPower": 246750,
+        "itemLevel": 3389,
+        "combatPower": 247092,
         "race": "Elyos",
         "title": "Divine Skill",
         "profileImage": "https://profileimg.plaync.com/game_profile_images/aion2global/images?gameServerKey=1301&charKey=366198944700801654",
@@ -266,7 +266,7 @@
               "equipLevel": 45,
               "maxEnchant": 15,
               "maxExceed": 5,
-              "soulBind": "35.2",
+              "soulBind": "31.5",
               "main": [
                 {
                   "name": "Defense",
@@ -293,7 +293,7 @@
                   "added": false
                 },
                 {
-                  "name": "Defense",
+                  "name": "Front Defense",
                   "value": "226",
                   "added": false
                 }
@@ -879,7 +879,7 @@
             "name": "Enraged Kromede Earrings",
             "grade": "Unique",
             "enchant": 15,
-            "exceed": 3,
+            "exceed": 4,
             "itemLevel": 86,
             "icon": "https://assets.playnccdn.com/static-aion2-gamedata/resources/Icon_ACC_ER_0053.png",
             "detail": {
@@ -1059,7 +1059,7 @@
             "name": "Enraged Kromede Ring",
             "grade": "Unique",
             "enchant": 15,
-            "exceed": 3,
+            "exceed": 4,
             "itemLevel": 86,
             "icon": "https://assets.playnccdn.com/static-aion2-gamedata/resources/Icon_ACC_Ring_0053.png",
             "detail": {
@@ -2543,9 +2543,9 @@
           }
         ],
         "pet": {
-          "name": "Young Ursus",
+          "name": "Basilisk",
           "level": 3,
-          "icon": "https://assets.playnccdn.com/static-aion2-gamedata/resources/UT_Vehicle_Portrait_Ursuss_01_V01.png"
+          "icon": "https://assets.playnccdn.com/static-aion2-gamedata/resources/UT_Vehicle_Portrait_Basilisk_01.png"
         },
         "wing": {
           "name": "Abyssal Waves Wings",
@@ -2559,7 +2559,7 @@
           "enchant": 0,
           "icon": "https://assets.playnccdn.com/static-aion2-gamedata/resources/Icon_WingB_021.png"
         },
-        "updatedAt": "2026-11-27T13:15:36.395Z"
+        "updatedAt": "2026-11-28T02:18:51.411Z"
       },
       "energy": {
         "value": 290,
@@ -2891,7 +2891,7 @@
         "class": "Gladiator",
         "level": 45,
         "itemLevel": 2184,
-        "combatPower": 106379,
+        "combatPower": 106382,
         "race": "Elyos",
         "title": "Empty Closet",
         "profileImage": "https://profileimg.plaync.com/game_profile_images/aion2global/images?gameServerKey=1301&charKey=366198944700849139",
@@ -5308,7 +5308,7 @@
           "enchant": 0,
           "icon": null
         },
-        "updatedAt": "2026-11-27T13:15:51.478Z"
+        "updatedAt": "2026-11-28T02:19:06.572Z"
       },
       "energy": null,
       "ref": {
@@ -5325,7 +5325,7 @@
         "class": "Chanter",
         "level": 45,
         "itemLevel": 2116,
-        "combatPower": 117680,
+        "combatPower": 117283,
         "race": "Elyos",
         "title": "Unbound by Genus",
         "profileImage": "https://profileimg.plaync.com/game_profile_images/aion2global/images?gameServerKey=1301&charKey=366198944700864403",
@@ -7602,7 +7602,7 @@
             "id": 18140000,
             "name": "Focused Defense",
             "category": "Dp",
-            "level": 10,
+            "level": 5,
             "icon": "https://assets.playnccdn.com/static-aion2-gamedata/resources/ICON_CH_SKILL_014.png",
             "equip": true,
             "acquired": true
@@ -7611,7 +7611,7 @@
             "id": 18160000,
             "name": "Sprint Mantra",
             "category": "Dp",
-            "level": 10,
+            "level": 14,
             "icon": "https://assets.playnccdn.com/static-aion2-gamedata/resources/ICON_CH_SKILL_016.png",
             "equip": true,
             "acquired": true
@@ -7699,9 +7699,9 @@
           }
         ],
         "pet": {
-          "name": "Fossa",
+          "name": "Konutin Worker",
           "level": 3,
-          "icon": "https://assets.playnccdn.com/static-aion2-gamedata/resources/UT_Vehicle_Portrait_Fossa_01.png"
+          "icon": "https://assets.playnccdn.com/static-aion2-gamedata/resources/UT_Vehicle_Portrait_Conuti_02.png"
         },
         "wing": {
           "name": "Ultimate Daeva Wings",
@@ -7715,7 +7715,7 @@
           "enchant": 0,
           "icon": null
         },
-        "updatedAt": "2026-11-27T13:16:06.319Z"
+        "updatedAt": "2026-11-28T02:19:21.701Z"
       },
       "energy": {
         "value": 425,
